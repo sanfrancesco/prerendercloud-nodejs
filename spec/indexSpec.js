@@ -31,16 +31,15 @@ describe('prerender middleware', function() {
       this.next = jasmine.createSpy();
       this.runIt = function(done = () => {}) {
         this.res = {
-          send: jasmine.createSpy().and.callFake(done),
-          status: jasmine.createSpy()
+          end: jasmine.createSpy().and.callFake(done),
         }
         if (this.req._requestedUrl) {
           parsed = url.parse(this.req._requestedUrl);
-          this.req.protocol = parsed.protocol.replace(/:/g,'');
-          this.req.host = parsed.host;
-          this.req.path = parsed.path.replace(/.*\//g,'');
+          // connect only has: req.headers.host (which includes port), req.url and req.originalUrl
+          // express has .protocol and .path but we're optimizing for connect
+          this.req.headers['host'] = parsed.host;
+          this.req.url = parsed.path;
           this.req.originalUrl = parsed.path;
-          this.req.get = name => this.req[name];
         }
 
         this.subject(this.req, this.res, this.next);
@@ -91,7 +90,7 @@ describe('prerender middleware', function() {
     describe('valid requirements', function() {
       describe('with valid user-agent and valid extension', function() {
         beforeEach(function(done) {
-          this.req = { headers: { 'user-agent': 'twitterbot' }, _requestedUrl: 'http://example.org/file/lol' };
+          this.req = { headers: { 'user-agent': 'twitterbot' }, _requestedUrl: 'http://example.org/files.m4v.storage/lol' };
           this.prerenderServer = nock('http://service.prerender.cloud').get(/.*/).reply((uri) => {
             this.uri = uri;
             return ([200, 'body', {}]);
@@ -100,10 +99,10 @@ describe('prerender middleware', function() {
         });
 
         it('requests correct path', function() {
-          expect(this.uri).toBe('/http://example.org/file/lol');
+          expect(this.uri).toBe('/http://example.org/files.m4v.storage/lol');
         });
         it('returns pre-rendered body', function() {
-          expect(this.res.send).toHaveBeenCalledWith('body');
+          expect(this.res.end).toHaveBeenCalledWith('body');
         });
       });
     });

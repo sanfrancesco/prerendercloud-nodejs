@@ -90,9 +90,36 @@ const extensionsToIgnore = [
   '.svg'
 ];
 
+// http, connect, and express compatible URL parser
+class Url {
+  constructor(req) {
+    this.req = req;
+  }
+
+  get protocol() {
+    // http://stackoverflow.com/a/10353248
+    // https://github.com/expressjs/express/blob/3c54220a3495a7a2cdf580c3289ee37e835c0190/lib/request.js#L301
+    return this.req.connection && this.req.connection.encrypted ? 'https:' : 'http:';
+  }
+
+  get host() { return this.req.headers.host; }
+
+  get path() { return this.req.originalUrl; }
+
+  // if the path is /admin/new.html, this returns /new.html
+  get basename() { return '/' + this.req.originalUrl.split('/').pop(); }
+}
+
+const handleSkip = (msg, next) => {
+  debug(msg);
+  console.error('prerendercloud middleware SKIPPED:', msg);
+  return next();
+}
+
 class Prerender {
   constructor(req) {
     this.req = req;
+    this.url = new Url(req);
   }
 
   static middleware(req, res, next) {
@@ -109,12 +136,16 @@ class Prerender {
     debug('prerendering:', url, req.headers['user-agent'], headers);
 
     request({ url, headers, gzip }, (error, response, body) => {
-      if (error) {
-        console.error(error);
-        res.status(500);
-        return res.send(error);
+      if (error) return handleSkip(`server error: ${error.message}`, next);
+
+      if (response.statusCode === 400) {
+        res.statusCode = 400;
+        return res.end(`service.prerender.cloud can't prerender this page due to user error: ${body}`);
+      } else if (response.statusCode === 429) {
+        return handleSkip('rate limited due to free tier', next);
+      } else {
+        return res.end(body);
       }
-      res.send(body);
     });
   }
 
@@ -146,7 +177,7 @@ class Prerender {
   }
 
   _prerenderableExtension() {
-    return !extensionsToIgnore.some( blockedExtension => this.req.path.match(new RegExp(blockedExtension, 'i') ))
+    return !extensionsToIgnore.some( blockedExtension => this.url.basename.includes(blockedExtension));
   }
 
   _prerenderableUserAgent() {
@@ -161,7 +192,7 @@ class Prerender {
   }
 
   _requestedUrl() {
-    return this.req.protocol + '://' + this.req.get('host') + this.req.originalUrl;
+    return this.url.protocol + '//' + this.url.host + this.url.path;
   }
 }
 
