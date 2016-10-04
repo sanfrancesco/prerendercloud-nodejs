@@ -85,6 +85,14 @@ describe('prerender middleware', function() {
 
         itCalledNext();
       });
+      describe('with valid user-agent and valid extension but already rendered', function() {
+        beforeEach(function() {
+          this.req = { headers: { 'user-agent': 'twitterbot', 'x-prerendered': 'true' }, _requestedUrl: 'http://example.org/file' };
+          this.runIt();
+        });
+
+        itCalledNext();
+      });
     });
 
     describe('valid requirements', function() {

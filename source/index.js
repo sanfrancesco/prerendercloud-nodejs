@@ -152,7 +152,7 @@ class Prerender {
   _shouldPrerender() {
     if (!(this.req && this.req.headers)) return false;
 
-    return this._prerenderableUserAgent() && this._prerenderableExtension();
+    return !this._alreadyPrerendered() && this._prerenderableUserAgent() && this._prerenderableExtension();
   }
 
   _createHeaders() {
@@ -174,6 +174,10 @@ class Prerender {
 
   _serviceUrl() {
     return this.prerenderServiceUrl || process.env.PRERENDER_SERVICE_URL || 'http://service.prerender.cloud'
+  }
+
+  _alreadyPrerendered() {
+    return !!this.req.headers['x-prerendered'];
   }
 
   _prerenderableExtension() {
