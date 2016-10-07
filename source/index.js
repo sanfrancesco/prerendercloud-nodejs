@@ -144,6 +144,7 @@ class Prerender {
       } else if (response.statusCode === 429) {
         return handleSkip('rate limited due to free tier', next);
       } else {
+        res.writeHead(response.statusCode, response.headers);
         return res.end(body);
       }
     });

@@ -31,7 +31,8 @@ describe('prerender middleware', function() {
       this.next = jasmine.createSpy();
       this.runIt = function(done = () => {}) {
         this.res = {
-          end: jasmine.createSpy().and.callFake(done),
+          writeHead: jasmine.createSpy('writeHead'),
+          end: jasmine.createSpy('end').and.callFake(done),
         }
         if (this.req._requestedUrl) {
           parsed = url.parse(this.req._requestedUrl);
@@ -101,13 +102,16 @@ describe('prerender middleware', function() {
           this.req = { headers: { 'user-agent': 'twitterbot' }, _requestedUrl: 'http://example.org/files.m4v.storage/lol' };
           this.prerenderServer = nock('http://service.prerender.cloud').get(/.*/).reply((uri) => {
             this.uri = uri;
-            return ([200, 'body', {}]);
+            return ([202, 'body', {someHeader: 'someHeaderValue'}]);
           });
           this.runIt(done);
         });
 
         it('requests correct path', function() {
           expect(this.uri).toBe('/http://example.org/files.m4v.storage/lol');
+        });
+        it('returns pre-rendered status and headers', function() {
+          expect(this.res.writeHead).toHaveBeenCalledWith(202, {someHeader: 'someHeaderValue'});
         });
         it('returns pre-rendered body', function() {
           expect(this.res.end).toHaveBeenCalledWith('body');
