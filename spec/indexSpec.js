@@ -99,7 +99,7 @@ describe('prerender middleware', function() {
     describe('valid requirements', function() {
       describe('with valid user-agent and valid extension', function() {
         beforeEach(function(done) {
-          this.req = { headers: { 'user-agent': 'twitterbot' }, _requestedUrl: 'http://example.org/files.m4v.storage/lol' };
+          this.req = { headers: { 'user-agent': 'twitterbot/1.0' }, _requestedUrl: 'http://example.org/files.m4v.storage/lol' };
           this.prerenderServer = nock('http://service.prerender.cloud').get(/.*/).reply((uri) => {
             this.uri = uri;
             return ([202, 'body', {someHeader: 'someHeaderValue'}]);

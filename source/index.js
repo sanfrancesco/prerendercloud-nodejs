@@ -192,8 +192,9 @@ class Prerender {
 
     if (!reqUserAgent) return false;
 
-    reqUserAgent = new RegExp(reqUserAgent, 'i');
-    return userAgentsToPrerender.some( enabledUserAgent => enabledUserAgent.match(reqUserAgent));
+    reqUserAgent = reqUserAgent.toLowerCase();
+
+    return userAgentsToPrerender.some( enabledUserAgent => reqUserAgent.includes(enabledUserAgent));
   }
 
   _requestedUrl() {
