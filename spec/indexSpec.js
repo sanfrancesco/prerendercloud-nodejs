@@ -102,7 +102,7 @@ describe('prerender middleware', function() {
           this.req = { headers: { 'user-agent': 'twitterbot/1.0' }, _requestedUrl: 'http://example.org/files.m4v.storage/lol' };
           this.prerenderServer = nock('http://service.prerender.cloud').get(/.*/).reply((uri) => {
             this.uri = uri;
-            return ([202, 'body', {someHeader: 'someHeaderValue'}]);
+            return ([202, 'body', {someHeader: 'someHeaderValue', 'content-type': 'text/html; charset=utf-8'}]);
           });
           this.runIt(done);
         });
@@ -110,8 +110,8 @@ describe('prerender middleware', function() {
         it('requests correct path', function() {
           expect(this.uri).toBe('/http://example.org/files.m4v.storage/lol');
         });
-        it('returns pre-rendered status and headers', function() {
-          expect(this.res.writeHead).toHaveBeenCalledWith(202, {someHeader: 'someHeaderValue'});
+        it('returns pre-rendered status and only the content-type header', function() {
+          expect(this.res.writeHead).toHaveBeenCalledWith(202, {'content-type': 'text/html; charset=utf-8'});
         });
         it('returns pre-rendered body', function() {
           expect(this.res.end).toHaveBeenCalledWith('body');

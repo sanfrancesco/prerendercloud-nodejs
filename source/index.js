@@ -126,14 +126,14 @@ class Prerender {
     const prerender = new Prerender(req);
 
     if (!prerender._shouldPrerender()) {
-      debug('NOT prerendering', req.originalUrl, req.headers && req.headers['user-agent']);
+      debug('NOT prerendering', req.originalUrl, req.headers);
       return next();
     }
 
     let url = prerender._createApiRequestUrl();
     let headers = prerender._createHeaders();
-    let gzip = !!(req.headers['accept-encoding'] && req.headers['accept-encoding'].match(/gzip/i));
-    debug('prerendering:', url, req.headers['user-agent'], headers);
+    let gzip = true;
+    debug('prerendering:', url, headers);
 
     request({ url, headers, gzip }, (error, response, body) => {
       if (error) return handleSkip(`server error: ${error.message}`, next);
@@ -144,7 +144,10 @@ class Prerender {
       } else if (response.statusCode === 429) {
         return handleSkip('rate limited due to free tier', next);
       } else {
-        res.writeHead(response.statusCode, response.headers);
+        let headers = {
+          'content-type': response.headers['content-type']
+        }
+        res.writeHead(response.statusCode, headers);
         return res.end(body);
       }
     });
