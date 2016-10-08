@@ -28,8 +28,8 @@ describe('prerender middleware', function() {
     beforeEach(function() {
       this.req = {};
       this.res = {};
-      this.next = jasmine.createSpy();
       this.runIt = function(done = () => {}) {
+        this.next = jasmine.createSpy('nextMiddleware').and.callFake(done);
         this.res = {
           writeHead: jasmine.createSpy('writeHead'),
           end: jasmine.createSpy('end').and.callFake(done),
@@ -97,9 +97,50 @@ describe('prerender middleware', function() {
     });
 
     describe('valid requirements', function() {
-      describe('with valid user-agent and valid extension', function() {
+      beforeEach(function() {
+        this.req = { headers: { 'user-agent': 'twitterbot/1.0' }, _requestedUrl: 'http://example.org/files.m4v.storage/lol' };
+      });
+
+      describe('when request lib returns error', function() {
         beforeEach(function(done) {
-          this.req = { headers: { 'user-agent': 'twitterbot/1.0' }, _requestedUrl: 'http://example.org/files.m4v.storage/lol' };
+          this.prerenderServer = nock('http://service.prerender.cloud').get(/.*/).replyWithError('server error');
+          this.runIt(done);
+        });
+
+        itCalledNext();
+      });
+
+      describe('when server returns error', function() {
+        beforeEach(function(done) {
+          this.prerenderServer = nock('http://service.prerender.cloud').get(/.*/).reply(() => [500, 'errmsg']);
+          this.runIt(done);
+        });
+
+        itCalledNext();
+      });
+
+      describe('when server returns rate limited', function() {
+        beforeEach(function(done) {
+          this.prerenderServer = nock('http://service.prerender.cloud').get(/.*/).reply(() => [429, 'errmsg']);
+          this.runIt(done);
+        });
+
+        itCalledNext();
+      });
+
+      describe('when server returns bad request (client/user error)', function() {
+        beforeEach(function(done) {
+          this.prerenderServer = nock('http://service.prerender.cloud').get(/.*/).reply(() => [400, 'errmsg']);
+          this.runIt(done);
+        });
+
+        it('returns pre-rendered body', function() {
+          expect(this.res.end.calls.mostRecent().args[0]).toMatch(/user error/);
+        });
+      });
+
+      describe('when server returns success', function() {
+        beforeEach(function(done) {
           this.prerenderServer = nock('http://service.prerender.cloud').get(/.*/).reply((uri) => {
             this.uri = uri;
             return ([202, 'body', {someHeader: 'someHeaderValue', 'content-type': 'text/html; charset=utf-8'}]);

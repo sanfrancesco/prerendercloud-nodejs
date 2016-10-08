@@ -136,7 +136,7 @@ class Prerender {
     debug('prerendering:', url, headers);
 
     request({ url, headers, gzip }, (error, response, body) => {
-      if (error) return handleSkip(`server error: ${error.message}`, next);
+      if (error || response.statusCode === 500) return handleSkip(`server error: ${error && error.message || body && body.substring(0,300)}`, next);
 
       if (response.statusCode === 400) {
         res.statusCode = 400;
