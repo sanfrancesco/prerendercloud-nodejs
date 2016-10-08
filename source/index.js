@@ -20,32 +20,6 @@ class Options {
 
 var options = new Options();
 
-const userAgentsToPrerender = [
-  'googlebot',
-  'yahoo',
-  'bingbot',
-  'baiduspider',
-  'facebookexternalhit',
-  'twitterbot',
-  'rogerbot',
-  'linkedinbot',
-  'embedly',
-  'quora link preview',
-  'showyoubot',
-  'outbrain',
-  'pinterest/0.',
-  'developers.google.com/+/web/snippet',
-  'slackbot',
-  'vkShare',
-  'W3C_Validator',
-  'redditbot',
-  'Applebot',
-  'WhatsApp',
-  'flipboard',
-  'tumblr',
-  'bitlybot'
-];
-
 const extensionsToIgnore = [
   '.js',
   '.css',
@@ -189,15 +163,15 @@ class Prerender {
   }
 
   _prerenderableUserAgent() {
-    if (this.req.headers['x-bufferbot']) return true;
-
     let reqUserAgent = this.req.headers['user-agent'];
 
     if (!reqUserAgent) return false;
 
     reqUserAgent = reqUserAgent.toLowerCase();
 
-    return userAgentsToPrerender.some( enabledUserAgent => reqUserAgent.includes(enabledUserAgent));
+    if (reqUserAgent.match(/prerendercloud/i)) return false;
+
+    return true;
   }
 
   _requestedUrl() {

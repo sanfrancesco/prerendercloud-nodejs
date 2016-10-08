@@ -72,7 +72,7 @@ describe('prerender middleware', function() {
       });
       describe('with invalid user-agent', function() {
         beforeEach(function() {
-          this.req = { headers: { 'user-agent': 'invalid' } };
+          this.req = { headers: { 'user-agent': 'prerendercloud' } };
           this.runIt();
         });
 
