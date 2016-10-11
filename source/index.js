@@ -151,7 +151,7 @@ class Prerender {
   }
 
   _serviceUrl() {
-    return this.prerenderServiceUrl || process.env.PRERENDER_SERVICE_URL || 'http://service.prerender.cloud'
+    return this.prerenderServiceUrl || process.env.PRERENDER_SERVICE_URL || 'https://service.prerender.cloud'
   }
 
   _alreadyPrerendered() {

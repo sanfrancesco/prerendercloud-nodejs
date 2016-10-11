@@ -103,7 +103,7 @@ describe('prerender middleware', function() {
 
       describe('when request lib returns error', function() {
         beforeEach(function(done) {
-          this.prerenderServer = nock('http://service.prerender.cloud').get(/.*/).replyWithError('server error');
+          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).replyWithError('server error');
           this.runIt(done);
         });
 
@@ -112,7 +112,7 @@ describe('prerender middleware', function() {
 
       describe('when server returns error', function() {
         beforeEach(function(done) {
-          this.prerenderServer = nock('http://service.prerender.cloud').get(/.*/).reply(() => [500, 'errmsg']);
+          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(() => [500, 'errmsg']);
           this.runIt(done);
         });
 
@@ -121,7 +121,7 @@ describe('prerender middleware', function() {
 
       describe('when server returns rate limited', function() {
         beforeEach(function(done) {
-          this.prerenderServer = nock('http://service.prerender.cloud').get(/.*/).reply(() => [429, 'errmsg']);
+          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(() => [429, 'errmsg']);
           this.runIt(done);
         });
 
@@ -130,7 +130,7 @@ describe('prerender middleware', function() {
 
       describe('when server returns bad request (client/user error)', function() {
         beforeEach(function(done) {
-          this.prerenderServer = nock('http://service.prerender.cloud').get(/.*/).reply(() => [400, 'errmsg']);
+          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(() => [400, 'errmsg']);
           this.runIt(done);
         });
 
@@ -141,7 +141,7 @@ describe('prerender middleware', function() {
 
       describe('when server returns success', function() {
         beforeEach(function(done) {
-          this.prerenderServer = nock('http://service.prerender.cloud').get(/.*/).reply((uri) => {
+          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply((uri) => {
             this.uri = uri;
             return ([202, 'body', {someHeader: 'someHeaderValue', 'content-type': 'text/html; charset=utf-8'}]);
           });
