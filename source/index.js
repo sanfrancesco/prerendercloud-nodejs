@@ -7,7 +7,7 @@ class Options {
   }
 
   static get validOptions() {
-    return ['prerenderServiceUrl', 'prerenderToken'];
+    return ['prerenderServiceUrl', 'prerenderToken', 'noCache'];
   }
 
   set(prerenderMiddleware, name, val) {
@@ -142,6 +142,9 @@ class Prerender {
     let token = options.prerenderToken || process.env.PRERENDER_TOKEN;
 
     if (token) Object.assign(h, {'X-Prerender-Token': token});
+
+    // prevent prerender.cloud caching
+    if (options.noCache) Object.assign(h, {noCache: true});
 
     return h;
   }
