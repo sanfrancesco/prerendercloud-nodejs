@@ -139,7 +139,7 @@ class Prerender {
       'x-original-user-agent': this.req.headers['user-agent']
     };
 
-    let token = this.prerenderToken || process.env.PRERENDER_TOKEN;
+    let token = options.prerenderToken || process.env.PRERENDER_TOKEN;
 
     if (token) Object.assign(h, {'X-Prerender-Token': token});
 
@@ -151,7 +151,7 @@ class Prerender {
   }
 
   _serviceUrl() {
-    return this.prerenderServiceUrl || process.env.PRERENDER_SERVICE_URL || 'https://service.prerender.cloud'
+    return options.prerenderServiceUrl || process.env.PRERENDER_SERVICE_URL || 'https://service.prerender.cloud'
   }
 
   _alreadyPrerendered() {
