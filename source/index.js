@@ -20,50 +20,6 @@ class Options {
 
 var options = new Options();
 
-const extensionsToIgnore = [
-  '.js',
-  '.css',
-  '.xml',
-  '.less',
-  '.png',
-  '.jpg',
-  '.jpeg',
-  '.gif',
-  '.pdf',
-  '.doc',
-  '.txt',
-  '.ico',
-  '.rss',
-  '.zip',
-  '.mp3',
-  '.rar',
-  '.exe',
-  '.wmv',
-  '.doc',
-  '.avi',
-  '.ppt',
-  '.mpg',
-  '.mpeg',
-  '.tif',
-  '.wav',
-  '.mov',
-  '.psd',
-  '.ai',
-  '.xls',
-  '.mp4',
-  '.m4a',
-  '.swf',
-  '.dat',
-  '.dmg',
-  '.iso',
-  '.flv',
-  '.m4v',
-  '.torrent',
-  '.woff',
-  '.ttf',
-  '.svg'
-];
-
 // http, connect, and express compatible URL parser
 class Url {
   constructor(req) {
@@ -162,7 +118,7 @@ class Prerender {
   }
 
   _prerenderableExtension() {
-    return !extensionsToIgnore.some( blockedExtension => this.url.basename.includes(blockedExtension));
+    return !!this.url.basename.match(/^(([^.]|\.html?)+)$/);
   }
 
   _prerenderableUserAgent() {

@@ -139,25 +139,32 @@ describe('prerender middleware', function() {
         });
       });
 
-      describe('when server returns success', function() {
-        beforeEach(function(done) {
-          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply((uri) => {
-            this.uri = uri;
-            return ([202, 'body', {someHeader: 'someHeaderValue', 'content-type': 'text/html; charset=utf-8'}]);
+      ['/', '/index', '/index.htm', '/index.html'].forEach(function(basename) {
+
+        describe('when server returns success', function() {
+          beforeEach(function(done) {
+            this.req._requestedUrl = `http://example.org/files.m4v.storage${basename}`
+            this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply((uri) => {
+              this.uri = uri;
+              return ([202, 'body', {someHeader: 'someHeaderValue', 'content-type': 'text/html; charset=utf-8'}]);
+            });
+            this.runIt(done);
           });
-          this.runIt(done);
+
+          it('requests correct path', function() {
+            expect(this.uri).toBe(`/http://example.org/files.m4v.storage${basename}`);
+          });
+          it('returns pre-rendered status and only the content-type header', function() {
+            expect(this.res.writeHead).toHaveBeenCalledWith(202, {'content-type': 'text/html; charset=utf-8'});
+          });
+          it('returns pre-rendered body', function() {
+            expect(this.res.end).toHaveBeenCalledWith('body');
+          });
         });
 
-        it('requests correct path', function() {
-          expect(this.uri).toBe('/http://example.org/files.m4v.storage/lol');
-        });
-        it('returns pre-rendered status and only the content-type header', function() {
-          expect(this.res.writeHead).toHaveBeenCalledWith(202, {'content-type': 'text/html; charset=utf-8'});
-        });
-        it('returns pre-rendered body', function() {
-          expect(this.res.end).toHaveBeenCalledWith('body');
-        });
       });
+
+
     });
 
   });
