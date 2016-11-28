@@ -7,7 +7,7 @@ class Options {
   }
 
   static get validOptions() {
-    return ['prerenderServiceUrl', 'prerenderToken', 'noCache'];
+    return ['prerenderServiceUrl', 'prerenderToken', 'disableServerCache'];
   }
 
   set(prerenderMiddleware, name, val) {
@@ -99,8 +99,8 @@ class Prerender {
 
     if (token) Object.assign(h, {'X-Prerender-Token': token});
 
-    // prevent prerender.cloud caching
-    if (options.noCache) Object.assign(h, {noCache: true});
+    // disable prerender.cloud caching
+    if (options.disableServerCache) Object.assign(h, {noCache: true});
 
     return h;
   }

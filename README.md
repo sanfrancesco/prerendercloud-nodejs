@@ -31,6 +31,15 @@ app.use(require('prerendercloud').set('prerenderToken', 'mySecretToken'));
 PRERENDER_TOKEN=mySecretToken node index.js
 ```
 
+### Disable prerender.cloud server cache
+
+service.prerender.cloud will cache for 1-5 minutes (usually less) as a best practice. Adding the `nocache` HTTP header via this config option disables that cache entirely. Disabling the service.prerender.cloud cache is only recommended if you have your own cache either in this middleware or your client, otherwise all of your requests are going to be slow.
+
+```javascript
+app.use(require('prerendercloud').set('disableServerCache', true));
+```
+
+
 ### Debugging
 
 ```javascript
