@@ -5,7 +5,10 @@ var nock = require('nock');
 
 describe('prerender middleware', function() {
   beforeEach(function() {
+    nock.cleanAll();
+    nock.disableNetConnect();
     this.subject = prerenderMiddleware;
+    this.subject.resetOptions();
   });
 
   describe('set', function() {
@@ -28,7 +31,10 @@ describe('prerender middleware', function() {
     beforeEach(function() {
       this.req = {};
       this.res = {};
-      this.runIt = function(done = () => {}) {
+      this.subject.cache && this.subject.cache.reset();
+      this.runIt = function(done = () => {}, options = {}) {
+        this.subject.set('enableMiddlewareCache', !!options.enableMiddlewareCache);
+
         this.next = jasmine.createSpy('nextMiddleware').and.callFake(done);
         this.res = {
           writeHead: jasmine.createSpy('writeHead'),
@@ -164,7 +170,61 @@ describe('prerender middleware', function() {
 
       });
 
+      describe('enableMiddlewareCache is true', function() {
+        beforeEach(function(done) {
+          this.requestCount = 0;
+          this.req._requestedUrl = `http://example.org/`
+          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(uri => {
+            this.uri = uri;
+            this.requestCount += 1;
+            return ([200, 'body', { 'content-type': 'text/plain' }]);
+          })
+          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(uri => {
+            this.requestCount += 1;
+            return ([200, 'body2', { 'content-type': 'text/html' }]);
+          })
+          this.runIt(done, { enableMiddlewareCache: true });
+        });
 
+        beforeEach(function(done) {
+          this.runIt(done, { enableMiddlewareCache: true });
+        });
+
+        it('only makes 1 request', function() {
+          expect(this.requestCount).toBe(1);
+        });
+        it('requests correct path', function() {
+          expect(this.uri).toBe(`/http://example.org/`);
+        });
+        it('returns pre-rendered status and only the content-type header', function() {
+          expect(this.res.writeHead).toHaveBeenCalledWith(200, {'content-type': 'text/plain'});
+        });
+        it('returns pre-rendered body', function() {
+          expect(this.res.end).toHaveBeenCalledWith('body');
+        });
+
+        describe('after clearing', function() {
+          beforeEach(function(done) {
+            this.subject.cache.clear('http://example.org');
+            this.runIt(done, { enableMiddlewareCache: true });
+          });
+
+          it('makes another request', function() {
+            expect(this.requestCount).toBe(2);
+          });
+          it('requests correct path', function() {
+            expect(this.uri).toBe(`/http://example.org/`);
+          });
+          it('returns pre-rendered status and only the content-type header', function() {
+            expect(this.res.writeHead).toHaveBeenCalledWith(200, {'content-type': 'text/html'});
+          });
+          it('returns pre-rendered body', function() {
+            expect(this.res.end).toHaveBeenCalledWith('body2');
+          });
+
+        });
+
+      });
     });
 
   });

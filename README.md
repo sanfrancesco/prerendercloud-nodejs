@@ -10,7 +10,7 @@ Express/connect middleware for prerendering javascript web pages/apps (single pa
 npm install prerendercloud --save
 ```
 
-### General usage
+### Enabling and configuring the middleware for Express/Connect
 
 The `prerendercloud` middleware should be loaded first **unless you're using middleware that monkeypatches the req/res flow (i.e. [compression](https://www.npmjs.com/package/compression))**
 
@@ -19,15 +19,14 @@ The `prerendercloud` middleware should be loaded first **unless you're using mid
 app.use(require('prerendercloud'));
 ```
 
-#### Avoid rate limiting by setting your prerendercloud secret/token
+#### Hard code your prerendercloud secret/token (to use your specific account and avoid rate limiting)
 
 ```javascript
-// hard code the token in the code
 app.use(require('prerendercloud').set('prerenderToken', 'mySecretToken'));
 ```
 
+#### or (best practice) use the `PRERENDER_TOKEN` environment variable (to use your specific account and avoid rate limiting)
 ```javascript
-// or use the PRERENDER_TOKEN environment variable (best practice)
 PRERENDER_TOKEN=mySecretToken node index.js
 ```
 
@@ -36,9 +35,37 @@ PRERENDER_TOKEN=mySecretToken node index.js
 service.prerender.cloud will cache for 1-5 minutes (usually less) as a best practice. Adding the `nocache` HTTP header via this config option disables that cache entirely. Disabling the service.prerender.cloud cache is only recommended if you have your own cache either in this middleware or your client, otherwise all of your requests are going to be slow.
 
 ```javascript
-app.use(require('prerendercloud').set('disableServerCache', true));
+var prerendercloud = require('prerendercloud');
+prerendercloud.set('disableServerCache', true);
+app.use(prerendercloud);
 ```
 
+### Using the (optional) middleware cache
+
+This middleware has a built-in LRU (drops least recently used) caching layer. It can be configured to let cache auto expire or you can manually remove entire domains from the cache.
+
+#### Configure
+```javascript
+var prerendercloud = require('prerendercloud');
+prerendercloud.set('enableMiddlewareCache', true);
+
+// optionally set max bytes (defaults to 500MB)
+prerendercloud.set('middlewareCacheMaxBytes', 1000000000); // 1GB
+
+// optionally set max age (defaults to forever - implying you should manually clear it)
+prerendercloud.set('middlewareCacheMaxAge', 1000 * 60 * 60); // 1 hour
+
+app.use(prerendercloud);
+```
+
+#### Clear cache
+```javascript
+// delete every page on the example.org domain
+prerendercloud.cache.clear('http://example.org');
+
+// delete every page on every domain
+prerendercloud.cache.reset();
+```
 
 ### Debugging
 
