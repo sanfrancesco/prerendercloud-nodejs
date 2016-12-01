@@ -17,8 +17,12 @@ class MiddlewareCache {
   clear(startsWith) {
     if (!startsWith) throw new Error('must pass what cache key startsWith');
 
+    startsWith = startsWith.replace(/^https?/,'');
+    let httpPath = `http${startsWith}`;
+    let httpsPath = `https${startsWith}`;
+
     this.lruCache.forEach(function(v, k, cache) {
-      if (k.startsWith(startsWith)) cache.del(k);
+      if (k.startsWith(httpPath) || k.startsWith(httpsPath)) cache.del(k);
     });
   }
   set(url, res) {
