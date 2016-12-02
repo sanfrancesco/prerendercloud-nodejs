@@ -212,7 +212,17 @@ class Prerender {
   }
 
   _prerenderableExtension() {
-    return !!this.url.basename.match(/^(([^.]|\.html?)+)$/);
+    // doesn't detect index.whatever.html (multiple dots)
+    let hasHtmlOrNoExtension = !!this.url.basename.match(/^(([^.]|\.html?)+)$/);
+
+    if (hasHtmlOrNoExtension) return true;
+
+    // hack to handle basenames with multiple dots: index.whatever.html
+    let endsInHtml = !!this.url.basename.match(/.html?$/);
+
+    if (endsInHtml) return true;
+
+    return false;
   }
 
   _prerenderableUserAgent() {

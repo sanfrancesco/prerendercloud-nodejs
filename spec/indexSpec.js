@@ -145,7 +145,7 @@ describe('prerender middleware', function() {
         });
       });
 
-      ['/', '/index', '/index.htm', '/index.html'].forEach(function(basename) {
+      ['/', '/index', '/index.htm', '/index.html', 'index.bak.html'].forEach(function(basename) {
 
         describe('when server returns success', function() {
           beforeEach(function(done) {
