@@ -58,7 +58,9 @@ class Options {
 
     this.options[name] = val;
 
-    if (name.match(/middlewareCache/i)) {
+    if (name === 'enableMiddlewareCache' && val === false) {
+      middlewareCache = undefined;
+    } else if (name.match(/middlewareCache/i)) {
       let lruCache = LRU({
         max: this.options.middlewareCacheMaxBytes || 500000000, // 500MB
         length: function (n, key) { return n.length; },
@@ -67,8 +69,6 @@ class Options {
       });
       middlewareCache = new MiddlewareCache(lruCache);
     }
-
-    if (name === 'enableMiddlewareCache' === false) middlewareCache = undefined;
 
     return prerenderMiddleware;
   }
