@@ -1,8 +1,10 @@
-.PHONY: publish test
+.PHONY: build publish test
+
+build:
+	npm run build
 
 # following https://booker.codes/how-to-build-and-publish-es6-npm-modules-today-with-babel/ for transpiled npm packages
-publish:
-	npm run build
+publish: build
 	npm publish
 
 test:

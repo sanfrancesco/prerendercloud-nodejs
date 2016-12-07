@@ -32,6 +32,15 @@ app.use(require('prerendercloud').set('prerenderToken', 'mySecretToken'));
 PRERENDER_TOKEN=mySecretToken node index.js
 ```
 
+### Enable for bots (google, facebook, twitter, slack etc...)
+
+We recommend the default setting of pre-rendering all user-agents (because of performance boost and potential google cloaking penalties) but there may be a situation where you shouldn't or can't, for example: your site/app has JavaScript errors when trying to repaint the DOM after it's already been pre-rendered.
+
+```javascript
+var prerendercloud = require('prerendercloud');
+prerendercloud.set('botsOnly', true);
+```
+
 ### Disable prerender.cloud server cache
 
 service.prerender.cloud will cache for 1-5 minutes (usually less) as a best practice. Adding the `nocache` HTTP header via this config option disables that cache entirely. Disabling the service.prerender.cloud cache is only recommended if you have your own cache either in this middleware or your client, otherwise all of your requests are going to be slow.
@@ -44,7 +53,7 @@ app.use(prerendercloud);
 
 ### Using the (optional) middleware cache
 
-This middleware has a built-in LRU (drops least recently used) caching layer. It can be configured to let cache auto expire or you can manually remove entire domains from the cache.
+This middleware has a built-in LRU (drops least recently used) caching layer. It can be configured to let cache auto expire or you can manually remove entire domains from the cache. You proboably want to use this if you disabled the server cache.
 
 #### Configure
 ```javascript

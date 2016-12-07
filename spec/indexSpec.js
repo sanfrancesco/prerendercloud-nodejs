@@ -1,5 +1,11 @@
-// var prerenderMiddleware = require('../distribution/index');
-var prerenderMiddleware = require('../source/index');
+var prerenderMiddleware;
+if (!!process.env.CI) {
+  console.log('running transpiled code');
+  prerenderMiddleware = require('../distribution/index');
+} else {
+  prerenderMiddleware = require('../source/index');
+}
+
 const url = require('url');
 var nock = require('nock');
 
@@ -34,6 +40,7 @@ describe('prerender middleware', function() {
       this.subject.cache && this.subject.cache.reset();
       this.runIt = function(done = () => {}, options = {}) {
         this.subject.set('enableMiddlewareCache', !!options.enableMiddlewareCache);
+        this.subject.set('botsOnly', !!options.botsOnly);
 
         this.next = jasmine.createSpy('nextMiddleware').and.callFake(done);
         this.res = {
@@ -61,44 +68,92 @@ describe('prerender middleware', function() {
 
     describe('invalid requirements', function() {
       describe('with empty parameters', function() {
-        beforeEach(function() {
+        beforeEach(function(done) {
           this.req = {};
-          this.runIt();
+          this.runIt(done);
         });
 
         itCalledNext();
       });
       describe('with empty headers', function() {
-        beforeEach(function() {
+        beforeEach(function(done) {
           this.req = { headers: {} };
-          this.runIt();
+          this.runIt(done);
         });
 
         itCalledNext();
       });
       describe('with invalid user-agent', function() {
-        beforeEach(function() {
+        beforeEach(function(done) {
           this.req = { headers: { 'user-agent': 'prerendercloud' } };
-          this.runIt();
+          this.runIt(done);
         });
 
         itCalledNext();
       });
       describe('with valid user-agent and invalid extension', function() {
-        beforeEach(function() {
+        beforeEach(function(done) {
           this.req = { headers: { 'user-agent': 'twitterbot' }, _requestedUrl: 'http://example.org/file.m4v' };
-          this.runIt();
+          this.runIt(done);
         });
 
         itCalledNext();
       });
       describe('with valid user-agent and valid extension but already rendered', function() {
-        beforeEach(function() {
+        beforeEach(function(done) {
           this.req = { headers: { 'user-agent': 'twitterbot', 'x-prerendered': 'true' }, _requestedUrl: 'http://example.org/file' };
-          this.runIt();
+          this.runIt(done);
         });
 
         itCalledNext();
+      });
+    });
+
+    describe('botsOnly option', function() {
+      beforeEach(function() {
+        this.req = {
+          headers: {
+            'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.75 Safari/537.36'
+          },
+          _requestedUrl: 'http://example.org/file'
+        };
+        this.uri = undefined;
+        this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply((uri) => {
+          this.uri = uri;
+          return ([200, 'body', {someHeader: 'someHeaderValue', 'content-type': 'text/html; charset=utf-8'}]);
+        });
+      });
+
+      describe('normal userAgent, default botOnly option', function() {
+        beforeEach(function(done) {
+          this.runIt(done);
+        });
+
+        it('prerenders', function() {
+          expect(this.uri).toEqual('/http://example.org/file')
+        });
+      });
+
+      describe('normal userAgent, botOnly option is true', function() {
+        beforeEach(function(done) {
+          this.runIt(done, { botsOnly: true });
+        });
+
+        it('does not prerender', function() {
+          expect(this.uri).toBeUndefined();
+        });
+        itCalledNext();
+      });
+
+      describe('bot userAgent, when botOnly option is true', function() {
+        beforeEach(function(done) {
+          this.req.headers['user-agent'] = 'twitterbot';
+          this.runIt(done, { botsOnly: true });
+        });
+
+        it('prerenders', function() {
+          expect(this.uri).toEqual('/http://example.org/file')
+        });
       });
     });
 
