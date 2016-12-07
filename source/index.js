@@ -3,6 +3,32 @@ var debug = require('debug')('prerendercloud');
 var LRU = require('lru-cache');
 var middlewareCache = null;
 
+const userAgentsToPrerender = [
+  'googlebot',
+  'yahoo',
+  'bingbot',
+  'baiduspider',
+  'facebookexternalhit',
+  'twitterbot',
+  'rogerbot',
+  'linkedinbot',
+  'embedly',
+  'quora link preview',
+  'showyoubot',
+  'outbrain',
+  'pinterest/0.',
+  'developers.google.com/+/web/snippet',
+  'slackbot',
+  'vkShare',
+  'W3C_Validator',
+  'redditbot',
+  'Applebot',
+  'WhatsApp',
+  'flipboard',
+  'tumblr',
+  'bitlybot'
+];
+
 class MiddlewareCache {
   constructor(lruCache) {
     this.lruCache = lruCache;
@@ -46,6 +72,7 @@ class Options {
     return [
       'prerenderServiceUrl',
       'prerenderToken',
+      'botsOnly',
       'disableServerCache',
       'enableMiddlewareCache',
       'middlewareCacheMaxBytes',
@@ -234,7 +261,13 @@ class Prerender {
 
     if (reqUserAgent.match(/prerendercloud/i)) return false;
 
-    return true;
+    if (!options.options.botsOnly) return true;
+
+    // bots only
+
+    if (this.req.headers['x-bufferbot']) return true;
+
+    return userAgentsToPrerender.some( enabledUserAgent => reqUserAgent.includes(enabledUserAgent));
   }
 
   _requestedUrl() {
