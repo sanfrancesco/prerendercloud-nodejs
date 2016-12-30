@@ -54,6 +54,7 @@ describe('prerender middleware', function() {
           this.req.headers['host'] = parsed.host;
           this.req.url = parsed.path;
           this.req.originalUrl = parsed.path;
+          this.req.method = options.method || 'GET';
         }
 
         this.subject(this.req, this.res, this.next);
@@ -103,6 +104,15 @@ describe('prerender middleware', function() {
         beforeEach(function(done) {
           this.req = { headers: { 'user-agent': 'twitterbot', 'x-prerendered': 'true' }, _requestedUrl: 'http://example.org/file' };
           this.runIt(done);
+        });
+
+        itCalledNext();
+      });
+
+      describe('POST request', function() {
+        beforeEach(function(done) {
+          this.req = { headers: { 'user-agent': 'twitterbot' }, _requestedUrl: 'http://example.org/file' };
+          this.runIt(done, { method: 'POST' });
         });
 
         itCalledNext();

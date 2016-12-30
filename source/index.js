@@ -207,6 +207,8 @@ class Prerender {
   _shouldPrerender() {
     if (!(this.req && this.req.headers)) return false;
 
+    if (this.req.method != 'GET' && this.req.method != 'HEAD') return false;
+
     return !this._alreadyPrerendered() && this._prerenderableUserAgent() && this._prerenderableExtension();
   }
 

@@ -1,6 +1,6 @@
 {
   "name": "prerendercloud",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Express middleware for prerendering javascript-rendered pages with https://www.prerender.cloud/ for SEO and open graph tags",
   "main": "./distribution/index.js",
   "scripts": {
