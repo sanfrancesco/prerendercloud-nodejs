@@ -267,6 +267,8 @@ class Prerender {
 
     if (this.req.headers['x-bufferbot']) return true;
 
+    if (this.url.path.match(/[?&]_escaped_fragment_/)) return true;
+
     return userAgentsToPrerender.some( enabledUserAgent => reqUserAgent.includes(enabledUserAgent));
   }
 

@@ -155,6 +155,17 @@ describe('prerender middleware', function() {
           expect(this.uri).toEqual('/http://example.org/file')
         });
       });
+
+      describe('normal userAgent, when botOnly option is true and _escaped_fragment_ is present', function() {
+        beforeEach(function(done) {
+          this.req._requestedUrl = `http://example.org/file?_escaped_fragment_`
+          this.runIt(done, { botsOnly: true });
+        });
+
+        it('prerenders', function() {
+          expect(this.uri).toEqual('/http://example.org/file?_escaped_fragment_')
+        });
+      });
     });
 
     describe('valid requirements', function() {
