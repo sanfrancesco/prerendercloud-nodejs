@@ -54,6 +54,7 @@ describe('prerender middleware', function() {
           this.req.headers['host'] = parsed.host;
           this.req.url = parsed.path;
           this.req.originalUrl = parsed.path;
+          this.req.method = options.method || 'GET';
         }
 
         this.subject(this.req, this.res, this.next);
@@ -107,6 +108,15 @@ describe('prerender middleware', function() {
 
         itCalledNext();
       });
+
+      describe('POST request', function() {
+        beforeEach(function(done) {
+          this.req = { headers: { 'user-agent': 'twitterbot' }, _requestedUrl: 'http://example.org/file' };
+          this.runIt(done, { method: 'POST' });
+        });
+
+        itCalledNext();
+      });
     });
 
     describe('botsOnly option', function() {
@@ -153,6 +163,17 @@ describe('prerender middleware', function() {
 
         it('prerenders', function() {
           expect(this.uri).toEqual('/http://example.org/file')
+        });
+      });
+
+      describe('normal userAgent, when botOnly option is true and _escaped_fragment_ is present', function() {
+        beforeEach(function(done) {
+          this.req._requestedUrl = `http://example.org/file?_escaped_fragment_`
+          this.runIt(done, { botsOnly: true });
+        });
+
+        it('prerenders', function() {
+          expect(this.uri).toEqual('/http://example.org/file?_escaped_fragment_')
         });
       });
     });

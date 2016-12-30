@@ -3,6 +3,9 @@ var debug = require('debug')('prerendercloud');
 var LRU = require('lru-cache');
 var middlewareCache = null;
 
+// preserve (and send to client) these headers from service.prerender.cloud which originally came from the origin server
+const headerWhitelist = ['content-type', 'cache-control', 'strict-transport-security', 'content-security-policy', 'public-key-pins', 'x-frame-options', 'x-xss-protection', 'x-content-type-options'];
+
 const userAgentsToPrerender = [
   'googlebot',
   'yahoo',
@@ -150,13 +153,12 @@ class Prerender {
 
           return rej(new Error(body && body.substring(0,300) || 'server error'));
         } else {
-          const data = {
-            headers: {
-              'content-type': response.headers['content-type']
-            },
-            statusCode: response.statusCode,
-            body
-          };
+          let headers = {};
+          headerWhitelist.forEach(h => {
+            if (response.headers[h]) headers[h] = response.headers[h];
+          });
+
+          const data = { statusCode: response.statusCode, headers, body };
 
           if (options.options.enableMiddlewareCache && `${response.statusCode}`.startsWith('2') && body && body.length) middlewareCache.set(this._requestedUrl(), data);
 
@@ -168,14 +170,20 @@ class Prerender {
 
   // data looks like { statusCode, headers, body }
   writeHttpResponse(res, next, data) {
-    if (data.statusCode === 400) {
-      res.statusCode = 400;
-      return res.end(`service.prerender.cloud can't prerender this page due to user error: ${data.body}`);
-    } else if (data.statusCode === 429) {
-      return handleSkip('rate limited due to free tier', next);
-    } else {
-      res.writeHead(data.statusCode, data.headers);
-      return res.end(data.body);
+    try {
+      if (data.statusCode === 400) {
+        res.statusCode = 400;
+        return res.end(`service.prerender.cloud can't prerender this page due to user error: ${data.body}`);
+      } else if (data.statusCode === 429) {
+        return handleSkip('rate limited due to free tier', next);
+      } else {
+        res.writeHead(data.statusCode, data.headers);
+        return res.end(data.body);
+      }
+    } catch (error) {
+      console.error('unrecoverable prerendercloud middleware error:', error && error.message);
+      console.error('submit steps to reproduce here: https://github.com/sanfrancesco/prerendercloud-nodejs/issues')
+      throw error;
     }
   }
 
@@ -207,13 +215,15 @@ class Prerender {
   _shouldPrerender() {
     if (!(this.req && this.req.headers)) return false;
 
+    if (this.req.method != 'GET' && this.req.method != 'HEAD') return false;
+
     return !this._alreadyPrerendered() && this._prerenderableUserAgent() && this._prerenderableExtension();
   }
 
   _createHeaders() {
     let h = {
-      'user-agent': 'prerender-cloud-nodejs-middleware',
-      'x-original-user-agent': this.req.headers['user-agent']
+      'User-Agent': 'prerender-cloud-nodejs-middleware',
+      'X-Original-User-Agent': this.req.headers['user-agent']
     };
 
     let token = options.options.prerenderToken || process.env.PRERENDER_TOKEN;
@@ -266,6 +276,8 @@ class Prerender {
     // bots only
 
     if (this.req.headers['x-bufferbot']) return true;
+
+    if (this.url.path.match(/[?&]_escaped_fragment_/)) return true;
 
     return userAgentsToPrerender.some( enabledUserAgent => reqUserAgent.includes(enabledUserAgent));
   }

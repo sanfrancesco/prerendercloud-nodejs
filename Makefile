@@ -8,4 +8,4 @@ publish: build
 	npm publish
 
 test:
-	./node_modules/jasmine/bin/jasmine.js
+	PRERENDER_SERVICE_URL="https://service.prerender.cloud" ./node_modules/jasmine/bin/jasmine.js
