@@ -75,6 +75,7 @@ class Options {
     return [
       'prerenderServiceUrl',
       'prerenderToken',
+      'beforeRender',
       'afterRender',
       'whitelistUserAgents',
       'botsOnly',
@@ -209,13 +210,42 @@ class Prerender {
       }
     }
 
-    prerender.get()
-        .then(function(data) {
-          return prerender.writeHttpResponse(req, res, next, data);
-        })
-        .catch(function(error) {
-          return handleSkip(`server error: ${error && error.message}`, next);
-        });
+    const remotePrerender = function() {
+      return prerender.get()
+          .then(function(data) {
+            return prerender.writeHttpResponse(req, res, next, data);
+          })
+          .catch(function(error) {
+            return handleSkip(`server error: ${error && error.message}`, next);
+          });
+    }
+
+    if (options.options.beforeRender) {
+      const donePassedToUserBeforeRender = function(err, stringOrObject) {
+        if (!stringOrObject) {
+          return remotePrerender();
+        } else if (typeof stringOrObject === 'string') {
+          return prerender.writeHttpResponse(req, res, next, {
+            statusCode: 200,
+            headers: {
+              "content-type": "text/html; charset=utf-8"
+            },
+            body: stringOrObject
+          })
+        } else if (typeof stringOrObject === 'object') {
+          return prerender.writeHttpResponse(req, res, next, {
+            statusCode: stringOrObject.status,
+            headers: {
+              "content-type": "text/html; charset=utf-8"
+            },
+            body: stringOrObject.body
+          })
+        }
+      }
+      return options.options.beforeRender(req, donePassedToUserBeforeRender)
+    } else {
+      return remotePrerender();
+    }
   }
 
   _shouldPrerender() {

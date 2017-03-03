@@ -42,6 +42,7 @@ describe('prerender middleware', function() {
         this.subject.set('enableMiddlewareCache', !!options.enableMiddlewareCache);
         this.subject.set('botsOnly', !!options.botsOnly);
         this.subject.set('whitelistUserAgents', options.whitelistUserAgents);
+        this.subject.set('beforeRender', options.beforeRender)
         this.subject.set('afterRender', options.afterRender)
 
         this.next = jasmine.createSpy('nextMiddleware').and.callFake(done);
@@ -121,6 +122,89 @@ describe('prerender middleware', function() {
       });
     });
 
+    describe('beforeRender option', function() {
+      beforeEach(function() {
+        this.req = {
+          headers: {
+            'user-agent': 'Mozilla/5.0'
+          },
+          _requestedUrl: 'http://example.org/file'
+        };
+        this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply((uri) => {
+          this.uriCapturedOnPrerender = uri;
+          return ([200, 'body', {someHeader: 'someHeaderValue', 'content-type': 'text/html; charset=utf-8'}]);
+        });
+      });
+
+      describe('with string', function() {
+        beforeEach(function(done) {
+          this.runIt(done, {
+            beforeRender: (req, beforeRenderDone) => {
+              this.uriCapturedInBeforeRender = req.url;
+              beforeRenderDone(null, "body-from-before-render");
+            }
+          });
+        });
+
+        it('requests correct path', function() {
+          expect(this.uriCapturedInBeforeRender).toBe(`/file`);
+          expect(this.uriCapturedOnPrerender).toBeUndefined();
+        });
+        it('returns 200 status and only the content-type header', function() {
+          expect(this.res.writeHead).toHaveBeenCalledWith(200, {'content-type': 'text/html; charset=utf-8'});
+        });
+        it('returns beforeRender body', function() {
+          expect(this.res.end).toHaveBeenCalledWith('body-from-before-render');
+        });
+      })
+
+      describe('with object', function() {
+        beforeEach(function(done) {
+          this.runIt(done, {
+            beforeRender: (req, beforeRenderDone) => {
+              this.uriCapturedInBeforeRender = req.url;
+              beforeRenderDone(null, {
+                status: 202,
+                body: "body-from-before-render"
+              });
+            }
+          });
+        });
+
+        it('requests correct path', function() {
+          expect(this.uriCapturedInBeforeRender).toBe(`/file`);
+          expect(this.uriCapturedOnPrerender).toBeUndefined();
+        });
+        it('returns status from beforeRender and only the content-type header', function() {
+          expect(this.res.writeHead).toHaveBeenCalledWith(202, {'content-type': 'text/html; charset=utf-8'});
+        });
+        it('returns beforeRender body', function() {
+          expect(this.res.end).toHaveBeenCalledWith('body-from-before-render');
+        });
+      })
+
+      describe('with null', function() {
+        beforeEach(function(done) {
+          this.runIt(done, {
+            beforeRender: (req, beforeRenderDone) => {
+              beforeRenderDone(null, null);
+            }
+          });
+        });
+
+        it('requests correct path', function() {
+          expect(this.uriCapturedOnPrerender).toEqual('/http://example.org/file');
+        });
+        it('returns pre-rendered status and only the content-type header', function() {
+          expect(this.res.writeHead).toHaveBeenCalledWith(200, {'content-type': 'text/html; charset=utf-8'});
+        });
+        it('returns pre-rendered body', function() {
+          expect(this.res.end).toHaveBeenCalledWith('body');
+        });
+      })
+
+    });
+
     describe('afterRender option', function() {
       beforeEach(function() {
         this.req = {
@@ -164,7 +248,7 @@ describe('prerender middleware', function() {
           }
         });
       });
-    })
+    });
 
     describe('whitelistUserAgents option', function() {
       beforeEach(function() {

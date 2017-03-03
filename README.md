@@ -59,6 +59,26 @@ prerendercloud.set('disableServerCache', true);
 app.use(prerendercloud);
 ```
 
+### beforeRender (intercept the remote call to service.prerender.cloud)
+
+Useful for your own caching layer (in conjunction with `afterRender`), or analytics, or dependency injection for testing.
+
+```javascript
+var prerendercloud = require('prerendercloud');
+prerendercloud.set('beforeRender', (req, done) => {
+  // call it with a string
+  done(null, 'hello world'); // returns status 200, content-type text/html
+
+  // or call it with an object
+  done(null, {status: 202, body: 'hello'}) // returns status 202, content-type text/html
+
+  // or call it with null/undefined to follow the normal path
+  done();
+  done(null);
+  done(undefined);
+});
+```
+
 ### afterRender (a noop) (caching, analytics)
 
 It's a noop because this middleware already takes over the response for your HTTP server. 2 example use cases of this: your own caching layer, or analytics/metrics.
