@@ -34,7 +34,7 @@ app.use(require('prerendercloud').set('prerenderToken', 'mySecretToken'));
 PRERENDER_TOKEN=mySecretToken node index.js
 ```
 
-### Enable for bots (google, facebook, twitter, slack etc...)
+### Enable for bots **ONLY** (google, facebook, twitter, slack etc...)
 
 We recommend the default setting of pre-rendering all user-agents (because of performance boost and potential google cloaking penalties) but there may be a situation where you shouldn't or can't, for example: your site/app has JavaScript errors when trying to repaint the DOM after it's already been pre-rendered.
 
@@ -57,6 +57,19 @@ service.prerender.cloud will cache for 1-5 minutes (usually less) as a best prac
 var prerendercloud = require('prerendercloud');
 prerendercloud.set('disableServerCache', true);
 app.use(prerendercloud);
+```
+
+### afterRender (a noop) (caching, analytics)
+
+It's a noop because this middleware already takes over the response for your HTTP server. 2 example use cases of this: your own caching layer, or analytics/metrics.
+
+```javascript
+var prerendercloud = require('prerendercloud');
+prerendercloud.set('afterRender', (err, req, res) => {
+  // req: (standard node.js req object)
+  // res: { statusCode, headers, body }
+  console.log(`received ${res.body.length} bytes for ${req.url}`)
+});
 ```
 
 ### Using the (optional) middleware cache

@@ -75,6 +75,7 @@ class Options {
     return [
       'prerenderServiceUrl',
       'prerenderToken',
+      'afterRender',
       'whitelistUserAgents',
       'botsOnly',
       'disableServerCache',
@@ -172,7 +173,9 @@ class Prerender {
   }
 
   // data looks like { statusCode, headers, body }
-  writeHttpResponse(res, next, data) {
+  writeHttpResponse(req, res, next, data) {
+    if (options.options.afterRender) process.nextTick(() => options.options.afterRender(null, req, data))
+
     try {
       if (data.statusCode === 400) {
         res.statusCode = 400;
@@ -202,13 +205,13 @@ class Prerender {
       const cached = middlewareCache.get(prerender._requestedUrl());
       if (cached) {
         debug('returning cache', req.originalUrl, req.headers);
-        return prerender.writeHttpResponse(res, next, cached);
+        return prerender.writeHttpResponse(req, res, next, cached);
       }
     }
 
     prerender.get()
         .then(function(data) {
-          return prerender.writeHttpResponse(res, next, data);
+          return prerender.writeHttpResponse(req, res, next, data);
         })
         .catch(function(error) {
           return handleSkip(`server error: ${error && error.message}`, next);

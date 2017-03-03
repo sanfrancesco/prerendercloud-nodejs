@@ -42,6 +42,7 @@ describe('prerender middleware', function() {
         this.subject.set('enableMiddlewareCache', !!options.enableMiddlewareCache);
         this.subject.set('botsOnly', !!options.botsOnly);
         this.subject.set('whitelistUserAgents', options.whitelistUserAgents);
+        this.subject.set('afterRender', options.afterRender)
 
         this.next = jasmine.createSpy('nextMiddleware').and.callFake(done);
         this.res = {
@@ -119,6 +120,51 @@ describe('prerender middleware', function() {
         itCalledNext();
       });
     });
+
+    describe('afterRender option', function() {
+      beforeEach(function() {
+        this.req = {
+          headers: {
+            'user-agent': 'Mozilla/5.0'
+          },
+          _requestedUrl: 'http://example.org/file'
+        };
+        this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply((uri) => {
+          this.uri = uri;
+          return ([200, 'body', {someHeader: 'someHeaderValue', 'content-type': 'text/html; charset=utf-8'}]);
+        });
+      });
+
+      beforeEach(function(done) {
+        this.runIt(() => {}, { afterRender: (err, req, res) => {
+          this.afterRender = { err, req, res };
+          done();
+        } });
+      });
+
+      it("returns response req and res", function() {
+        expect(this.afterRender).toEqual({
+          err: null,
+          req: {
+            headers: {
+              "user-agent": "Mozilla/5.0",
+              host: "example.org"
+            },
+            _requestedUrl: "http://example.org/file",
+            url: "/file",
+            originalUrl: "/file",
+            method: "GET"
+          },
+          res: {
+            statusCode: 200,
+            headers: {
+              "content-type": "text/html; charset=utf-8"
+            },
+            body: "body"
+          }
+        });
+      });
+    })
 
     describe('whitelistUserAgents option', function() {
       beforeEach(function() {
