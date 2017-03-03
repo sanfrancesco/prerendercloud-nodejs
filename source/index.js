@@ -75,6 +75,7 @@ class Options {
     return [
       'prerenderServiceUrl',
       'prerenderToken',
+      'whitelistUserAgents',
       'botsOnly',
       'disableServerCache',
       'enableMiddlewareCache',
@@ -99,6 +100,8 @@ class Options {
       });
       middlewareCache = new MiddlewareCache(lruCache);
     }
+
+    if (this.options['botsOnly'] && this.options['whitelistUserAgents']) throw new Error("Can't use both botsOnly and whitelistUserAgents")
 
     return prerenderMiddleware;
   }
@@ -270,6 +273,8 @@ class Prerender {
     reqUserAgent = reqUserAgent.toLowerCase();
 
     if (reqUserAgent.match(/prerendercloud/i)) return false;
+
+    if (options.options.whitelistUserAgents) return options.options.whitelistUserAgents.some( enabledUserAgent => reqUserAgent.includes(enabledUserAgent))
 
     if (!options.options.botsOnly) return true;
 

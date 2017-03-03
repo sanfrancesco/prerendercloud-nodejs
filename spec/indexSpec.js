@@ -41,6 +41,7 @@ describe('prerender middleware', function() {
       this.runIt = function(done = () => {}, options = {}) {
         this.subject.set('enableMiddlewareCache', !!options.enableMiddlewareCache);
         this.subject.set('botsOnly', !!options.botsOnly);
+        this.subject.set('whitelistUserAgents', options.whitelistUserAgents);
 
         this.next = jasmine.createSpy('nextMiddleware').and.callFake(done);
         this.res = {
@@ -117,6 +118,56 @@ describe('prerender middleware', function() {
 
         itCalledNext();
       });
+    });
+
+    describe('whitelistUserAgents option', function() {
+      beforeEach(function() {
+        this.req = {
+          headers: {
+            'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.75 Safari/537.36'
+          },
+          _requestedUrl: 'http://example.org/file'
+        };
+        this.uri = undefined;
+        this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply((uri) => {
+          this.uri = uri;
+          return ([200, 'body', {someHeader: 'someHeaderValue', 'content-type': 'text/html; charset=utf-8'}]);
+        });
+      });
+
+      describe('with userAgent NOT from the whitelist', function() {
+        beforeEach(function(done) {
+          this.runIt(done, { whitelistUserAgents: ['my-custom-user-agent'] });
+        });
+
+        it('does not prerender', function() {
+          expect(this.uri).toBeUndefined();
+        });
+        itCalledNext();
+      });
+
+      describe('with userAgent from the whitelist', function() {
+        beforeEach(function(done) {
+          this.req.headers['user-agent'] = 'my-custom-user-agent';
+          this.runIt(done, { whitelistUserAgents: ['my-custom-user-agent'] });
+        });
+
+        it('prerenders', function() {
+          expect(this.uri).toEqual('/http://example.org/file')
+        });
+      });
+
+      describe('with whitelist and botsOnly', function() {
+        beforeEach(function() {
+          this.req.headers['user-agent'] = 'my-custom-user-agent';
+        });
+        it('fails', function() {
+          expect(() => {
+            this.runIt(function() {}, { whitelistUserAgents: ['my-custom-user-agent'], botsOnly: true })
+          }).toThrow(new Error("Can't use both botsOnly and whitelistUserAgents"));
+        })
+      })
+
     });
 
     describe('botsOnly option', function() {
