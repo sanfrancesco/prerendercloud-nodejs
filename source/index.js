@@ -1,3 +1,5 @@
+require('./includes-polyfill');
+
 var request = require('request');
 var debug = require('debug')('prerendercloud');
 var LRU = require('lru-cache');

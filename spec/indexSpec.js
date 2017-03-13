@@ -38,7 +38,9 @@ describe('prerender middleware', function() {
       this.req = {};
       this.res = {};
       this.subject.cache && this.subject.cache.reset();
-      this.runIt = function(done = () => {}, options = {}) {
+      this.runIt = function(done, options) {
+        if (!done) done = () => {};
+        if (!options) options = {};
         this.subject.set('enableMiddlewareCache', !!options.enableMiddlewareCache);
         this.subject.set('botsOnly', !!options.botsOnly);
         this.subject.set('whitelistUserAgents', options.whitelistUserAgents);
