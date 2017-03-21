@@ -41,6 +41,9 @@ describe('prerender middleware', function() {
       this.runIt = function(done, options) {
         if (!done) done = () => {};
         if (!options) options = {};
+        this.subject.set('disableAjaxBypass', !!options.disableAjaxBypass);
+        this.subject.set('disableAjaxPreload', !!options.disableAjaxPreload);
+        this.subject.set('disableServerCache', !!options.disableServerCache);
         this.subject.set('enableMiddlewareCache', !!options.enableMiddlewareCache);
         this.subject.set('botsOnly', !!options.botsOnly);
         this.subject.set('whitelistUserAgents', options.whitelistUserAgents);
@@ -401,6 +404,28 @@ describe('prerender middleware', function() {
 
         it('returns pre-rendered body', function() {
           expect(this.res.end.calls.mostRecent().args[0]).toMatch(/user error/);
+        });
+      });
+
+      describe('when disabling features', function() {
+        beforeEach(function(done) {
+          this.req._requestedUrl = `http://example.org/index.html`
+          this.headersSentToServer = {};
+          var self = this;
+          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(function(uri) {
+            self.headersSentToServer = this.req.headers;
+            return ([200, 'body']);
+          });
+          this.runIt(done, { disableAjaxBypass: true, disableAjaxPreload: true, disableServerCache: true });
+        });
+        it('sets prerender-disable-ajax-bypass header', function() {
+          expect(this.headersSentToServer['prerender-disable-ajax-bypass']).toEqual(true);
+        });
+        it('sets prerender-disable-ajax-preload header', function() {
+          expect(this.headersSentToServer['prerender-disable-ajax-preload']).toEqual(true);
+        });
+        it('sets noCache header', function() {
+          expect(this.headersSentToServer['nocache']).toEqual(true);
         });
       });
 

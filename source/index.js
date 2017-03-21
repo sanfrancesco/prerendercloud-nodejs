@@ -82,6 +82,8 @@ class Options {
       'whitelistUserAgents',
       'botsOnly',
       'disableServerCache',
+      'disableAjaxBypass',
+      'disableAjaxPreload',
       'enableMiddlewareCache',
       'middlewareCacheMaxBytes',
       'middlewareCacheMaxAge'
@@ -270,6 +272,8 @@ class Prerender {
 
     // disable prerender.cloud caching
     if (options.options.disableServerCache) Object.assign(h, {noCache: true});
+    if (options.options.disableAjaxBypass) Object.assign(h, {'Prerender-Disable-Ajax-Bypass': true});
+    if (options.options.disableAjaxPreload) Object.assign(h, {'Prerender-Disable-Ajax-Preload': true});
 
     return h;
   }

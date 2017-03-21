@@ -59,6 +59,26 @@ prerendercloud.set('disableServerCache', true);
 app.use(prerendercloud);
 ```
 
+### Disable Ajax Bypass
+
+You can disable this if you're using CORS. Read more https://www.prerender.cloud/documentation and https://github.com/sanfrancesco/prerendercloud-ajaxmonkeypatch
+
+```javascript
+var prerendercloud = require('prerendercloud');
+prerendercloud.set('disableAjaxBypass', true);
+app.use(prerendercloud);
+```
+
+### Disable Ajax Preload
+
+This prevents screen flicker/repaint/flashing, but increases initial page load size (because it embeds the AJAX responses into your HTML). you can disable this if you manage your own "initial state". Read more https://www.prerender.cloud/documentation and https://github.com/sanfrancesco/prerendercloud-ajaxmonkeypatch
+
+```javascript
+var prerendercloud = require('prerendercloud');
+prerendercloud.set('disableAjaxPreload', true);
+app.use(prerendercloud);
+```
+
 ### beforeRender (intercept the remote call to service.prerender.cloud)
 
 Useful for your own caching layer (in conjunction with `afterRender`), or analytics, or dependency injection for testing.
