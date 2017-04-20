@@ -1,4 +1,9 @@
 require('./includes-polyfill');
+if (!Array.isArray) {
+  Array.isArray = function(arg) {
+    return Object.prototype.toString.call(arg) === '[object Array]';
+  };
+}
 
 var request = require('request');
 var debug = require('debug')('prerendercloud');
@@ -80,6 +85,7 @@ class Options {
       'beforeRender',
       'afterRender',
       'whitelistUserAgents',
+      'originHeaderWhitelist',
       'botsOnly',
       'disableServerCache',
       'disableAjaxBypass',
@@ -275,7 +281,21 @@ class Prerender {
     if (options.options.disableAjaxBypass) Object.assign(h, {'Prerender-Disable-Ajax-Bypass': true});
     if (options.options.disableAjaxPreload) Object.assign(h, {'Prerender-Disable-Ajax-Preload': true});
 
+    if (this._hasOriginHeaderWhitelist()) {
+      options.options.originHeaderWhitelist.forEach(_h =>
+        Object.assign(h, { [_h]: this.req.headers[_h] })
+      );
+
+      Object.assign(h, {
+        "Origin-Header-Whitelist": options.options.originHeaderWhitelist.join(" ")
+      });
+    }
+
     return h;
+  }
+
+  _hasOriginHeaderWhitelist() {
+    return options.options.originHeaderWhitelist && Array.isArray(options.options.originHeaderWhitelist);
   }
 
   _createApiRequestUrl() {

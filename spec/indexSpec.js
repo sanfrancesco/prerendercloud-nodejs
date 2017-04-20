@@ -47,6 +47,7 @@ describe('prerender middleware', function() {
         this.subject.set('enableMiddlewareCache', !!options.enableMiddlewareCache);
         this.subject.set('botsOnly', !!options.botsOnly);
         this.subject.set('whitelistUserAgents', options.whitelistUserAgents);
+        this.subject.set('originHeaderWhitelist', options.originHeaderWhitelist);
         this.subject.set('beforeRender', options.beforeRender)
         this.subject.set('afterRender', options.afterRender)
 
@@ -302,6 +303,58 @@ describe('prerender middleware', function() {
           }).toThrow(new Error("Can't use both botsOnly and whitelistUserAgents"));
         })
       })
+
+    });
+
+    describe('originHeaderWhitelist option', function() {
+      beforeEach(function() {
+        this.req = {
+          headers: {
+            'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.75 Safari/537.36',
+            'unusual-header': 'unusual-value'
+          },
+          _requestedUrl: 'http://example.org/file'
+        };
+        this.uri = undefined;
+        var that = this;
+        this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(function(uri, wut) {
+          that.uri = uri;
+          that.headersSentToPrerenderCloud = this.req.headers;
+          return ([200, 'body', {someHeader: 'someHeaderValue', 'content-type': 'text/html; charset=utf-8'}]);
+        });
+      });
+
+      describe('with unusual-header in originHeaderWhitelist', function() {
+        beforeEach(function(done) {
+          this.runIt(done, { originHeaderWhitelist: ['unusual-header'] });
+        });
+
+        it('prerenders', function() {
+          expect(this.uri).toEqual('/http://example.org/file')
+        });
+        it('it sends unusual-header', function() {
+          expect(this.headersSentToPrerenderCloud['unusual-header']).toEqual('unusual-value');
+        });
+        it('it sends origin-header-whitelist', function() {
+          expect(this.headersSentToPrerenderCloud['origin-header-whitelist']).toEqual('unusual-header');
+        });
+      });
+
+      describe('with unusual-header not in originHeaderWhitelist', function() {
+        beforeEach(function(done) {
+          this.runIt(done);
+        });
+
+        it('prerenders', function() {
+          expect(this.uri).toEqual('/http://example.org/file')
+        });
+        it('it does not send unusual-header', function() {
+          expect(this.headersSentToPrerenderCloud['unusual-header']).toEqual(undefined);
+        });
+        it('it does not send origin-header-whitelist', function() {
+          expect(this.headersSentToPrerenderCloud['origin-header-whitelist']).toEqual(undefined);
+        });
+      });
 
     });
 

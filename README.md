@@ -139,6 +139,14 @@ prerendercloud.cache.clear('http://example.org');
 prerendercloud.cache.reset();
 ```
 
+### originHeaderWhitelist
+
+The only valid value (_right now_) is: `['Prerendercloud-Is-Mobile-Viewer']`, but this feature is meant for forwarding specific headers from the request to service.prerender.cloud to the request to the origin (by default, all headers are dropped).
+
+```javascript
+prerendercloud.set('originHeaderWhitelist', ['Prerendercloud-Is-Mobile-Viewer']);
+```
+
 ### Debugging
 
 ```javascript
