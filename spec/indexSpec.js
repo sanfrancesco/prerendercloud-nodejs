@@ -36,7 +36,9 @@ describe('prerender middleware', function() {
   describe('middleware', function() {
     beforeEach(function() {
       this.req = {};
-      this.res = {};
+      this.res = {
+        writeHead: jasmine.createSpy('writeHead'),
+      };
       this.subject.cache && this.subject.cache.reset();
       this.runIt = function(done, options) {
         if (!done) done = () => {};
@@ -53,10 +55,7 @@ describe('prerender middleware', function() {
         this.subject.set('shouldPrerender', options.shouldPrerender);
 
         this.next = jasmine.createSpy('nextMiddleware').and.callFake(done);
-        this.res = {
-          writeHead: jasmine.createSpy('writeHead'),
-          end: jasmine.createSpy('end').and.callFake(done),
-        }
+        this.res.end = jasmine.createSpy('end').and.callFake(done);
         if (this.req._requestedUrl) {
           parsed = url.parse(this.req._requestedUrl);
           // connect only has: req.headers.host (which includes port), req.url and req.originalUrl
@@ -126,6 +125,183 @@ describe('prerender middleware', function() {
         });
 
         itCalledNext();
+      });
+    });
+
+    describe('valid requirements', function() {
+      beforeEach(function() {
+        this.req = { headers: { 'user-agent': 'twitterbot/1.0' }, _requestedUrl: 'http://example.org/files.m4v.storage/lol' };
+      });
+
+      describe('when request lib returns error', function() {
+        beforeEach(function(done) {
+          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).replyWithError('server error');
+          this.runIt(done);
+        });
+
+        itCalledNext();
+      });
+
+      describe('when server returns error', function() {
+        beforeEach(function(done) {
+          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(() => [500, 'errmsg']);
+          this.runIt(done);
+        });
+
+        itCalledNext();
+      });
+
+      describe('when server returns rate limited', function() {
+        beforeEach(function(done) {
+          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(() => [429, 'errmsg']);
+          this.runIt(done);
+        });
+
+        itCalledNext();
+      });
+
+      describe('when server returns bad request (client/user error)', function() {
+        beforeEach(function(done) {
+          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(() => [400, 'errmsg']);
+          this.runIt(done);
+        });
+
+        it('returns pre-rendered body', function() {
+          expect(this.res.end.calls.mostRecent().args[0]).toMatch(/user error/);
+        });
+      });
+
+      describe('when disabling features', function() {
+        beforeEach(function(done) {
+          this.req._requestedUrl = `http://example.org/index.html`
+          this.headersSentToServer = {};
+          var self = this;
+          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(function(uri) {
+            self.headersSentToServer = this.req.headers;
+            return ([200, 'body']);
+          });
+          this.runIt(done, { disableAjaxBypass: true, disableAjaxPreload: true, disableServerCache: true });
+        });
+        it('sets prerender-disable-ajax-bypass header', function() {
+          expect(this.headersSentToServer['prerender-disable-ajax-bypass']).toEqual(true);
+        });
+        it('sets prerender-disable-ajax-preload header', function() {
+          expect(this.headersSentToServer['prerender-disable-ajax-preload']).toEqual(true);
+        });
+        it('sets noCache header', function() {
+          expect(this.headersSentToServer['nocache']).toEqual(true);
+        });
+      });
+
+      ['/', '/index', '/index.htm', '/index.html', 'index.bak.html'].forEach(function(basename) {
+
+        describe('when server returns success', function() {
+          beforeEach(function(done) {
+            this.req._requestedUrl = `http://example.org/files.m4v.storage${basename}`
+            this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply((uri) => {
+              this.uri = uri;
+              return ([202, 'body', {someHeader: 'someHeaderValue', 'content-type': 'text/html; charset=utf-8'}]);
+            });
+            this.runIt(done);
+          });
+
+          it('requests correct path', function() {
+            expect(this.uri).toBe(`/http://example.org/files.m4v.storage${basename}`);
+          });
+          it('returns pre-rendered status and only the content-type header', function() {
+            expect(this.res.writeHead).toHaveBeenCalledWith(202, {'content-type': 'text/html; charset=utf-8'});
+          });
+          it('returns pre-rendered body', function() {
+            expect(this.res.end).toHaveBeenCalledWith('body');
+          });
+        });
+
+      });
+
+      describe('concurrent requests', function() {
+        beforeEach(function(done) {
+          this.requestCount = 0;
+          this.req._requestedUrl = `http://example.org/`
+          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(uri => {
+            this.uri = uri;
+            this.requestCount += 1;
+            return ([200, 'body', { 'content-type': 'text/plain' }]);
+          })
+          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(uri => {
+            this.requestCount += 1;
+            return ([200, 'body2', { 'content-type': 'text/html' }]);
+          })
+          let callCounter = 0;
+          const _done = () => {
+            callCounter += 1;
+            if (callCounter === 2) done();
+          }
+          this.runIt(_done, { enableMiddlewareCache: false });
+          this.runIt(_done, { enableMiddlewareCache: false });
+        });
+        it('only makes 1 request', function() {
+          expect(this.requestCount).toBe(1);
+        });
+        it('returns body from first request', function() {
+          expect(this.res.end.calls.argsFor(0)).toEqual(['body']);
+          expect(this.res.end.calls.argsFor(1)).toEqual(['body']);
+        });
+      })
+
+      describe('enableMiddlewareCache is true', function() {
+        beforeEach(function(done) {
+          this.requestCount = 0;
+          this.req._requestedUrl = `http://example.org/`
+          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(uri => {
+            this.uri = uri;
+            this.requestCount += 1;
+            return ([200, 'body', { 'content-type': 'text/plain' }]);
+          })
+          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(uri => {
+            this.requestCount += 1;
+            return ([200, 'body2', { 'content-type': 'text/html' }]);
+          })
+          this.runIt(done, { enableMiddlewareCache: true });
+        });
+
+        beforeEach(function(done) {
+          this.runIt(done, { enableMiddlewareCache: true });
+        });
+
+        it('only makes 1 request', function() {
+          expect(this.requestCount).toBe(1);
+        });
+        it('requests correct path', function() {
+          expect(this.uri).toBe(`/http://example.org/`);
+        });
+        it('returns pre-rendered status and only the content-type header', function() {
+          expect(this.res.writeHead).toHaveBeenCalledWith(200, {'content-type': 'text/plain'});
+        });
+        it('returns pre-rendered body', function() {
+          expect(this.res.end).toHaveBeenCalledWith('body');
+        });
+
+        describe('after clearing', function() {
+          beforeEach(function(done) {
+            this.subject.cache.clear('http://example.org');
+            this.runIt(done, { enableMiddlewareCache: true });
+          });
+
+          it('makes another request', function() {
+            expect(this.requestCount).toBe(2);
+          });
+          it('requests correct path', function() {
+            expect(this.uri).toBe(`/http://example.org/`);
+          });
+          it('returns pre-rendered status and only the content-type header', function() {
+            expect(this.res.writeHead).toHaveBeenCalledWith(200, {'content-type': 'text/html'});
+          });
+          it('returns pre-rendered body', function() {
+            expect(this.res.end).toHaveBeenCalledWith('body2');
+          });
+
+        });
+
       });
     });
 
@@ -469,153 +645,6 @@ describe('prerender middleware', function() {
         it('prerenders', function() {
           expect(this.uri).toEqual('/http://example.org/file?_escaped_fragment_')
         });
-      });
-    });
-
-    describe('valid requirements', function() {
-      beforeEach(function() {
-        this.req = { headers: { 'user-agent': 'twitterbot/1.0' }, _requestedUrl: 'http://example.org/files.m4v.storage/lol' };
-      });
-
-      describe('when request lib returns error', function() {
-        beforeEach(function(done) {
-          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).replyWithError('server error');
-          this.runIt(done);
-        });
-
-        itCalledNext();
-      });
-
-      describe('when server returns error', function() {
-        beforeEach(function(done) {
-          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(() => [500, 'errmsg']);
-          this.runIt(done);
-        });
-
-        itCalledNext();
-      });
-
-      describe('when server returns rate limited', function() {
-        beforeEach(function(done) {
-          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(() => [429, 'errmsg']);
-          this.runIt(done);
-        });
-
-        itCalledNext();
-      });
-
-      describe('when server returns bad request (client/user error)', function() {
-        beforeEach(function(done) {
-          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(() => [400, 'errmsg']);
-          this.runIt(done);
-        });
-
-        it('returns pre-rendered body', function() {
-          expect(this.res.end.calls.mostRecent().args[0]).toMatch(/user error/);
-        });
-      });
-
-      describe('when disabling features', function() {
-        beforeEach(function(done) {
-          this.req._requestedUrl = `http://example.org/index.html`
-          this.headersSentToServer = {};
-          var self = this;
-          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(function(uri) {
-            self.headersSentToServer = this.req.headers;
-            return ([200, 'body']);
-          });
-          this.runIt(done, { disableAjaxBypass: true, disableAjaxPreload: true, disableServerCache: true });
-        });
-        it('sets prerender-disable-ajax-bypass header', function() {
-          expect(this.headersSentToServer['prerender-disable-ajax-bypass']).toEqual(true);
-        });
-        it('sets prerender-disable-ajax-preload header', function() {
-          expect(this.headersSentToServer['prerender-disable-ajax-preload']).toEqual(true);
-        });
-        it('sets noCache header', function() {
-          expect(this.headersSentToServer['nocache']).toEqual(true);
-        });
-      });
-
-      ['/', '/index', '/index.htm', '/index.html', 'index.bak.html'].forEach(function(basename) {
-
-        describe('when server returns success', function() {
-          beforeEach(function(done) {
-            this.req._requestedUrl = `http://example.org/files.m4v.storage${basename}`
-            this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply((uri) => {
-              this.uri = uri;
-              return ([202, 'body', {someHeader: 'someHeaderValue', 'content-type': 'text/html; charset=utf-8'}]);
-            });
-            this.runIt(done);
-          });
-
-          it('requests correct path', function() {
-            expect(this.uri).toBe(`/http://example.org/files.m4v.storage${basename}`);
-          });
-          it('returns pre-rendered status and only the content-type header', function() {
-            expect(this.res.writeHead).toHaveBeenCalledWith(202, {'content-type': 'text/html; charset=utf-8'});
-          });
-          it('returns pre-rendered body', function() {
-            expect(this.res.end).toHaveBeenCalledWith('body');
-          });
-        });
-
-      });
-
-      describe('enableMiddlewareCache is true', function() {
-        beforeEach(function(done) {
-          this.requestCount = 0;
-          this.req._requestedUrl = `http://example.org/`
-          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(uri => {
-            this.uri = uri;
-            this.requestCount += 1;
-            return ([200, 'body', { 'content-type': 'text/plain' }]);
-          })
-          this.prerenderServer = nock('https://service.prerender.cloud').get(/.*/).reply(uri => {
-            this.requestCount += 1;
-            return ([200, 'body2', { 'content-type': 'text/html' }]);
-          })
-          this.runIt(done, { enableMiddlewareCache: true });
-        });
-
-        beforeEach(function(done) {
-          this.runIt(done, { enableMiddlewareCache: true });
-        });
-
-        it('only makes 1 request', function() {
-          expect(this.requestCount).toBe(1);
-        });
-        it('requests correct path', function() {
-          expect(this.uri).toBe(`/http://example.org/`);
-        });
-        it('returns pre-rendered status and only the content-type header', function() {
-          expect(this.res.writeHead).toHaveBeenCalledWith(200, {'content-type': 'text/plain'});
-        });
-        it('returns pre-rendered body', function() {
-          expect(this.res.end).toHaveBeenCalledWith('body');
-        });
-
-        describe('after clearing', function() {
-          beforeEach(function(done) {
-            this.subject.cache.clear('http://example.org');
-            this.runIt(done, { enableMiddlewareCache: true });
-          });
-
-          it('makes another request', function() {
-            expect(this.requestCount).toBe(2);
-          });
-          it('requests correct path', function() {
-            expect(this.uri).toBe(`/http://example.org/`);
-          });
-          it('returns pre-rendered status and only the content-type header', function() {
-            expect(this.res.writeHead).toHaveBeenCalledWith(200, {'content-type': 'text/html'});
-          });
-          it('returns pre-rendered body', function() {
-            expect(this.res.end).toHaveBeenCalledWith('body2');
-          });
-
-        });
-
       });
     });
 

@@ -148,15 +148,39 @@ const handleSkip = (msg, next) => {
   return next();
 }
 
+const concurrentRequestCache = {};
+
 class Prerender {
   constructor(req) {
     this.req = req;
     this.url = new Url(req);
   }
 
+  // promise cache wrapper around ._get to prevent concurrent requests to same URL
+  get() {
+    if (concurrentRequestCache[this._requestedUrl()]) return concurrentRequestCache[this._requestedUrl()];
+
+    const promise = this._get();
+
+    const deleteCache = () => {
+      concurrentRequestCache[this._requestedUrl()] = undefined;
+      delete concurrentRequestCache[this._requestedUrl()];
+    }
+
+    return (concurrentRequestCache[this._requestedUrl()] = promise)
+      .then(res => {
+        deleteCache();
+        return res;
+      })
+      .catch(err => {
+        deleteCache();
+        return Promise.reject(err);
+      })
+  }
+
   // fulfills promise when service.prerender.cloud response is: 2xx, 4xx
   // rejects promise when request lib errors or service.prerender.cloud response is: 5xx
-  get() {
+  _get() {
     let url = this._createApiRequestUrl();
     let headers = this._createHeaders();
     let gzip = true;
