@@ -16,6 +16,7 @@ Express/connect middleware for prerendering javascript web pages/apps (single pa
   - [Enable for bots **ONLY** \(google, facebook, twitter, slack etc...\)](#enable-for-bots-only-google-facebook-twitter-slack-etc)
   - [Whitelist your own user-agent list \(overrides `botsOnly`\) \(case sensitive\)](#whitelist-your-own-user-agent-list-overrides-botsonly-case-sensitive)
   - [beforeRender \(short circuit the remote call to service.prerender.cloud\)](#beforerender-short-circuit-the-remote-call-to-serviceprerendercloud)
+  - [shouldPrerender](#shouldprerender)
 - [Caching](#caching)
   - [Disable prerender.cloud server cache](#disable-prerendercloud-server-cache)
   - [Using the \(optional\) middleware cache](#using-the-optional-middleware-cache)
@@ -105,6 +106,19 @@ prerendercloud.set('beforeRender', (req, done) => {
   done();
   done(null);
   done(undefined);
+});
+```
+
+<a name="shouldprerender"></a>
+### shouldPrerender
+
+This is executed after the `beforeRender` but if present, replaces userAgent detection (it would override `botsOnly`).
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('shouldPrerender', (req) => {
+  return req.headers['user-agent'] === 'googlebot' && someStateOnMyServer();
+  // return bool
 });
 ```
 

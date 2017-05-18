@@ -92,7 +92,8 @@ class Options {
       'disableAjaxPreload',
       'enableMiddlewareCache',
       'middlewareCacheMaxBytes',
-      'middlewareCacheMaxAge'
+      'middlewareCacheMaxAge',
+      'shouldPrerender'
     ];
   }
 
@@ -263,7 +264,17 @@ class Prerender {
 
     if (this.req.method != 'GET' && this.req.method != 'HEAD') return false;
 
-    return !this._alreadyPrerendered() && this._prerenderableUserAgent() && this._prerenderableExtension();
+    if (this._alreadyPrerendered()) return false;
+
+    if (!this._prerenderableExtension()) return false;
+
+    if (this._isPrerenderCloudUserAgent()) return false;
+
+    if (options.options.shouldPrerender) {
+      return options.options.shouldPrerender(this.req);
+    } else {
+      return this._prerenderableUserAgent();
+    }
   }
 
   _createHeaders() {
@@ -324,14 +335,22 @@ class Prerender {
     return false;
   }
 
-  _prerenderableUserAgent() {
+  _isPrerenderCloudUserAgent() {
     let reqUserAgent = this.req.headers['user-agent'];
 
     if (!reqUserAgent) return false;
 
     reqUserAgent = reqUserAgent.toLowerCase();
 
-    if (reqUserAgent.match(/prerendercloud/i)) return false;
+    return reqUserAgent.match(/prerendercloud/i);
+  }
+
+  _prerenderableUserAgent() {
+    let reqUserAgent = this.req.headers['user-agent'];
+
+    if (!reqUserAgent) return false;
+
+    reqUserAgent = reqUserAgent.toLowerCase();
 
     if (options.options.whitelistUserAgents) return options.options.whitelistUserAgents.some( enabledUserAgent => reqUserAgent.includes(enabledUserAgent))
 

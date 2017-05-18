@@ -48,8 +48,9 @@ describe('prerender middleware', function() {
         this.subject.set('botsOnly', !!options.botsOnly);
         this.subject.set('whitelistUserAgents', options.whitelistUserAgents);
         this.subject.set('originHeaderWhitelist', options.originHeaderWhitelist);
-        this.subject.set('beforeRender', options.beforeRender)
-        this.subject.set('afterRender', options.afterRender)
+        this.subject.set('beforeRender', options.beforeRender);
+        this.subject.set('afterRender', options.afterRender);
+        this.subject.set('shouldPrerender', options.shouldPrerender);
 
         this.next = jasmine.createSpy('nextMiddleware').and.callFake(done);
         this.res = {
@@ -125,6 +126,60 @@ describe('prerender middleware', function() {
         });
 
         itCalledNext();
+      });
+    });
+
+    describe("shouldPrerender option", function() {
+      beforeEach(function() {
+        this.req = {
+          headers: {
+            "user-agent": "Mozilla/5.0"
+          },
+          _requestedUrl: "http://example.org/file"
+        };
+        this.prerenderServer = nock("https://service.prerender.cloud")
+          .get(/.*/)
+          .reply(uri => {
+            this.uriCapturedOnPrerender = uri;
+            return [
+              200,
+              "body",
+              {
+                someHeader: "someHeaderValue",
+                "content-type": "text/html; charset=utf-8"
+              }
+            ];
+          });
+      });
+
+      describe("when false", function() {
+        beforeEach(function(done) {
+          this.runIt(done, {
+            shouldPrerender: req => false
+          });
+        });
+
+        it("does not prerender", function() {
+          expect(this.uriCapturedOnPrerender).toBeUndefined();
+        });
+      });
+      describe("when true", function() {
+        beforeEach(function(done) {
+          this.runIt(done, {
+            shouldPrerender: req => true
+          });
+        });
+        it("prerenders", function() {
+          expect(this.uriCapturedOnPrerender).toBe("/http://example.org/file");
+        });
+        it("returns 200 status and only the content-type header", function() {
+          expect(this.res.writeHead).toHaveBeenCalledWith(200, {
+            "content-type": "text/html; charset=utf-8"
+          });
+        });
+        it("returns beforeRender body", function() {
+          expect(this.res.end).toHaveBeenCalledWith("body");
+        });
       });
     });
 
