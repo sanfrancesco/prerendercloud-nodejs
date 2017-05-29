@@ -13,6 +13,7 @@ var middlewareCache = null;
 
 // preserve (and send to client) these headers from service.prerender.cloud which originally came from the origin server
 const headerWhitelist = [
+  "vary",
   "content-type",
   "cache-control",
   "strict-transport-security",
