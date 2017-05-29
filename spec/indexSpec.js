@@ -45,7 +45,9 @@ describe("prerender middleware", function() {
     beforeEach(function() {
       this.req = {};
       this.res = {
-        writeHead: jasmine.createSpy("writeHead")
+        writeHead: jasmine.createSpy("writeHead"),
+        getHeader: jasmine.createSpy("getHeader"),
+        setHeader: jasmine.createSpy("setHeader")
       };
       this.subject.cache && this.subject.cache.reset();
       this.runIt = function(done, options) {
@@ -745,6 +747,10 @@ describe("prerender middleware", function() {
           this.runIt(done);
         });
 
+        it("does not set Vary header", function() {
+          expect(this.res.setHeader).not.toHaveBeenCalled();
+        });
+
         it("prerenders", function() {
           expect(this.uri).toEqual("/http://example.org/file");
         });
@@ -758,13 +764,22 @@ describe("prerender middleware", function() {
         it("does not prerender", function() {
           expect(this.uri).toBeUndefined();
         });
+
+        it("sets Vary header", function() {
+          expect(this.res.setHeader).toHaveBeenCalledWith("Vary", "User-Agent");
+        });
+
         itCalledNext();
       });
 
-      describe("bot userAgent, when botOnly option is true", function() {
+      describe("bot userAgent, when botsOnly option is true", function() {
         beforeEach(function(done) {
           this.req.headers["user-agent"] = "twitterbot";
           this.runIt(done, { botsOnly: true });
+        });
+
+        it("sets Vary header", function() {
+          expect(this.res.setHeader).toHaveBeenCalledWith("Vary", "User-Agent");
         });
 
         it("prerenders", function() {
@@ -772,7 +787,7 @@ describe("prerender middleware", function() {
         });
       });
 
-      describe("normal userAgent, when botOnly option is true and _escaped_fragment_ is present", function() {
+      describe("normal userAgent, when botsOnly option is true and _escaped_fragment_ is present", function() {
         beforeEach(function(done) {
           this.req._requestedUrl = `http://example.org/file?_escaped_fragment_`;
           this.runIt(done, { botsOnly: true });

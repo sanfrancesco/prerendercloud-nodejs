@@ -6,6 +6,7 @@ if (!Array.isArray) {
 }
 
 var request = require("request");
+var vary = require("vary")
 var debug = require("debug")("prerendercloud");
 var LRU = require("lru-cache");
 var middlewareCache = null;
@@ -269,6 +270,10 @@ class Prerender {
 
   static middleware(req, res, next) {
     const prerender = new Prerender(req);
+
+    if (options.options.botsOnly) {
+      vary(res, 'User-Agent');
+    }
 
     if (!prerender._shouldPrerender()) {
       debug("NOT prerendering", req.originalUrl, req.headers);

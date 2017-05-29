@@ -74,7 +74,9 @@ The default behavior forwards all traffic through prerender.cloud
 <a name="enable-for-bots-only-google-facebook-twitter-slack-etc"></a>
 ### Enable for bots **ONLY** (google, facebook, twitter, slack etc...)
 
-We recommend the default setting of pre-rendering all user-agents (because of performance boost and potential google cloaking penalties) but there may be a situation where you shouldn't or can't, for example: your site/app has JavaScript errors when trying to repaint the DOM after it's already been pre-rendered.
+We don't recommend this setting, instead use the **default** setting of pre-rendering all user-agents (because of performance boost and potential google cloaking penalties) but there may be a situation where you shouldn't or can't, for example: your site/app has JavaScript errors when trying to repaint the DOM after it's already been pre-rendered but you still want bots (twitter, slack, facebook etc...) to read the meta and open graph tags.
+
+**Note**: this will add or append 'User-Agent' to the [**Vary** header](https://varvy.com/mobile/vary-user-agent.html), which is another reason not to recommend this feature (because it significantly reduces HTTP cacheability)
 
 ```javascript
 const prerendercloud = require('prerendercloud');
@@ -83,6 +85,9 @@ prerendercloud.set('botsOnly', true);
 
 <a name="whitelist-your-own-user-agent-list-overrides-botsonly-case-sensitive"></a>
 ### Whitelist your own user-agent list (overrides `botsOnly`) (case sensitive)
+
+**Note**: this will **NOT** add or append 'User-Agent' to the [**Vary** header](https://varvy.com/mobile/vary-user-agent.html). You should probably set the Vary header yourself, if using this feature.
+
 ```javascript
 const prerendercloud = require('prerendercloud');
 prerendercloud.set('whitelistUserAgents', ['twitterbot', 'slackbot', 'facebookexternalhit']);
