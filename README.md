@@ -28,6 +28,7 @@ Express/connect middleware for prerendering javascript web pages/apps (single pa
 - [afterRender \(a noop\) \(caching, analytics\)](#afterrender-a-noop-caching-analytics)
 - [Debugging](#debugging)
 - [How errors from the server \(service.prerender.cloud\) are handled](#how-errors-from-the-server-serviceprerendercloud-are-handled)
+  - [bubbleUp5xxErrors](#bubbleup5xxerrors)
 
 <!-- /MarkdownTOC -->
 
@@ -241,3 +242,15 @@ DEBUG=prerendercloud node index.js
     * the error message is written to STDERR
     * if the env var: DEBUG=prerendercloud is set, the error is also written to STDOUT
 
+
+<a name="bubbleup5xxerrors"></a>
+### bubbleUp5xxErrors
+
+This must be enabled if you want your webserver to show a 500 when prerender.cloud throws a 5xx (retriable error). As mentioned in the previous section, by default, 5xx errors are ignored and non-prerendered content is returned so the user is uninterrupted.
+
+Bubbling up the 5xx error is useful if you're using a crawler to trigger prerenders and you want control over retries.
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('bubbleUp5xxErrors', true);
+```

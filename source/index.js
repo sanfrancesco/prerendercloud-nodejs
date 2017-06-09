@@ -50,6 +50,8 @@ const userAgentsToPrerender = [
   "bitlybot"
 ];
 
+const is5xxError = statusCode => parseInt(statusCode/100) === 5;
+
 class MiddlewareCache {
   constructor(lruCache) {
     this.lruCache = lruCache;
@@ -101,6 +103,7 @@ class Options {
       "disableServerCache",
       "disableAjaxBypass",
       "disableAjaxPreload",
+      "bubbleUp5xxErrors",
       "enableMiddlewareCache",
       "middlewareCacheMaxBytes",
       "middlewareCacheMaxAge",
@@ -212,7 +215,7 @@ class Prerender {
 
     return new Promise((res, rej) => {
       request({ url, headers, gzip }, (error, response, body) => {
-        if (error || response.statusCode === 500) {
+        if (error || (!options.options.bubbleUp5xxErrors && is5xxError(response.statusCode))) {
           if (error) return rej(error);
 
           return rej(

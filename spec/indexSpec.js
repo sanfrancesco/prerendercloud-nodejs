@@ -61,6 +61,7 @@ describe("prerender middleware", function() {
           !!options.enableMiddlewareCache
         );
         this.subject.set("botsOnly", !!options.botsOnly);
+        this.subject.set("bubbleUp5xxErrors", !!options.bubbleUp5xxErrors);
         this.subject.set("whitelistUserAgents", options.whitelistUserAgents);
         this.subject.set(
           "originHeaderWhitelist",
@@ -591,7 +592,8 @@ describe("prerender middleware", function() {
       beforeEach(function() {
         this.req = {
           headers: {
-            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.75 Safari/537.36"
+            "user-agent":
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.75 Safari/537.36"
           },
           _requestedUrl: "http://example.org/file"
         };
@@ -654,7 +656,8 @@ describe("prerender middleware", function() {
       beforeEach(function() {
         this.req = {
           headers: {
-            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.75 Safari/537.36",
+            "user-agent":
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.75 Safari/537.36",
             "unusual-header": "unusual-value"
           },
           _requestedUrl: "http://example.org/file"
@@ -722,7 +725,8 @@ describe("prerender middleware", function() {
       beforeEach(function() {
         this.req = {
           headers: {
-            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.75 Safari/537.36"
+            "user-agent":
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.75 Safari/537.36"
           },
           _requestedUrl: "http://example.org/file"
         };
@@ -797,6 +801,49 @@ describe("prerender middleware", function() {
           expect(this.uri).toEqual(
             "/http://example.org/file?_escaped_fragment_"
           );
+        });
+      });
+    });
+
+    describe("bubbleUp5xxErrors option", function() {
+      beforeEach(function() {
+        this.req = {
+          headers: { "user-agent": "twitterbot/1.0" },
+          _requestedUrl: "http://example.org/files.m4v.storage/lol"
+        };
+      });
+
+      describe("when request lib returns error", function() {
+        function withError(statusCode) {
+          beforeEach(function(done) {
+            this.prerenderServer = nock("https://service.prerender.cloud")
+              .get(/.*/)
+              .reply(() => [statusCode, "errmsg"]);
+            this.runIt(done, { bubbleUp5xxErrors: true });
+          });
+        }
+
+        function itBubblesUp(statusCode) {
+          it("bubble the error up", function() {
+            expect(this.res.writeHead.calls.mostRecent().args[0]).toEqual(
+              statusCode,
+              {}
+            );
+            expect(this.res.end.calls.mostRecent().args[0]).toMatch("errmsg");
+          });
+        }
+
+        describe("with 500", function() {
+          withError(500);
+          itBubblesUp(500);
+        });
+        describe("with 555", function() {
+          withError(555);
+          itBubblesUp(555);
+        });
+        describe("with 503", function() {
+          withError(503);
+          itBubblesUp(503);
         });
       });
     });
