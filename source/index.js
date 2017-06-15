@@ -280,7 +280,7 @@ class Prerender {
     }
 
     if (!prerender._shouldPrerender()) {
-      debug("NOT prerendering", req.originalUrl, req.headers);
+      debug("NOT prerendering", req.originalUrl, req && req.headers && {'user-agent': req.headers['user-agent'] });
       return next();
     }
 
