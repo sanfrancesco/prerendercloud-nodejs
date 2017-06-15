@@ -287,7 +287,7 @@ class Prerender {
     if (options.options.enableMiddlewareCache) {
       const cached = middlewareCache.get(prerender._requestedUrl());
       if (cached) {
-        debug("returning cache", req.originalUrl, req.headers);
+        debug("returning cache", req.originalUrl, req && req.headers && {'user-agent': req.headers['user-agent'] });
         return prerender.writeHttpResponse(req, res, next, cached);
       }
     }
