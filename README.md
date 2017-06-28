@@ -62,9 +62,9 @@ PRERENDER_TOKEN=mySecretToken node index.js
 #### Hard coded
 
 ```javascript
-const prerenderCloud = require('prerendercloud');
-prerenderCloud.set('prerenderToken', 'mySecretToken')
-app.use(prerenderCloud);
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('prerenderToken', 'mySecretToken')
+app.use(prerendercloud);
 ```
 
 <a name="configure-a-condition-for-when-traffic-should-go-through-prerendercloud"></a>
