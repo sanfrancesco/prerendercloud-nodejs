@@ -38,6 +38,7 @@ const userAgentsToPrerender = [
   "showyoubot",
   "outbrain",
   "pinterest/0.",
+  "pinterestbot",
   "developers.google.com/+/web/snippet",
   "slackbot",
   "vkShare",
