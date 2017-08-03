@@ -5,8 +5,8 @@ if (!Array.isArray) {
   };
 }
 
-var request = require("request");
-var vary = require("vary")
+var got = require("got");
+var vary = require("vary");
 var debug = require("debug")("prerendercloud");
 var LRU = require("lru-cache");
 var middlewareCache = null;
@@ -51,7 +51,7 @@ const userAgentsToPrerender = [
   "bitlybot"
 ];
 
-const is5xxError = statusCode => parseInt(statusCode/100) === 5;
+const is5xxError = statusCode => parseInt(statusCode / 100) === 5;
 
 class MiddlewareCache {
   constructor(lruCache) {
@@ -214,34 +214,48 @@ class Prerender {
     let gzip = true;
     debug("prerendering:", url, headers);
 
-    return new Promise((res, rej) => {
-      request({ url, headers, gzip }, (error, response, body) => {
-        if (error || (!options.options.bubbleUp5xxErrors && is5xxError(response.statusCode))) {
-          if (error) return rej(error);
+    const buildData = response => {
+      const body = response.body;
 
-          return rej(
-            new Error((body && body.substring(0, 300)) || "server error")
-          );
-        } else {
-          let headers = {};
-          headerWhitelist.forEach(h => {
-            if (response.headers[h]) headers[h] = response.headers[h];
-          });
+      const headers = {};
+      headerWhitelist.forEach(h => {
+        if (response.headers[h]) headers[h] = response.headers[h];
+      });
 
-          const data = { statusCode: response.statusCode, headers, body };
+      const data = { statusCode: response.statusCode, headers, body };
 
+      if (
+        options.options.enableMiddlewareCache &&
+        `${response.statusCode}`.startsWith("2") &&
+        body &&
+        body.length
+      )
+        middlewareCache.set(this._requestedUrl(), data);
+
+      return data;
+    };
+
+    return got
+      .get(url, { headers, retries: 0 })
+      .then(response => {
+        return buildData(response);
+      })
+      .catch(err => {
+        if (err instanceof got.HTTPError) {
           if (
-            options.options.enableMiddlewareCache &&
-            `${response.statusCode}`.startsWith("2") &&
-            body &&
-            body.length
-          )
-            middlewareCache.set(this._requestedUrl(), data);
-
-          return res(data);
+            is5xxError(err.response.statusCode) &&
+            options.options.bubbleUp5xxErrors
+          ) {
+            return buildData(err.response);
+          } else if (err.response.statusCode === 400) {
+            return buildData(err.response);
+          } else {
+            return Promise.reject(err);
+          }
+        } else {
+          return Promise.reject(err);
         }
       });
-    });
   }
 
   // data looks like { statusCode, headers, body }
@@ -277,18 +291,26 @@ class Prerender {
     const prerender = new Prerender(req);
 
     if (options.options.botsOnly) {
-      vary(res, 'User-Agent');
+      vary(res, "User-Agent");
     }
 
     if (!prerender._shouldPrerender()) {
-      debug("NOT prerendering", req.originalUrl, req && req.headers && {'user-agent': req.headers['user-agent'] });
+      debug(
+        "NOT prerendering",
+        req.originalUrl,
+        req && req.headers && { "user-agent": req.headers["user-agent"] }
+      );
       return next();
     }
 
     if (options.options.enableMiddlewareCache) {
       const cached = middlewareCache.get(prerender._requestedUrl());
       if (cached) {
-        debug("returning cache", req.originalUrl, req && req.headers && {'user-agent': req.headers['user-agent'] });
+        debug(
+          "returning cache",
+          req.originalUrl,
+          req && req.headers && { "user-agent": req.headers["user-agent"] }
+        );
         return prerender.writeHttpResponse(req, res, next, cached);
       }
     }
@@ -353,7 +375,8 @@ class Prerender {
   _createHeaders() {
     let h = {
       "User-Agent": "prerender-cloud-nodejs-middleware",
-      "X-Original-User-Agent": this.req.headers["user-agent"]
+      "X-Original-User-Agent": this.req.headers["user-agent"],
+      "accept-encoding": "gzip"
     };
 
     let token = options.options.prerenderToken || process.env.PRERENDER_TOKEN;
