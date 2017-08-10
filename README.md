@@ -27,6 +27,7 @@ Express/connect middleware for prerendering javascript web pages/apps (single pa
   - [Disable Ajax Preload](#disable-ajax-preload)
   - [originHeaderWhitelist](#originheaderwhitelist)
 - [afterRender \(a noop\) \(caching, analytics\)](#afterrender-a-noop-caching-analytics)
+- [removeScriptTags](#removescripttags)
 - [How errors from the server \(service.prerender.cloud\) are handled](#how-errors-from-the-server-serviceprerendercloud-are-handled)
   - [bubbleUp5xxErrors](#bubbleup5xxerrors)
 
@@ -225,6 +226,17 @@ prerendercloud.set('afterRender', (err, req, res) => {
   console.log(`received ${res.body.length} bytes for ${req.url}`)
 });
 ```
+
+<a name="removescripttags"></a>
+## removeScriptTags
+
+This removes all script tags except for [application/ld+json](https://stackoverflow.com/questions/38670851/whats-a-script-type-application-ldjsonjsonobj-script-in-a-head-sec). Removing script tags prevents any JS from executing at all - so your app will no longer be isomorphic. Useful when prerender.cloud is used as a scraper/crawler or in constrained environments (Lambda @ Edge).
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('removeScriptTags', true);
+```
+
 
 <a name="how-errors-from-the-server-serviceprerendercloud-are-handled"></a>
 ## How errors from the server (service.prerender.cloud) are handled

@@ -53,6 +53,7 @@ describe("prerender middleware", function() {
       this.runIt = function(done, options) {
         if (!done) done = () => {};
         if (!options) options = {};
+        this.subject.set("removeScriptTags", !!options.removeScriptTags);
         this.subject.set("disableAjaxBypass", !!options.disableAjaxBypass);
         this.subject.set("disableAjaxPreload", !!options.disableAjaxPreload);
         this.subject.set("disableServerCache", !!options.disableServerCache);
@@ -205,6 +206,40 @@ describe("prerender middleware", function() {
 
         it("returns pre-rendered body", function() {
           expect(this.res.end.calls.mostRecent().args[0]).toMatch(/user error/);
+        });
+      });
+
+      describe("removeScriptTags option", function() {
+        beforeEach(function() {
+          const that = this;
+          this.prerenderServer = nock("https://service.prerender.cloud")
+            .get(/.*/)
+            .reply(function(uri, wut) {
+              that.headersSentToPrerenderCloud = this.req.headers;
+              return [200, "body"];
+            });
+        });
+        describe("disabled", function() {
+          beforeEach(function(done) {
+            this.runIt(done, { removeScriptTags: false });
+          });
+
+          it("does not send header to prerendercloud", function() {
+            expect(
+              this.headersSentToPrerenderCloud["prerender-remove-script-tags"]
+            ).toEqual(undefined);
+          });
+        });
+        describe("enabled", function() {
+          beforeEach(function(done) {
+            this.runIt(done, { removeScriptTags: true });
+          });
+
+          it("it sends header to prerendercloud", function() {
+            expect(
+              this.headersSentToPrerenderCloud["prerender-remove-script-tags"]
+            ).toEqual(true);
+          });
         });
       });
 

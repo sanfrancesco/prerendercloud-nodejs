@@ -109,7 +109,8 @@ class Options {
       "enableMiddlewareCache",
       "middlewareCacheMaxBytes",
       "middlewareCacheMaxAge",
-      "shouldPrerender"
+      "shouldPrerender",
+      "removeScriptTags"
     ];
   }
 
@@ -387,6 +388,9 @@ class Prerender {
     let token = options.options.prerenderToken || process.env.PRERENDER_TOKEN;
 
     if (token) Object.assign(h, { "X-Prerender-Token": token });
+
+    if (options.options.removeScriptTags)
+      Object.assign(h, { "Prerender-Remove-Script-Tags": true });
 
     // disable prerender.cloud caching
     if (options.options.disableServerCache) Object.assign(h, { noCache: true });
