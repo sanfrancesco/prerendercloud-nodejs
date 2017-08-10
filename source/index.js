@@ -94,6 +94,7 @@ class Options {
 
   static get validOptions() {
     return [
+      "timeout",
       "prerenderServiceUrl",
       "prerenderToken",
       "beforeRender",
@@ -236,7 +237,11 @@ class Prerender {
     };
 
     return got
-      .get(url, { headers, retries: 0 })
+      .get(url, {
+        headers,
+        retries: 0,
+        timeout: options.options.timeout || 20000
+      })
       .then(response => {
         return buildData(response);
       })
