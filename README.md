@@ -9,6 +9,7 @@ Express/connect middleware for prerendering javascript web pages/apps (single pa
 <!-- MarkdownTOC autolink="true" autoanchor="true" bracket="round" depth=4 -->
 
 - [Install/Configure for Express/Connect/Node http](#installconfigure-for-expressconnectnode-http)
+- [Debugging](#debugging)
   - [API token configuration](#api-token-configuration)
     - [`PRERENDER_TOKEN` environment variable \(best practice\)](#prerendertoken-environment-variable-best-practice)
     - [Hard coded](#hard-coded)
@@ -26,7 +27,6 @@ Express/connect middleware for prerendering javascript web pages/apps (single pa
   - [Disable Ajax Preload](#disable-ajax-preload)
   - [originHeaderWhitelist](#originheaderwhitelist)
 - [afterRender \(a noop\) \(caching, analytics\)](#afterrender-a-noop-caching-analytics)
-- [Debugging](#debugging)
 - [How errors from the server \(service.prerender.cloud\) are handled](#how-errors-from-the-server-serviceprerendercloud-are-handled)
   - [bubbleUp5xxErrors](#bubbleup5xxerrors)
 
@@ -46,6 +46,14 @@ The `prerendercloud` middleware should be loaded first **unless you're using mid
 // the free, rate limited tier
 app.use(require('prerendercloud'));
 ```
+
+<a name="debugging"></a>
+## Debugging
+
+```javascript
+DEBUG=prerendercloud node index.js
+```
+
 
 <a name="api-token-configuration"></a>
 ### API token configuration
@@ -198,7 +206,7 @@ app.use(prerendercloud);
 <a name="originheaderwhitelist"></a>
 ### originHeaderWhitelist
 
-The only valid value (_right now_) is: `['Prerendercloud-Is-Mobile-Viewer']`, but this feature is meant for forwarding specific headers from the request to service.prerender.cloud to the request to the origin (by default, all headers are dropped).
+The only valid values (_right now_) are: `['Prerendercloud-Is-Mobile-Viewer']`, and anything starting with `prerendercloud-`. This feature is meant for forwarding headers from the original request to your site through to your origin (by default, all headers are dropped).
 
 ```javascript
 prerendercloud.set('originHeaderWhitelist', ['Prerendercloud-Is-Mobile-Viewer']);
@@ -216,13 +224,6 @@ prerendercloud.set('afterRender', (err, req, res) => {
   // res: { statusCode, headers, body }
   console.log(`received ${res.body.length} bytes for ${req.url}`)
 });
-```
-
-<a name="debugging"></a>
-## Debugging
-
-```javascript
-DEBUG=prerendercloud node index.js
 ```
 
 <a name="how-errors-from-the-server-serviceprerendercloud-are-handled"></a>
@@ -254,3 +255,4 @@ Bubbling up the 5xx error is useful if you're using a crawler to trigger prerend
 const prerendercloud = require('prerendercloud');
 prerendercloud.set('bubbleUp5xxErrors', true);
 ```
+
