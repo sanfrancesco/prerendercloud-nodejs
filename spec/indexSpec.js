@@ -209,12 +209,61 @@ describe("prerender middleware", function() {
         });
       });
 
+      describe("when server returns 404", function() {
+        beforeEach(function(done) {
+          this.prerenderServer = nock("https://service.prerender.cloud")
+            .get(/.*/)
+            .reply(() => [404, "notfound"]);
+          this.runIt(done);
+        });
+
+        it("preserves 404 status-code", function() {
+          expect(this.res.writeHead.calls.mostRecent().args).toEqual([404, {}]);
+        });
+
+        it("returns pre-rendered body", function() {
+          expect(this.res.end.calls.mostRecent().args[0]).toEqual("notfound");
+        });
+      });
+
+      describe("when server returns 301", function() {
+        beforeEach(function(done) {
+          this.prerenderServer = nock("https://service.prerender.cloud")
+            .get(/.*/)
+            .reply(uri => {
+              this.uri = uri;
+              return [
+                301,
+                "redirecting...",
+                {
+                  Location: "http://example.com"
+                }
+              ];
+            });
+
+          this.runIt(done);
+        });
+
+        it("preserves 301 status-code and location header", function() {
+          expect(this.res.writeHead.calls.mostRecent().args).toEqual([
+            301,
+            { location: "http://example.com" }
+          ]);
+        });
+
+        it("returns pre-rendered body", function() {
+          expect(this.res.end.calls.mostRecent().args[0]).toEqual(
+            "redirecting..."
+          );
+        });
+      });
+
       describe("removeScriptTags option", function() {
         beforeEach(function() {
           const that = this;
           this.prerenderServer = nock("https://service.prerender.cloud")
             .get(/.*/)
-            .reply(function(uri, wut) {
+            .reply(function(uri) {
               that.headersSentToPrerenderCloud = this.req.headers;
               return [200, "body"];
             });

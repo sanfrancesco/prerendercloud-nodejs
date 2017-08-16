@@ -21,7 +21,8 @@ const headerWhitelist = [
   "public-key-pins",
   "x-frame-options",
   "x-xss-protection",
-  "x-content-type-options"
+  "x-content-type-options",
+  "location"
 ];
 
 const userAgentsToPrerender = [
@@ -50,6 +51,18 @@ const userAgentsToPrerender = [
   "tumblr",
   "bitlybot"
 ];
+
+// from https://stackoverflow.com/a/41072596
+// if there are multiple values with different case, it just takes the last
+// (which is wrong, it should merge some of them according to the HTTP spec, but it's fine for now)
+const objectKeysToLowerCase = function(origObj) {
+  return Object.keys(origObj).reduce(function(newObj, key) {
+    const val = origObj[key];
+    const newVal = typeof val === "object" ? objectKeysToLowerCase(val) : val;
+    newObj[key.toLowerCase()] = newVal;
+    return newObj;
+  }, {});
+};
 
 const is5xxError = statusCode => parseInt(statusCode / 100) === 5;
 
@@ -211,17 +224,20 @@ class Prerender {
   // fulfills promise when service.prerender.cloud response is: 2xx, 4xx
   // rejects promise when request lib errors or service.prerender.cloud response is: 5xx
   _get() {
-    let url = this._createApiRequestUrl();
-    let headers = this._createHeaders();
+    const url = this._createApiRequestUrl();
+    const headers = this._createHeaders();
+
     let gzip = true;
     debug("prerendering:", url, headers);
 
     const buildData = response => {
       const body = response.body;
 
+      const lowerCasedHeaders = objectKeysToLowerCase(response.headers);
+
       const headers = {};
       headerWhitelist.forEach(h => {
-        if (response.headers[h]) headers[h] = response.headers[h];
+        if (lowerCasedHeaders[h]) headers[h] = lowerCasedHeaders[h];
       });
 
       const data = { statusCode: response.statusCode, headers, body };
@@ -248,15 +264,14 @@ class Prerender {
       })
       .catch(err => {
         if (err instanceof got.HTTPError) {
-          if (
-            is5xxError(err.response.statusCode) &&
-            options.options.bubbleUp5xxErrors
-          ) {
-            return buildData(err.response);
-          } else if (err.response.statusCode === 400) {
-            return buildData(err.response);
-          } else {
+          const shouldRejectStatusCode = statusCode =>
+            (!options.options.bubbleUp5xxErrors && is5xxError(statusCode)) ||
+            statusCode === 429;
+
+          if (shouldRejectStatusCode(err.response.statusCode)) {
             return Promise.reject(err);
+          } else {
+            return buildData(err.response);
           }
         } else {
           return Promise.reject(err);
