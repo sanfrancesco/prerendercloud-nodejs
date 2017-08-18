@@ -329,7 +329,8 @@ describe("prerender middleware", function() {
         "/index",
         "/index.htm",
         "/index.html",
-        "index.bak.html"
+        "index.bak.html",
+        "/path-with-trailing-slash/"
       ].forEach(function(basename) {
         describe("when server returns success", function() {
           beforeEach(function(done) {
@@ -340,7 +341,7 @@ describe("prerender middleware", function() {
                 this.uri = uri;
                 return [
                   202,
-                  "body",
+                  "pre-rendered body",
                   {
                     someHeader: "someHeaderValue",
                     "content-type": "text/html; charset=utf-8"
@@ -361,7 +362,7 @@ describe("prerender middleware", function() {
             });
           });
           it("returns pre-rendered body", function() {
-            expect(this.res.end).toHaveBeenCalledWith("body");
+            expect(this.res.end).toHaveBeenCalledWith("pre-rendered body");
           });
         });
       });
