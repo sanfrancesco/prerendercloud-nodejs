@@ -106,19 +106,23 @@ prerendercloud.set('whitelistUserAgents', ['twitterbot', 'slackbot', 'facebookex
 <a name="beforerender-short-circuit-the-remote-call-to-serviceprerendercloud"></a>
 ### beforeRender (short circuit the remote call to service.prerender.cloud)
 
-Useful for your own caching layer (in conjunction with `afterRender`), or analytics, or dependency injection for testing.
+Useful for your own caching layer (in conjunction with `afterRender`), or analytics, or dependency injection for testing. Is only called when a remote call to service.prerender.cloud is about to be made.
 
 ```javascript
 const prerendercloud = require('prerendercloud');
 prerendercloud.set('beforeRender', (req, done) => {
-  // call it with a string
+  // call it with a string to short-circuit the remote prerender codepath
+  // (useful when implementing your own cache)
   done(null, 'hello world'); // returns status 200, content-type text/html
 
-  // or call it with an object
+  // or call it with an object to short-circuit the remote prerender codepath
+  // (useful when implementing your own cache)
   done(null, {status: 202, body: 'hello'}) // returns status 202, content-type text/html
 
-  // or call it with null/undefined to follow the normal path
+  // or call it with nothing/empty/null/undefined to follow the remote prerender path
+  // (useful for analytics)
   done();
+  done('');
   done(null);
   done(undefined);
 });
