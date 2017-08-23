@@ -384,7 +384,7 @@ describe("prerender middleware", function() {
               this.requestCount += 1;
               return [200, "body2", { "content-type": "text/html" }];
             });
-          let callCounter = 0;
+          var callCounter = 0;
           const _done = () => {
             callCounter += 1;
             if (callCounter === 2) done();
