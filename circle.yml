@@ -1,7 +1,11 @@
-machine:
-  node:
-    version: 6.9.2
+dependencies:
+  override:
+    - echo "noop"
+
 
 test:
   override:
-    - make build test
+    - rm -rf node_modules && nvm i 8.3 && npm i && make build test
+    - rm -rf node_modules && nvm i 4.5 && npm i && make test
+    - rm -rf node_modules && nvm i 6.10 && npm i && make test
+    - rm -rf node_modules && nvm i 7.10 && npm i && make test

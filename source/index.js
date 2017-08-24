@@ -1,3 +1,18 @@
+const getNodeVersion = () => {
+  try {
+    return parseFloat(process.version.replace(/v/,''));
+  } catch (err) {
+    return null;
+  }
+}
+
+const nodeVersion = getNodeVersion();
+
+if (nodeVersion < 4.5) {
+  console.log('prerendercloud requires node >= 4.5');
+  process.exit(1);
+}
+
 require("./includes-polyfill");
 if (!Array.isArray) {
   Array.isArray = function(arg) {
