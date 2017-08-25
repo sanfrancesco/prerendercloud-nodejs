@@ -1,15 +1,15 @@
 const getNodeVersion = () => {
   try {
-    return parseFloat(process.version.replace(/v/,''));
+    return parseFloat(process.version.replace(/v/, ""));
   } catch (err) {
     return null;
   }
-}
+};
 
 const nodeVersion = getNodeVersion();
 
 if (nodeVersion < 4.5) {
-  console.log('prerendercloud requires node >= 4.5');
+  console.log("prerendercloud requires node >= 4.5");
   process.exit(1);
 }
 
@@ -411,9 +411,13 @@ class Prerender {
   _createHeaders() {
     let h = {
       "User-Agent": "prerender-cloud-nodejs-middleware",
-      "X-Original-User-Agent": this.req.headers["user-agent"],
       "accept-encoding": "gzip"
     };
+
+    if (this.req.headers["user-agent"])
+      Object.assign(h, {
+        "X-Original-User-Agent": this.req.headers["user-agent"]
+      });
 
     let token = options.options.prerenderToken || process.env.PRERENDER_TOKEN;
 

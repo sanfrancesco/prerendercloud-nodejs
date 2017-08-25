@@ -119,6 +119,14 @@ describe("prerender middleware", function() {
 
         itCalledNext();
       });
+      describe("with empty user-agent", function() {
+        beforeEach(function(done) {
+          this.req = { headers: { "user-agent": "" } };
+          this.runIt(done);
+        });
+
+        itCalledNext();
+      });
       describe("with valid user-agent and invalid extension", function() {
         beforeEach(function(done) {
           this.req = {
@@ -472,10 +480,13 @@ describe("prerender middleware", function() {
           },
           _requestedUrl: "http://example.org/file"
         };
+        this.headersSentToServer = {};
+        const self = this;
         this.prerenderServer = nock("https://service.prerender.cloud")
           .get(/.*/)
-          .reply(uri => {
-            this.uriCapturedOnPrerender = uri;
+          .reply(function(uri) {
+            self.headersSentToServer = Object.assign({}, this.req.headers);
+            self.uriCapturedOnPrerender = uri;
             return [
               200,
               "body",
@@ -514,6 +525,27 @@ describe("prerender middleware", function() {
         });
         it("returns beforeRender body", function() {
           expect(this.res.end).toHaveBeenCalledWith("body");
+        });
+      });
+
+      describe("when true with empty user-agent", function() {
+        beforeEach(function(done) {
+          this.req.headers["user-agent"] = "";
+          this.runIt(done, {
+            shouldPrerender: req => true
+          });
+        });
+
+        it("drops x-original-user-agent", function() {
+          expect(this.headersSentToServer).toEqual({
+            "user-agent": "prerender-cloud-nodejs-middleware",
+            "accept-encoding": "gzip",
+            host: "service.prerender.cloud"
+          });
+        });
+
+        it("prerenders", function() {
+          expect(this.uriCapturedOnPrerender).toBe("/http://example.org/file");
         });
       });
     });
