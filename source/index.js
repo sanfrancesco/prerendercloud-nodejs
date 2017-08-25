@@ -413,6 +413,9 @@ class Prerender {
       "User-Agent": "prerender-cloud-nodejs-middleware",
       "accept-encoding": "gzip"
     };
+    
+    if (this.req.headers["user-agent"])
+      Object.assign(h, { "X-Original-User-Agent": this.req.headers["user-agent"] });
 
     if (this.req.headers["user-agent"])
       Object.assign(h, {
