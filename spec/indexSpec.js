@@ -53,6 +53,7 @@ describe("prerender middleware", function() {
       this.runIt = function(done, options) {
         if (!done) done = () => {};
         if (!options) options = {};
+        this.subject.set("removeTrailingSlash", !!options.removeTrailingSlash);
         this.subject.set("removeScriptTags", !!options.removeScriptTags);
         this.subject.set("disableAjaxBypass", !!options.disableAjaxBypass);
         this.subject.set("disableAjaxPreload", !!options.disableAjaxPreload);
@@ -265,6 +266,40 @@ describe("prerender middleware", function() {
           );
         });
       });
+
+      describe("removeTrailingSlash option", function() {
+        beforeEach(function() {
+          const that = this;
+          this.prerenderServer = nock("https://service.prerender.cloud")
+            .get(/.*/)
+            .reply(function(uri) {
+              that.headersSentToPrerenderCloud = this.req.headers;
+              return [200, "body"];
+            });
+        });
+        describe("disabled", function() {
+          beforeEach(function(done) {
+            this.runIt(done, { removeTrailingSlash: false });
+          });
+
+          it("does not send header to prerendercloud", function() {
+            expect(
+              this.headersSentToPrerenderCloud["prerender-remove-trailing-slash"]
+            ).toEqual(undefined);
+          });
+        });
+        describe("enabled", function() {
+          beforeEach(function(done) {
+            this.runIt(done, { removeTrailingSlash: true });
+          });
+
+          it("it sends header to prerendercloud", function() {
+            expect(
+              this.headersSentToPrerenderCloud["prerender-remove-trailing-slash"]
+            ).toEqual(true);
+          });
+        });
+      })
 
       describe("removeScriptTags option", function() {
         beforeEach(function() {

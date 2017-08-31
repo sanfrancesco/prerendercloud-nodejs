@@ -28,6 +28,7 @@ Express/connect middleware for prerendering javascript web pages/apps (single pa
   - [originHeaderWhitelist](#originheaderwhitelist)
 - [afterRender \(a noop\) \(caching, analytics\)](#afterrender-a-noop-caching-analytics)
 - [removeScriptTags](#removescripttags)
+- [removeTrailingSlash](#removetrailingslash)
 - [How errors from the server \(service.prerender.cloud\) are handled](#how-errors-from-the-server-serviceprerendercloud-are-handled)
   - [bubbleUp5xxErrors](#bubbleup5xxerrors)
 
@@ -241,6 +242,24 @@ const prerendercloud = require('prerendercloud');
 prerendercloud.set('removeScriptTags', true);
 ```
 
+<a name="removetrailingslash"></a>
+## removeTrailingSlash
+
+This is the opposite of what is often referred to "strict mode routing". When this is enabled, the server will normalize the URLs by removing a trailing slash.
+
+e.g.: example.com/docs/ -> example.com/docs
+
+The use case for this option is to achieve higher cache hit rate (so if a user/bots are hitting `/docs/` and `/docs`, they'll both be cached on prerender.cloud servers as the same entity.)
+
+SEO best practices:
+
+1. 301 redirect trailing slash URLs to non trailing slash before this middleware is called (and then don't bother removingTrailingSlash because it should never happen)
+2. or use [link rel canonical](https://en.wikipedia.org/wiki/Canonical_link_element) in conjunction with this
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('removeTrailingSlash', true);
+```
 
 <a name="how-errors-from-the-server-serviceprerendercloud-are-handled"></a>
 ## How errors from the server (service.prerender.cloud) are handled

@@ -138,7 +138,8 @@ class Options {
       "middlewareCacheMaxBytes",
       "middlewareCacheMaxAge",
       "shouldPrerender",
-      "removeScriptTags"
+      "removeScriptTags",
+      "removeTrailingSlash"
     ];
   }
 
@@ -425,6 +426,9 @@ class Prerender {
 
     if (options.options.removeScriptTags)
       Object.assign(h, { "Prerender-Remove-Script-Tags": true });
+
+    if (options.options.removeTrailingSlash)
+      Object.assign(h, { "Prerender-Remove-Trailing-Slash": true });
 
     // disable prerender.cloud caching
     if (options.options.disableServerCache) Object.assign(h, { noCache: true });
