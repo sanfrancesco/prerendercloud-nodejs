@@ -273,6 +273,7 @@ class Prerender {
       .get(url, {
         headers,
         retries: 0,
+        followRedirect: false,
         timeout: options.options.timeout || 20000
       })
       .then(response => {
