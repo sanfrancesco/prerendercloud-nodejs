@@ -181,9 +181,17 @@ class Url {
   get protocol() {
     // http://stackoverflow.com/a/10353248
     // https://github.com/expressjs/express/blob/3c54220a3495a7a2cdf580c3289ee37e835c0190/lib/request.js#L301
-    return this.req.connection && this.req.connection.encrypted
-      ? "https:"
-      : "http:";
+    let protocol = this.req.connect && this.req.connection.encrypted ? "https" : "http";
+
+    if (this.req.headers["cf-visitor"]) {
+      var match = this.req.headers["cf-visitor"].match(/"scheme":"(http|https)"/);
+      if (match) protocol = match[1];
+    }
+    if (this.req.headers["x-forwarded-proto"]) {
+      protocol = this.req.headers["x-forwarded-proto"].split(",")[0];
+    }
+
+    return protocol + ":";
   }
 
   get host() {
