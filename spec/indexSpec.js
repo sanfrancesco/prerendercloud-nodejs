@@ -267,6 +267,52 @@ describe("prerender middleware", function() {
         });
       });
 
+      describe("https", function() {
+        beforeEach(function() {
+          this.req._requestedUrl = "http://example.org";
+          const self = this;
+          this.prerenderServer = nock("https://service.prerender.cloud")
+            .get(/.*/)
+            .reply(uri => {
+              self.uri = uri;
+              return [200, "body"];
+            });
+        });
+
+        describe("req.connection.encrypted", function() {
+          beforeEach(function(done) {
+            this.req.connection = { encrypted: true };
+            this.runIt(done);
+          });
+
+          it("uses https", function() {
+            expect(this.uri).toEqual("/https://example.org/");
+          });
+        });
+
+        describe("cf-visitor", function() {
+          beforeEach(function(done) {
+            this.req.headers["cf-visitor"] = '{"scheme":"https"}';
+            this.runIt(done);
+          });
+
+          it("uses https", function() {
+            expect(this.uri).toEqual("/https://example.org/");
+          });
+        });
+
+        describe("x-forwarded-proto", function() {
+          beforeEach(function(done) {
+            this.req.headers["x-forwarded-proto"] = "https,http";
+            this.runIt(done);
+          });
+
+          it("uses https", function() {
+            expect(this.uri).toEqual("/https://example.org/");
+          });
+        });
+      });
+
       describe("removeTrailingSlash option", function() {
         beforeEach(function() {
           const that = this;
@@ -284,7 +330,9 @@ describe("prerender middleware", function() {
 
           it("does not send header to prerendercloud", function() {
             expect(
-              this.headersSentToPrerenderCloud["prerender-remove-trailing-slash"]
+              this.headersSentToPrerenderCloud[
+                "prerender-remove-trailing-slash"
+              ]
             ).toEqual(undefined);
           });
         });
@@ -295,11 +343,13 @@ describe("prerender middleware", function() {
 
           it("it sends header to prerendercloud", function() {
             expect(
-              this.headersSentToPrerenderCloud["prerender-remove-trailing-slash"]
+              this.headersSentToPrerenderCloud[
+                "prerender-remove-trailing-slash"
+              ]
             ).toEqual(true);
           });
         });
-      })
+      });
 
       describe("removeScriptTags option", function() {
         beforeEach(function() {
