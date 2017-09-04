@@ -245,7 +245,7 @@ describe("prerender middleware", function() {
                 301,
                 "redirecting...",
                 {
-                  Location: "http://example.com"
+                  location: "http://example.com" // this header must be lowercase, otherwise got doesn't catch it (and won't redirect)
                 }
               ];
             });
