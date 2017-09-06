@@ -181,10 +181,13 @@ class Url {
   get protocol() {
     // http://stackoverflow.com/a/10353248
     // https://github.com/expressjs/express/blob/3c54220a3495a7a2cdf580c3289ee37e835c0190/lib/request.js#L301
-    let protocol = this.req.connection && this.req.connection.encrypted ? "https" : "http";
+    let protocol =
+      this.req.connection && this.req.connection.encrypted ? "https" : "http";
 
     if (this.req.headers["cf-visitor"]) {
-      const cfVisitorMatch = this.req.headers["cf-visitor"].match(/"scheme":"(https|http)"/);
+      const cfVisitorMatch = this.req.headers["cf-visitor"].match(
+        /"scheme":"(https|http)"/
+      );
       if (cfVisitorMatch) protocol = cfVisitorMatch[1];
     }
 
@@ -451,9 +454,10 @@ class Prerender {
       Object.assign(h, { "Prerender-Disable-Ajax-Preload": true });
 
     if (this._hasOriginHeaderWhitelist()) {
-      options.options.originHeaderWhitelist.forEach(_h =>
-        Object.assign(h, { [_h]: this.req.headers[_h] })
-      );
+      options.options.originHeaderWhitelist.forEach(_h => {
+        if (this.req.headers[_h])
+          Object.assign(h, { [_h]: this.req.headers[_h] });
+      });
 
       Object.assign(h, {
         "Origin-Header-Whitelist": options.options.originHeaderWhitelist.join(
