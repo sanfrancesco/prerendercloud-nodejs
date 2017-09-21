@@ -15,6 +15,8 @@ Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) 
     - [Environment variable \(best practice\)](#environment-variable-best-practice)
     - [Hard coded](#hard-coded)
   - [Debugging](#debugging)
+- [Screenshots](#screenshots)
+- [PDFs](#pdfs)
 - [Prerendering or Server-side rendering with Express/Connect/Node http](#prerendering-or-server-side-rendering-with-expressconnectnode-http)
   - [Configure a condition for when traffic should go through prerender.cloud](#configure-a-condition-for-when-traffic-should-go-through-prerendercloud)
     - [Enable for bots **ONLY** \(google, facebook, twitter, slack etc...\)](#enable-for-bots-only-google-facebook-twitter-slack-etc)
@@ -81,6 +83,31 @@ app.use(prerendercloud);
 
 ```javascript
 DEBUG=prerendercloud node index.js
+```
+
+<a name="screenshots"></a>
+## Screenshots
+
+Promise API
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud
+  .screenshot("http://example.com")
+  .then(jpgBuffer => fs.writeFileSync("out.jpg", jpgBuffer));
+```
+
+
+<a name="pdfs"></a>
+## PDFs
+
+Promise API
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud
+  .pdf("http://example.com")
+  .then(pdfBuffer => fs.writeFileSync("out.pdf", pdfBuffer));
 ```
 
 <a name="prerendering-or-server-side-rendering-with-expressconnectnode-http"></a>

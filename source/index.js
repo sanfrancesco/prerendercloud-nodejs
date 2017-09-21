@@ -20,10 +20,10 @@ if (!Array.isArray) {
   };
 }
 
-var got = require("got");
-var vary = require("vary");
-var debug = require("debug")("prerendercloud");
-var LRU = require("lru-cache");
+const got = require("got");
+const vary = require("vary");
+const debug = require("debug")("prerendercloud");
+const LRU = require("lru-cache");
 var middlewareCache = null;
 
 // preserve (and send to client) these headers from service.prerender.cloud which originally came from the origin server
@@ -66,6 +66,13 @@ const userAgentsToPrerender = [
   "tumblr",
   "bitlybot"
 ];
+
+const getServiceUrl = hardcoded =>
+  (hardcoded && hardcoded.replace(/\/+$/, "")) ||
+  process.env.PRERENDER_SERVICE_URL ||
+  "https://service.prerender.cloud";
+const getRenderUrl = (action, url) =>
+  [getServiceUrl(), action, url].filter(p => p).join("/");
 
 // from https://stackoverflow.com/a/41072596
 // if there are multiple values with different case, it just takes the last
@@ -477,15 +484,7 @@ class Prerender {
   }
 
   _createApiRequestUrl() {
-    return this._serviceUrl().replace(/\/+$/, "") + "/" + this._requestedUrl();
-  }
-
-  _serviceUrl() {
-    return (
-      options.options.prerenderServiceUrl ||
-      process.env.PRERENDER_SERVICE_URL ||
-      "https://service.prerender.cloud"
-    );
+    return getRenderUrl(null, this._requestedUrl());
   }
 
   _alreadyPrerendered() {
@@ -553,6 +552,15 @@ Object.defineProperty(Prerender.middleware, "cache", {
     return middlewareCache;
   }
 });
+
+const screenshotAndPdf = (action, url, options) =>
+  got(getRenderUrl(action, url), { encoding: null }).then(res => res.body);
+
+Prerender.middleware.screenshot = screenshotAndPdf.bind(
+  undefined,
+  "screenshot"
+);
+Prerender.middleware.pdf = screenshotAndPdf.bind(undefined, "pdf");
 
 // for testing only
 Prerender.middleware.resetOptions = options.reset.bind(options);
