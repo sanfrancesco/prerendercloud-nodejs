@@ -4,69 +4,68 @@
 
 [![CircleCI](https://circleci.com/gh/sanfrancesco/prerendercloud-nodejs.svg?style=svg)](https://circleci.com/gh/sanfrancesco/prerendercloud-nodejs)
 
-Express/connect middleware for prerendering javascript web pages/apps (single page apps or SPA) with [https://www.prerender.cloud/](https://www.prerender.cloud/)
+Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) for **prerendering** (server-side rendering), or taking **screenshots** of webpages or converting webpages to **PDFs**.
 
 <!-- MarkdownTOC autolink="true" autoanchor="true" bracket="round" depth=4 -->
 
-- [Install/Configure for Express/Connect/Node http](#installconfigure-for-expressconnectnode-http)
-- [Debugging](#debugging)
-  - [API token configuration](#api-token-configuration)
-    - [`PRERENDER_TOKEN` environment variable \(best practice\)](#prerendertoken-environment-variable-best-practice)
+- [Install](#install)
+  - [npm](#npm)
+  - [yarn](#yarn)
+  - [Auth \(API Token\)](#auth-api-token)
+    - [Environment variable \(best practice\)](#environment-variable-best-practice)
     - [Hard coded](#hard-coded)
-- [Configure a condition for when traffic should go through prerender.cloud](#configure-a-condition-for-when-traffic-should-go-through-prerendercloud)
-  - [Enable for bots **ONLY** \(google, facebook, twitter, slack etc...\)](#enable-for-bots-only-google-facebook-twitter-slack-etc)
-  - [Whitelist your own user-agent list \(overrides `botsOnly`\) \(case sensitive\)](#whitelist-your-own-user-agent-list-overrides-botsonly-case-sensitive)
-  - [beforeRender \(short circuit the remote call to service.prerender.cloud\)](#beforerender-short-circuit-the-remote-call-to-serviceprerendercloud)
-  - [shouldPrerender](#shouldprerender)
-- [Caching](#caching)
-  - [Disable prerender.cloud server cache](#disable-prerendercloud-server-cache)
-  - [Using the \(optional\) middleware cache](#using-the-optional-middleware-cache)
-    - [Clearing the middleware cache](#clearing-the-middleware-cache)
-- [Prerender.cloud configuration options](#prerendercloud-configuration-options)
-  - [Disable Ajax Bypass](#disable-ajax-bypass)
-  - [Disable Ajax Preload](#disable-ajax-preload)
-  - [originHeaderWhitelist](#originheaderwhitelist)
-- [afterRender \(a noop\) \(caching, analytics\)](#afterrender-a-noop-caching-analytics)
-- [removeScriptTags](#removescripttags)
-- [removeTrailingSlash](#removetrailingslash)
-- [How errors from the server \(service.prerender.cloud\) are handled](#how-errors-from-the-server-serviceprerendercloud-are-handled)
-  - [bubbleUp5xxErrors](#bubbleup5xxerrors)
+  - [Debugging](#debugging)
+- [Prerendering or Server-side rendering with Express/Connect/Node http](#prerendering-or-server-side-rendering-with-expressconnectnode-http)
+  - [Configure a condition for when traffic should go through prerender.cloud](#configure-a-condition-for-when-traffic-should-go-through-prerendercloud)
+    - [Enable for bots **ONLY** \(google, facebook, twitter, slack etc...\)](#enable-for-bots-only-google-facebook-twitter-slack-etc)
+    - [Whitelist your own user-agent list \(overrides `botsOnly`\) \(case sensitive\)](#whitelist-your-own-user-agent-list-overrides-botsonly-case-sensitive)
+    - [beforeRender \(short circuit the remote call to service.prerender.cloud\)](#beforerender-short-circuit-the-remote-call-to-serviceprerendercloud)
+    - [shouldPrerender](#shouldprerender)
+  - [Caching](#caching)
+    - [Disable prerender.cloud server cache](#disable-prerendercloud-server-cache)
+    - [Using the \(optional\) middleware cache](#using-the-optional-middleware-cache)
+      - [Clearing the middleware cache](#clearing-the-middleware-cache)
+  - [Prerender.cloud configuration options](#prerendercloud-configuration-options)
+    - [Disable Ajax Bypass](#disable-ajax-bypass)
+    - [Disable Ajax Preload](#disable-ajax-preload)
+    - [originHeaderWhitelist](#originheaderwhitelist)
+  - [afterRender \(a noop\) \(caching, analytics\)](#afterrender-a-noop-caching-analytics)
+  - [removeScriptTags](#removescripttags)
+  - [removeTrailingSlash](#removetrailingslash)
+  - [How errors from the server \(service.prerender.cloud\) are handled](#how-errors-from-the-server-serviceprerendercloud-are-handled)
+    - [bubbleUp5xxErrors](#bubbleup5xxerrors)
 
 <!-- /MarkdownTOC -->
 
 
-<a name="installconfigure-for-expressconnectnode-http"></a>
-## Install/Configure for Express/Connect/Node http
+<a name="install"></a>
+## Install
+
+<a name="npm"></a>
+### npm
 
 ```bash
 npm install prerendercloud --save
 ```
 
-The `prerendercloud` middleware should be loaded first **unless you're using middleware that monkeypatches the req/res flow (i.e. [compression](https://www.npmjs.com/package/compression))**
+<a name="yarn"></a>
+### yarn
 
-```javascript
-// the free, rate limited tier
-app.use(require('prerendercloud'));
+```bash
+yarn add prerendercloud
 ```
 
-<a name="debugging"></a>
-## Debugging
-
-```javascript
-DEBUG=prerendercloud node index.js
-```
-
-
-<a name="api-token-configuration"></a>
-### API token configuration
+<a name="auth-api-token"></a>
+### Auth (API Token)
 
 Get a token after signing up at prerender.cloud - it's necessary to move off of the rate-limited free tier
 
-<a name="prerendertoken-environment-variable-best-practice"></a>
-#### `PRERENDER_TOKEN` environment variable (best practice)
+<a name="environment-variable-best-practice"></a>
+#### Environment variable (best practice)
 ```javascript
 PRERENDER_TOKEN=mySecretToken node index.js
 ```
+
 
 <a name="hard-coded"></a>
 #### Hard coded
@@ -77,13 +76,31 @@ prerendercloud.set('prerenderToken', 'mySecretToken')
 app.use(prerendercloud);
 ```
 
+<a name="debugging"></a>
+### Debugging
+
+```javascript
+DEBUG=prerendercloud node index.js
+```
+
+<a name="prerendering-or-server-side-rendering-with-expressconnectnode-http"></a>
+## Prerendering or Server-side rendering with Express/Connect/Node http
+
+The `prerendercloud` middleware should be loaded first **unless you're using middleware that monkeypatches the req/res flow (i.e. [compression](https://www.npmjs.com/package/compression))**
+
+```javascript
+// the free, rate limited tier
+app.use(require('prerendercloud'));
+```
+
+
 <a name="configure-a-condition-for-when-traffic-should-go-through-prerendercloud"></a>
-## Configure a condition for when traffic should go through prerender.cloud
+### Configure a condition for when traffic should go through prerender.cloud
 
 The default behavior forwards all traffic through prerender.cloud
 
 <a name="enable-for-bots-only-google-facebook-twitter-slack-etc"></a>
-### Enable for bots **ONLY** (google, facebook, twitter, slack etc...)
+#### Enable for bots **ONLY** (google, facebook, twitter, slack etc...)
 
 We don't recommend this setting, instead use the **default** setting of pre-rendering all user-agents (because of performance boost and potential google cloaking penalties) but there may be a situation where you shouldn't or can't, for example: your site/app has JavaScript errors when trying to repaint the DOM after it's already been pre-rendered but you still want bots (twitter, slack, facebook etc...) to read the meta and open graph tags.
 
@@ -95,7 +112,7 @@ prerendercloud.set('botsOnly', true);
 ```
 
 <a name="whitelist-your-own-user-agent-list-overrides-botsonly-case-sensitive"></a>
-### Whitelist your own user-agent list (overrides `botsOnly`) (case sensitive)
+#### Whitelist your own user-agent list (overrides `botsOnly`) (case sensitive)
 
 **Note**: this will **NOT** add or append 'User-Agent' to the [**Vary** header](https://varvy.com/mobile/vary-user-agent.html). You should probably set the Vary header yourself, if using this feature.
 
@@ -105,7 +122,7 @@ prerendercloud.set('whitelistUserAgents', ['twitterbot', 'slackbot', 'facebookex
 ```
 
 <a name="beforerender-short-circuit-the-remote-call-to-serviceprerendercloud"></a>
-### beforeRender (short circuit the remote call to service.prerender.cloud)
+#### beforeRender (short circuit the remote call to service.prerender.cloud)
 
 Useful for your own caching layer (in conjunction with `afterRender`), or analytics, or dependency injection for testing. Is only called when a remote call to service.prerender.cloud is about to be made.
 
@@ -130,7 +147,7 @@ prerendercloud.set('beforeRender', (req, done) => {
 ```
 
 <a name="shouldprerender"></a>
-### shouldPrerender
+#### shouldPrerender
 
 This is executed after the `beforeRender` but if present, replaces userAgent detection (it would override `botsOnly`).
 
@@ -143,10 +160,10 @@ prerendercloud.set('shouldPrerender', (req) => {
 ```
 
 <a name="caching"></a>
-## Caching
+### Caching
 
 <a name="disable-prerendercloud-server-cache"></a>
-### Disable prerender.cloud server cache
+#### Disable prerender.cloud server cache
 
 service.prerender.cloud will cache for 1-5 minutes (usually less) as a best practice. Adding the `nocache` HTTP header via this config option disables that cache entirely. Disabling the service.prerender.cloud cache is only recommended if you have your own cache either in this middleware or your client, otherwise all of your requests are going to be slow.
 
@@ -157,7 +174,7 @@ app.use(prerendercloud);
 ```
 
 <a name="using-the-optional-middleware-cache"></a>
-### Using the (optional) middleware cache
+#### Using the (optional) middleware cache
 
 This middleware has a built-in LRU (drops least recently used) caching layer. It can be configured to let cache auto expire or you can manually remove entire domains from the cache. You proboably want to use this if you disabled the server cache.
 
@@ -175,7 +192,7 @@ app.use(prerendercloud);
 ```
 
 <a name="clearing-the-middleware-cache"></a>
-#### Clearing the middleware cache
+##### Clearing the middleware cache
 ```javascript
 // delete every page on the example.org domain
 prerendercloud.cache.clear('http://example.org');
@@ -185,10 +202,10 @@ prerendercloud.cache.reset();
 ```
 
 <a name="prerendercloud-configuration-options"></a>
-## Prerender.cloud configuration options
+### Prerender.cloud configuration options
 
 <a name="disable-ajax-bypass"></a>
-### Disable Ajax Bypass
+#### Disable Ajax Bypass
 
 You can disable this if you're using CORS. Read more https://www.prerender.cloud/documentation and https://github.com/sanfrancesco/prerendercloud-ajaxmonkeypatch
 
@@ -199,7 +216,7 @@ app.use(prerendercloud);
 ```
 
 <a name="disable-ajax-preload"></a>
-### Disable Ajax Preload
+#### Disable Ajax Preload
 
 This prevents screen flicker/repaint/flashing, but increases initial page load size (because it embeds the AJAX responses into your HTML). you can disable this if you manage your own "initial state". Read more https://www.prerender.cloud/documentation and https://github.com/sanfrancesco/prerendercloud-ajaxmonkeypatch
 
@@ -210,7 +227,7 @@ app.use(prerendercloud);
 ```
 
 <a name="originheaderwhitelist"></a>
-### originHeaderWhitelist
+#### originHeaderWhitelist
 
 The only valid values (_right now_) are: `['Prerendercloud-Is-Mobile-Viewer']`, and anything starting with `prerendercloud-`. This feature is meant for forwarding headers from the original request to your site through to your origin (by default, all headers are dropped).
 
@@ -219,7 +236,7 @@ prerendercloud.set('originHeaderWhitelist', ['Prerendercloud-Is-Mobile-Viewer'])
 ```
 
 <a name="afterrender-a-noop-caching-analytics"></a>
-## afterRender (a noop) (caching, analytics)
+### afterRender (a noop) (caching, analytics)
 
 It's a noop because this middleware already takes over the response for your HTTP server. 2 example use cases of this: your own caching layer, or analytics/metrics.
 
@@ -233,7 +250,7 @@ prerendercloud.set('afterRender', (err, req, res) => {
 ```
 
 <a name="removescripttags"></a>
-## removeScriptTags
+### removeScriptTags
 
 This removes all script tags except for [application/ld+json](https://stackoverflow.com/questions/38670851/whats-a-script-type-application-ldjsonjsonobj-script-in-a-head-sec). Removing script tags prevents any JS from executing at all - so your app will no longer be isomorphic. Useful when prerender.cloud is used as a scraper/crawler or in constrained environments (Lambda @ Edge).
 
@@ -243,7 +260,7 @@ prerendercloud.set('removeScriptTags', true);
 ```
 
 <a name="removetrailingslash"></a>
-## removeTrailingSlash
+### removeTrailingSlash
 
 This is the opposite of what is often referred to "strict mode routing". When this is enabled, the server will normalize the URLs by removing a trailing slash.
 
@@ -262,7 +279,7 @@ prerendercloud.set('removeTrailingSlash', true);
 ```
 
 <a name="how-errors-from-the-server-serviceprerendercloud-are-handled"></a>
-## How errors from the server (service.prerender.cloud) are handled
+### How errors from the server (service.prerender.cloud) are handled
 
 * when prerender.cloud service returns
   * **400 client error (bad request)**
@@ -280,7 +297,7 @@ prerendercloud.set('removeTrailingSlash', true);
 
 
 <a name="bubbleup5xxerrors"></a>
-### bubbleUp5xxErrors
+#### bubbleUp5xxErrors
 
 This must be enabled if you want your webserver to show a 500 when prerender.cloud throws a 5xx (retriable error). As mentioned in the previous section, by default, 5xx errors are ignored and non-prerendered content is returned so the user is uninterrupted.
 
