@@ -27,16 +27,17 @@ Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) 
     - [Disable prerender.cloud server cache](#disable-prerendercloud-server-cache)
     - [Using the \(optional\) middleware cache](#using-the-optional-middleware-cache)
       - [Clearing the middleware cache](#clearing-the-middleware-cache)
-  - [Prerender.cloud configuration options](#prerendercloud-configuration-options)
-    - [Disable Ajax Bypass](#disable-ajax-bypass)
-    - [Disable Ajax Preload](#disable-ajax-preload)
+  - [Server Options](#server-options)
+    - [disableAjaxBypass](#disableajaxbypass)
+    - [disableAjaxPreload](#disableajaxpreload)
     - [originHeaderWhitelist](#originheaderwhitelist)
-  - [protocol](#protocol)
-  - [afterRender \(a noop\) \(caching, analytics\)](#afterrender-a-noop-caching-analytics)
-  - [removeScriptTags](#removescripttags)
-  - [removeTrailingSlash](#removetrailingslash)
-  - [How errors from the server \(service.prerender.cloud\) are handled](#how-errors-from-the-server-serviceprerendercloud-are-handled)
+    - [removeScriptTags](#removescripttags)
+    - [removeTrailingSlash](#removetrailingslash)
+  - [Middleware Options](#middleware-options)
+    - [protocol](#protocol)
+    - [afterRender \(a noop\) \(caching, analytics\)](#afterrender-a-noop-caching-analytics)
     - [bubbleUp5xxErrors](#bubbleup5xxerrors)
+  - [How errors from the server \(service.prerender.cloud\) are handled](#how-errors-from-the-server-serviceprerendercloud-are-handled)
 
 <!-- /MarkdownTOC -->
 
@@ -229,11 +230,13 @@ prerendercloud.cache.clear('http://example.org');
 prerendercloud.cache.reset();
 ```
 
-<a name="prerendercloud-configuration-options"></a>
-### Prerender.cloud configuration options
+<a name="server-options"></a>
+### Server Options
 
-<a name="disable-ajax-bypass"></a>
-#### Disable Ajax Bypass
+These options map to the HTTP header options listed here: https://www.prerender.cloud/docs/api
+
+<a name="disableajaxbypass"></a>
+#### disableAjaxBypass
 
 You can disable this if you're using CORS. Read more https://www.prerender.cloud/documentation and https://github.com/sanfrancesco/prerendercloud-ajaxmonkeypatch
 
@@ -243,8 +246,8 @@ prerendercloud.set('disableAjaxBypass', true);
 app.use(prerendercloud);
 ```
 
-<a name="disable-ajax-preload"></a>
-#### Disable Ajax Preload
+<a name="disableajaxpreload"></a>
+#### disableAjaxPreload
 
 This prevents screen flicker/repaint/flashing, but increases initial page load size (because it embeds the AJAX responses into your HTML). you can disable this if you manage your own "initial state". Read more https://www.prerender.cloud/documentation and https://github.com/sanfrancesco/prerendercloud-ajaxmonkeypatch
 
@@ -263,32 +266,8 @@ The only valid values (_right now_) are: `['Prerendercloud-Is-Mobile-Viewer']`, 
 prerendercloud.set('originHeaderWhitelist', ['Prerendercloud-Is-Mobile-Viewer']);
 ```
 
-<a name="protocol"></a>
-### protocol
-
-Force the middleware to hit your origin with a certain protocol (usually `https`). This is useful when you're using CloudFlare or any other https proxy that hits your origin at http but you also have a redirect to https.
-
-```javascript
-const prerendercloud = require('prerendercloud');
-prerendercloud.set('protocol', 'https');
-```
-
-<a name="afterrender-a-noop-caching-analytics"></a>
-### afterRender (a noop) (caching, analytics)
-
-It's a noop because this middleware already takes over the response for your HTTP server. 2 example use cases of this: your own caching layer, or analytics/metrics.
-
-```javascript
-const prerendercloud = require('prerendercloud');
-prerendercloud.set('afterRender', (err, req, res) => {
-  // req: (standard node.js req object)
-  // res: { statusCode, headers, body }
-  console.log(`received ${res.body.length} bytes for ${req.url}`)
-});
-```
-
 <a name="removescripttags"></a>
-### removeScriptTags
+#### removeScriptTags
 
 This removes all script tags except for [application/ld+json](https://stackoverflow.com/questions/38670851/whats-a-script-type-application-ldjsonjsonobj-script-in-a-head-sec). Removing script tags prevents any JS from executing at all - so your app will no longer be isomorphic. Useful when prerender.cloud is used as a scraper/crawler or in constrained environments (Lambda @ Edge).
 
@@ -298,7 +277,7 @@ prerendercloud.set('removeScriptTags', true);
 ```
 
 <a name="removetrailingslash"></a>
-### removeTrailingSlash
+#### removeTrailingSlash
 
 This is the opposite of what is often referred to "strict mode routing". When this is enabled, the server will normalize the URLs by removing a trailing slash.
 
@@ -315,6 +294,47 @@ SEO best practices:
 const prerendercloud = require('prerendercloud');
 prerendercloud.set('removeTrailingSlash', true);
 ```
+
+<a name="middleware-options"></a>
+### Middleware Options
+
+
+<a name="protocol"></a>
+#### protocol
+
+Force the middleware to hit your origin with a certain protocol (usually `https`). This is useful when you're using CloudFlare or any other https proxy that hits your origin at http but you also have a redirect to https.
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('protocol', 'https');
+```
+
+<a name="afterrender-a-noop-caching-analytics"></a>
+#### afterRender (a noop) (caching, analytics)
+
+It's a noop because this middleware already takes over the response for your HTTP server. 2 example use cases of this: your own caching layer, or analytics/metrics.
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('afterRender', (err, req, res) => {
+  // req: (standard node.js req object)
+  // res: { statusCode, headers, body }
+  console.log(`received ${res.body.length} bytes for ${req.url}`)
+});
+```
+
+<a name="bubbleup5xxerrors"></a>
+#### bubbleUp5xxErrors
+
+This must be enabled if you want your webserver to show a 500 when prerender.cloud throws a 5xx (retriable error). As mentioned in the previous section, by default, 5xx errors are ignored and non-prerendered content is returned so the user is uninterrupted.
+
+Bubbling up the 5xx error is useful if you're using a crawler to trigger prerenders and you want control over retries.
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('bubbleUp5xxErrors', true);
+```
+
 
 <a name="how-errors-from-the-server-serviceprerendercloud-are-handled"></a>
 ### How errors from the server (service.prerender.cloud) are handled
@@ -333,16 +353,4 @@ prerendercloud.set('removeTrailingSlash', true);
     * the error message is written to STDERR
     * if the env var: DEBUG=prerendercloud is set, the error is also written to STDOUT
 
-
-<a name="bubbleup5xxerrors"></a>
-#### bubbleUp5xxErrors
-
-This must be enabled if you want your webserver to show a 500 when prerender.cloud throws a 5xx (retriable error). As mentioned in the previous section, by default, 5xx errors are ignored and non-prerendered content is returned so the user is uninterrupted.
-
-Bubbling up the 5xx error is useful if you're using a crawler to trigger prerenders and you want control over retries.
-
-```javascript
-const prerendercloud = require('prerendercloud');
-prerendercloud.set('bubbleUp5xxErrors', true);
-```
 
