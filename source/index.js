@@ -146,7 +146,8 @@ class Options {
       "middlewareCacheMaxAge",
       "shouldPrerender",
       "removeScriptTags",
-      "removeTrailingSlash"
+      "removeTrailingSlash",
+      "protocol"
     ];
   }
 
@@ -189,7 +190,8 @@ class Url {
     // http://stackoverflow.com/a/10353248
     // https://github.com/expressjs/express/blob/3c54220a3495a7a2cdf580c3289ee37e835c0190/lib/request.js#L301
     let protocol =
-      this.req.connection && this.req.connection.encrypted ? "https" : "http";
+      options.options.protocol ||
+      (this.req.connection && this.req.connection.encrypted ? "https" : "http");
 
     if (this.req.headers["cf-visitor"]) {
       const cfVisitorMatch = this.req.headers["cf-visitor"].match(

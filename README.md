@@ -31,6 +31,7 @@ Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) 
     - [Disable Ajax Bypass](#disable-ajax-bypass)
     - [Disable Ajax Preload](#disable-ajax-preload)
     - [originHeaderWhitelist](#originheaderwhitelist)
+  - [protocol](#protocol)
   - [afterRender \(a noop\) \(caching, analytics\)](#afterrender-a-noop-caching-analytics)
   - [removeScriptTags](#removescripttags)
   - [removeTrailingSlash](#removetrailingslash)
@@ -260,6 +261,16 @@ The only valid values (_right now_) are: `['Prerendercloud-Is-Mobile-Viewer']`, 
 
 ```javascript
 prerendercloud.set('originHeaderWhitelist', ['Prerendercloud-Is-Mobile-Viewer']);
+```
+
+<a name="protocol"></a>
+### protocol
+
+Force the middleware to hit your origin with a certain protocol (usually `https`). This is useful when you're using CloudFlare or any other https proxy that hits your origin at http but you also have a redirect to https.
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('protocol', 'https');
 ```
 
 <a name="afterrender-a-noop-caching-analytics"></a>

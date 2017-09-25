@@ -53,6 +53,7 @@ describe("prerender middleware", function() {
       this.runIt = function(done, options) {
         if (!done) done = () => {};
         if (!options) options = {};
+        this.subject.set("protocol", options.protocol);
         this.subject.set("removeTrailingSlash", !!options.removeTrailingSlash);
         this.subject.set("removeScriptTags", !!options.removeScriptTags);
         this.subject.set("disableAjaxBypass", !!options.disableAjaxBypass);
@@ -309,6 +310,40 @@ describe("prerender middleware", function() {
 
           it("uses https", function() {
             expect(this.uri).toEqual("/https://example.org/");
+          });
+        });
+      });
+
+      describe("protocol option", function() {
+        beforeEach(function() {
+          const that = this;
+          this.prerenderServer = nock("https://service.prerender.cloud")
+            .get(/.*/)
+            .reply(function(uri) {
+              that.uri = uri;
+              return [200, "body"];
+            });
+        });
+        describe("disabled", function() {
+          beforeEach(function(done) {
+            this.runIt(done, {});
+          });
+
+          it("uses default protocol", function() {
+            expect(this.uri).toEqual(
+              "/http://example.org/files.m4v.storage/lol"
+            );
+          });
+        });
+        describe("enabled", function() {
+          beforeEach(function(done) {
+            this.runIt(done, { protocol: "https" });
+          });
+
+          it("it uses the protocol we specified", function() {
+            expect(this.uri).toEqual(
+              "/https://example.org/files.m4v.storage/lol"
+            );
           });
         });
       });
