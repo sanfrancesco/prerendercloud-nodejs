@@ -14,6 +14,7 @@ describe("screenshots and PDFs", function() {
     nock.cleanAll();
     nock.disableNetConnect();
     this.subject = prerenderMiddleware;
+    this.subject.resetOptions();
   });
 
   function itWorks(prerenderAction) {
@@ -22,14 +23,16 @@ describe("screenshots and PDFs", function() {
         const self = this;
         nock("https://service.prerender.cloud")
           .get(/.*/)
-          .reply(uri => {
+          .reply(function(uri) {
             self.requestedUri = uri;
+            self.headersSentToPrerenderCloud = this.req.headers;
             return [200, "body"];
           });
       });
 
       beforeEach(function(done) {
         const self = this;
+        this.subject.set("prerenderToken", "fake-token");
         this.subject[prerenderAction]
           .call(this.subject, "http://example.com")
           .then(res => {
@@ -44,6 +47,11 @@ describe("screenshots and PDFs", function() {
       });
       it("return screenshot", function() {
         expect(this.res).toEqual(Buffer.from("body"));
+      });
+      it("it sends token", function() {
+        expect(this.headersSentToPrerenderCloud["x-prerender-token"]).toEqual(
+          "fake-token"
+        );
       });
     });
 

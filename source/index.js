@@ -178,7 +178,7 @@ class Options {
   }
 }
 
-var options = new Options();
+const options = new Options();
 
 // http, connect, and express compatible URL parser
 class Url {
@@ -556,8 +556,17 @@ Object.defineProperty(Prerender.middleware, "cache", {
   }
 });
 
-const screenshotAndPdf = (action, url, options) =>
-  got(getRenderUrl(action, url), { encoding: null }).then(res => res.body);
+const screenshotAndPdf = (action, url, params) => {
+  const headers = {};
+
+  const token = options.options.prerenderToken || process.env.PRERENDER_TOKEN;
+
+  if (token) Object.assign(headers, { "X-Prerender-Token": token });
+
+  return got(getRenderUrl(action, url), { encoding: null, headers }).then(
+    res => res.body
+  );
+};
 
 Prerender.middleware.screenshot = screenshotAndPdf.bind(
   undefined,
