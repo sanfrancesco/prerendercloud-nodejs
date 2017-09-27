@@ -8,4 +8,6 @@ publish: build
 	npm publish
 
 test:
-	PRERENDER_SERVICE_URL="https://service.prerender.cloud" ./node_modules/jasmine/bin/jasmine.js
+	NODE_ENV=test \
+	PRERENDER_SERVICE_URL="https://service.prerender.cloud" \
+	./node_modules/jasmine/bin/jasmine.js

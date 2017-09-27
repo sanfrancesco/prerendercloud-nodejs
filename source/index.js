@@ -20,11 +20,17 @@ if (!Array.isArray) {
   };
 }
 
-const got = require("got");
-const vary = require("vary");
 const debug = require("debug")("prerendercloud");
-const LRU = require("lru-cache");
-var middlewareCache = null;
+
+const middlewareCacheSingleton = {};
+
+const Options = require("./lib/Options");
+const options = new Options(middlewareCacheSingleton);
+
+const got = require("got");
+require("./lib/got-retries")(got, options, debug);
+
+const vary = require("vary");
 
 // preserve (and send to client) these headers from service.prerender.cloud which originally came from the origin server
 const headerWhitelist = [
@@ -87,98 +93,6 @@ const objectKeysToLowerCase = function(origObj) {
 };
 
 const is5xxError = statusCode => parseInt(statusCode / 100) === 5;
-
-class MiddlewareCache {
-  constructor(lruCache) {
-    this.lruCache = lruCache;
-
-    // this prevCache dump/load is just for tests
-    let prevCache = middlewareCache && middlewareCache.lruCache.dump();
-    if (prevCache) this.lruCache.load(prevCache);
-  }
-  reset() {
-    this.lruCache.reset();
-  }
-  clear(startsWith) {
-    if (!startsWith) throw new Error("must pass what cache key startsWith");
-
-    startsWith = startsWith.replace(/^https?/, "");
-    let httpPath = `http${startsWith}`;
-    let httpsPath = `https${startsWith}`;
-
-    this.lruCache.forEach(function(v, k, cache) {
-      if (k.startsWith(httpPath) || k.startsWith(httpsPath)) cache.del(k);
-    });
-  }
-  set(url, res) {
-    this.lruCache.set(url, res);
-  }
-  get(url) {
-    return this.lruCache.get(url);
-  }
-}
-
-class Options {
-  constructor() {
-    this.reset();
-  }
-
-  reset() {
-    this.options = {};
-  }
-
-  static get validOptions() {
-    return [
-      "timeout",
-      "prerenderServiceUrl",
-      "prerenderToken",
-      "beforeRender",
-      "afterRender",
-      "whitelistUserAgents",
-      "originHeaderWhitelist",
-      "botsOnly",
-      "disableServerCache",
-      "disableAjaxBypass",
-      "disableAjaxPreload",
-      "bubbleUp5xxErrors",
-      "enableMiddlewareCache",
-      "middlewareCacheMaxBytes",
-      "middlewareCacheMaxAge",
-      "shouldPrerender",
-      "removeScriptTags",
-      "removeTrailingSlash",
-      "protocol"
-    ];
-  }
-
-  set(prerenderMiddleware, name, val) {
-    if (!Options.validOptions.includes(name))
-      throw new Error(`${name} is unsupported option`);
-
-    this.options[name] = val;
-
-    if (name === "enableMiddlewareCache" && val === false) {
-      middlewareCache = undefined;
-    } else if (name.match(/middlewareCache/i)) {
-      let lruCache = LRU({
-        max: this.options.middlewareCacheMaxBytes || 500000000, // 500MB
-        length: function(n, key) {
-          return n.length;
-        },
-        dispose: function(key, n) {},
-        maxAge: this.options.middlewareCacheMaxAge || 0 // 0 is forever
-      });
-      middlewareCache = new MiddlewareCache(lruCache);
-    }
-
-    if (this.options["botsOnly"] && this.options["whitelistUserAgents"])
-      throw new Error("Can't use both botsOnly and whitelistUserAgents");
-
-    return prerenderMiddleware;
-  }
-}
-
-const options = new Options();
 
 // http, connect, and express compatible URL parser
 class Url {
@@ -289,7 +203,7 @@ class Prerender {
         body &&
         body.length
       )
-        middlewareCache.set(this._requestedUrl(), data);
+        middlewareCacheSingleton.instance.set(this._requestedUrl(), data);
 
       return data;
     };
@@ -297,7 +211,7 @@ class Prerender {
     return got
       .get(url, {
         headers,
-        retries: 0,
+        retries: options.options.retries,
         followRedirect: false,
         timeout: options.options.timeout || 20000
       })
@@ -367,7 +281,9 @@ class Prerender {
     }
 
     if (options.options.enableMiddlewareCache) {
-      const cached = middlewareCache.get(prerender._requestedUrl());
+      const cached = middlewareCacheSingleton.instance.get(
+        prerender._requestedUrl()
+      );
       if (cached) {
         debug(
           "returning cache",
@@ -552,7 +468,7 @@ Prerender.middleware.set = options.set.bind(options, Prerender.middleware);
 // Prerender.middleware.cache =
 Object.defineProperty(Prerender.middleware, "cache", {
   get: function() {
-    return middlewareCache;
+    return middlewareCacheSingleton.instance;
   }
 });
 
@@ -563,9 +479,11 @@ const screenshotAndPdf = (action, url, params) => {
 
   if (token) Object.assign(headers, { "X-Prerender-Token": token });
 
-  return got(getRenderUrl(action, url), { encoding: null, headers }).then(
-    res => res.body
-  );
+  return got(getRenderUrl(action, url), {
+    encoding: null,
+    headers,
+    retries: options.options.retries
+  }).then(res => res.body);
 };
 
 Prerender.middleware.screenshot = screenshotAndPdf.bind(

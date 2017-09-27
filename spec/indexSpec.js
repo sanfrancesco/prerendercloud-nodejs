@@ -177,6 +177,7 @@ describe("prerender middleware", function() {
         beforeEach(function(done) {
           this.prerenderServer = nock("https://service.prerender.cloud")
             .get(/.*/)
+            .times(2)
             .replyWithError("server error");
           this.runIt(done);
         });
@@ -186,10 +187,40 @@ describe("prerender middleware", function() {
 
       describe("when server returns error", function() {
         beforeEach(function(done) {
+          const self = this;
+          this.attempts = 0;
           this.prerenderServer = nock("https://service.prerender.cloud")
             .get(/.*/)
-            .reply(() => [500, "errmsg"]);
+            .times(2)
+            .reply(() => {
+              self.attempts += 1;
+              return [500, "errmsg"];
+            });
           this.runIt(done);
+        });
+
+        it("retries 500", function() {
+          expect(this.attempts).toEqual(2);
+        });
+        itCalledNext();
+      });
+
+      describe("when server returns error", function() {
+        beforeEach(function(done) {
+          const self = this;
+          this.attempts = 0;
+          this.prerenderServer = nock("https://service.prerender.cloud")
+            .get(/.*/)
+            .times(1)
+            .reply(() => {
+              self.attempts += 1;
+              return [502, "errmsg"];
+            });
+          this.runIt(done);
+        });
+
+        it("does not retry 502", function() {
+          expect(this.attempts).toEqual(1);
         });
 
         itCalledNext();
@@ -1055,6 +1086,7 @@ describe("prerender middleware", function() {
           beforeEach(function(done) {
             this.prerenderServer = nock("https://service.prerender.cloud")
               .get(/.*/)
+              .times(2)
               .reply(() => [statusCode, "errmsg"]);
             this.runIt(done, { bubbleUp5xxErrors: true });
           });

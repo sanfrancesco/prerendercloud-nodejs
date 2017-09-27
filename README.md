@@ -37,6 +37,7 @@ Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) 
     - [protocol](#protocol)
     - [afterRender \(a noop\) \(caching, analytics\)](#afterrender-a-noop-caching-analytics)
     - [bubbleUp5xxErrors](#bubbleup5xxerrors)
+    - [retries](#retries)
   - [How errors from the server \(service.prerender.cloud\) are handled](#how-errors-from-the-server-serviceprerendercloud-are-handled)
 
 <!-- /MarkdownTOC -->
@@ -336,21 +337,48 @@ prerendercloud.set('bubbleUp5xxErrors', true);
 ```
 
 
+<a name="retries"></a>
+#### retries
+
+HTTP errors 500, 503, 504 and [network errors](https://github.com/floatdrop/is-retry-allowed/) are retriable. The default is 1 retry (2 total attempts) but you can change that to 0 or whatever here. There is exponential back-off. When prerender.cloud is over capacity it will return 503 until the autoscaler boots up more capacity so this will address those service interruptions appropriately.
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('retries', 4);
+```
+
+
 <a name="how-errors-from-the-server-serviceprerendercloud-are-handled"></a>
 ### How errors from the server (service.prerender.cloud) are handled
 
-* when prerender.cloud service returns
-  * **400 client error (bad request)**
-    * e.g. try to prerender a localhost URL as opposed to a publicly accessible URL
-    * the client itself returns the 400 error (the web page will not be accessible)
-  * **429 client error (rate limited)**
-    * the original server payload (not prerendered) is returned, so **the request is not interrupted due to unpaid bills or free accounts**
-    * only happens while on the free tier (paid subscriptions are not rate limited)
-    * the error message is written to STDERR
+* when used as middleware
+  * when prerender.cloud service returns
+    * **400 client error (bad request)**
+      * e.g. try to prerender a localhost URL as opposed to a publicly accessible URL
+      * the client itself returns the 400 error (the web page will not be accessible)
+    * **429 client error (rate limited)**
+      * the original server payload (not prerendered) is returned, so **the request is not interrupted due to unpaid bills or free accounts**
+      * only happens while on the free tier (paid subscriptions are not rate limited)
+      * the error message is written to STDERR
+      * if the env var: DEBUG=prerendercloud is set, the error is also written to STDOUT
+    * **500, 503, 504** (and [network errors](https://github.com/floatdrop/is-retry-allowed/))
+      * these will be retried, by default, 1 time
+      * you can disable retries with `.set('retries', 0)`
+      * you can increase retries with `.set('retries', 5)` (or whatever)
+      * 502 is not retried - it means your origin returned 5xx
+    * **5xx (server error)**
+      * when even the retries fail, the original server payload (not prerendered) is returned, so **the request is not interrupted due to server error**
+      * the error message is written to STDERR
     * if the env var: DEBUG=prerendercloud is set, the error is also written to STDOUT
-  * **5xx (server error)**
-    * the original server payload (not prerendered) is returned, so **the request is not interrupted due to server error**
-    * the error message is written to STDERR
-    * if the env var: DEBUG=prerendercloud is set, the error is also written to STDOUT
+* when used for screenshots/pdfs
+  * retriable errors are retried (500, 503, 504 and [network errors](https://github.com/floatdrop/is-retry-allowed/))
+  * the errors are returned in the promise catch API
+  * the errors are from the [`got` library](https://github.com/sindresorhus/got#errors)
+    * see URL
+      * `.catch(err => console.log(err.url))`
+    * see status code
+      * `.catch(err => console.log(err.response.statusCode))`
+    * see err response body
+      * `.catch(err => console.log(err.response.body))`
 
 
