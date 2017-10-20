@@ -129,8 +129,16 @@ class Url {
     return this.req.headers.host;
   }
 
-  get path() {
+  get original() {
     return this.req.originalUrl;
+  }
+
+  get path() {
+    return this.req.path;
+  }
+
+  get query() {
+    return this.req.query;
   }
 
   // if the path is /admin/new.html, this returns /new.html
@@ -452,7 +460,7 @@ class Prerender {
 
     if (this.req.headers["x-bufferbot"]) return true;
 
-    if (this.url.path.match(/[?&]_escaped_fragment_/)) return true;
+    if (this.url.original.match(/[?&]_escaped_fragment_/)) return true;
 
     return userAgentsToPrerender.some(enabledUserAgent =>
       reqUserAgent.includes(enabledUserAgent)
@@ -460,7 +468,12 @@ class Prerender {
   }
 
   _requestedUrl() {
-    return this.url.protocol + "//" + this.url.host + this.url.path;
+    const ignoreQuery = options.options.ignoreQuery;
+    if (ignoreQuery && ignoreQuery(this.req)) {
+      return this.url.protocol + "//" + this.url.host + this.url.path;
+    } else {
+      return this.url.protocol + "//" + this.url.host + this.url.original;
+    }
   }
 }
 

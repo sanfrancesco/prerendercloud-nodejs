@@ -63,6 +63,7 @@ module.exports = class Options {
       "enableMiddlewareCache",
       "middlewareCacheMaxBytes",
       "middlewareCacheMaxAge",
+      "ignoreQuery",
       "shouldPrerender",
       "removeScriptTags",
       "removeTrailingSlash",

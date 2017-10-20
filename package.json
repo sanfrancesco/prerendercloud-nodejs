@@ -1,6 +1,6 @@
 {
   "name": "prerendercloud",
-  "version": "1.21.0",
+  "version": "1.22.0",
   "description": "Express middleware for prerendering javascript-rendered pages with https://www.prerender.cloud/ for SEO and open graph tags",
   "main": "./distribution/index.js",
   "scripts": {
@@ -15,14 +15,14 @@
     "debug": "^2.2.0",
     "got": "^7.1.0",
     "lru-cache": "^4.0.2",
-    "vary": "^1.1.1"
+    "vary": "^1.1.2"
   },
   "devDependencies": {
     "babel-cli": "^6.23.0",
     "babel-preset-env": "^1.2.1",
     "connect": "^3.5.0",
     "express": "^4.14.0",
-    "jasmine": "2.4.0",
+    "jasmine": "2.8.0",
     "nock": "^9.0.14",
     "url": "^0.11.0"
   }
