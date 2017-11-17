@@ -126,6 +126,7 @@ class Url {
   }
 
   get host() {
+    if (options.options.host) return options.options.host;
     return this.req.headers.host;
   }
 

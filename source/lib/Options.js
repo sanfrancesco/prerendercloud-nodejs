@@ -67,7 +67,8 @@ module.exports = class Options {
       "removeScriptTags",
       "removeTrailingSlash",
       "protocol",
-      "retries"
+      "retries",
+      "host"
     ];
   }
 

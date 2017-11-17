@@ -34,6 +34,7 @@ Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) 
     - [removeScriptTags](#removescripttags)
     - [removeTrailingSlash](#removetrailingslash)
   - [Middleware Options](#middleware-options)
+    - [host](#host)
     - [protocol](#protocol)
     - [afterRender \(a noop\) \(caching, analytics\)](#afterrender-a-noop-caching-analytics)
     - [bubbleUp5xxErrors](#bubbleup5xxerrors)
@@ -299,6 +300,15 @@ prerendercloud.set('removeTrailingSlash', true);
 <a name="middleware-options"></a>
 ### Middleware Options
 
+<a name="host"></a>
+#### host
+
+Force the middleware to hit your origin with a certain host. This is useful for environments like Lambda@Edge+CloudFront where you can't infer the actual host.
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('host', 'example.com');
+```
 
 <a name="protocol"></a>
 #### protocol
