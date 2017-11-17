@@ -33,6 +33,7 @@ Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) 
     - [originHeaderWhitelist](#originheaderwhitelist)
     - [removeScriptTags](#removescripttags)
     - [removeTrailingSlash](#removetrailingslash)
+    - [ignoreQuery](#ignorequery)
   - [Middleware Options](#middleware-options)
     - [host](#host)
     - [protocol](#protocol)
@@ -285,7 +286,7 @@ This is the opposite of what is often referred to "strict mode routing". When th
 
 e.g.: example.com/docs/ -> example.com/docs
 
-The use case for this option is to achieve higher cache hit rate (so if a user/bots are hitting `/docs/` and `/docs`, they'll both be cached on prerender.cloud servers as the same entity.)
+The use case for this option is to achieve higher cache hit rate (so if a user/bots are hitting `/docs/` and `/docs`, they'll both be cached on prerender.cloud servers as the same entity).
 
 SEO best practices:
 
@@ -295,6 +296,22 @@ SEO best practices:
 ```javascript
 const prerendercloud = require('prerendercloud');
 prerendercloud.set('removeTrailingSlash', true);
+```
+
+<a name="ignorequery"></a>
+#### ignoreQuery
+
+Ignore the query string part of the url when prerendering the pages specified by this option.
+
+e.g.: example.com/docs?source=other -> example.com/docs
+
+The use case for this option is to achieve higher cache hit rate (so if a user/bots are hitting `docs?source=other` or `/docs` or `docs?source=another&foo=bar`, they'll all be cached on prerender.cloud servers as the same entity).
+
+This option should not be used when a query can change the prerendered content, for example in the case of pagination.
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('ignoreQuery', req => req.path.startsWith('/docs')); // Return truthy to ignore
 ```
 
 <a name="middleware-options"></a>
