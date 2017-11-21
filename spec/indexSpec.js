@@ -7,7 +7,8 @@ if (!!process.env.CI) {
 }
 
 const url = require("url");
-var nock = require("nock");
+const nock = require("nock");
+const zlib = require("zlib");
 
 describe("prerender middleware", function() {
   beforeEach(function() {
@@ -558,6 +559,39 @@ describe("prerender middleware", function() {
           it("returns pre-rendered body", function() {
             expect(this.res.end).toHaveBeenCalledWith("pre-rendered body");
           });
+        });
+      });
+
+      describe("with accept-encoding gzip", function() {
+        beforeEach(function(done) {
+          this.req.headers["accept-encoding"] = "gzip";
+          this.req._requestedUrl = `http://example.org/`;
+          this.prerenderServer = nock("https://service.prerender.cloud")
+            .get(/.*/)
+            .reply(uri => {
+              this.uri = uri;
+              return [
+                202,
+                "pre-rendered body",
+                {
+                  someHeader: "someHeaderValue",
+                  "content-type": "text/html; charset=utf-8"
+                }
+              ];
+            });
+          this.runIt(done);
+        });
+
+        it("returns includes content-encoding in header", function() {
+          expect(this.res.writeHead).toHaveBeenCalledWith(202, {
+            "content-type": "text/html; charset=utf-8",
+            "content-encoding": "gzip"
+          });
+        });
+        it("returns gzipped body", function() {
+          expect(this.res.end).toHaveBeenCalledWith(
+            zlib.gzipSync("pre-rendered body")
+          );
         });
       });
 

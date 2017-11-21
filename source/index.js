@@ -94,6 +94,30 @@ const objectKeysToLowerCase = function(origObj) {
 
 const is5xxError = statusCode => parseInt(statusCode / 100) === 5;
 
+const zlib = require("zlib");
+function compression(req, res, data) {
+  if (
+    req.headers["accept-encoding"] &&
+    req.headers["accept-encoding"].match(/gzip/i)
+  ) {
+    zlib.gzip(data.body, (err, gzipped) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send("compression error");
+      }
+
+      res.writeHead(
+        data.statusCode,
+        Object.assign({}, data.headers, { "content-encoding": "gzip" })
+      );
+      res.end(gzipped);
+    });
+  } else {
+    res.writeHead(data.statusCode, data.headers);
+    res.end(data.body);
+  }
+}
+
 // http, connect, and express compatible URL parser
 class Url {
   constructor(req) {
@@ -250,8 +274,7 @@ class Prerender {
       } else if (data.statusCode === 429) {
         return handleSkip("rate limited due to free tier", next);
       } else {
-        res.writeHead(data.statusCode, data.headers);
-        return res.end(data.body);
+        return compression(req, res, data);
       }
     } catch (error) {
       console.error(

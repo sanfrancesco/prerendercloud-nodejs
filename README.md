@@ -117,7 +117,7 @@ prerendercloud
 <a name="prerendering-or-server-side-rendering-with-expressconnectnode-http"></a>
 ## Prerendering or Server-side rendering with Express/Connect/Node http
 
-The `prerendercloud` middleware should be loaded first **unless you're using middleware that monkeypatches the req/res flow (i.e. [compression](https://www.npmjs.com/package/compression))**
+The `prerendercloud` middleware should be loaded first, before your other middleware, so it can forward the request to service.prerender.cloud.
 
 ```javascript
 // the free, rate limited tier
