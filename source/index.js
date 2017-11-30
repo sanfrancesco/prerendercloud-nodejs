@@ -27,7 +27,7 @@ const middlewareCacheSingleton = {};
 const Options = require("./lib/Options");
 const options = new Options(middlewareCacheSingleton);
 
-const got = require("got");
+const got = require("got-lite");
 require("./lib/got-retries")(got, options, debug);
 
 const vary = require("vary");
