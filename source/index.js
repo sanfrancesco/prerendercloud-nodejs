@@ -233,17 +233,23 @@ class Prerender {
       return data;
     };
 
-    return got
-      .get(url, {
-        headers,
-        retries: options.options.retries,
-        followRedirect: false,
-        timeout: options.options.timeout || 20000
-      })
+    const gotReq = got.get(url, {
+      headers,
+      retries: options.options.retries,
+      followRedirect: false,
+      timeout: options.options.timeout || 20000
+    });
+
+    return gotReq
       .then(response => {
         return buildData(response);
       })
       .catch(err => {
+        // https://github.com/sindresorhus/got/pull/360#issuecomment-323501098
+        if (err.name === "RequestError" && err.code === "ETIMEDOUT") {
+          gotReq.cancel();
+        }
+
         if (err instanceof got.HTTPError) {
           const shouldRejectStatusCode = statusCode =>
             (!options.options.bubbleUp5xxErrors && is5xxError(statusCode)) ||
