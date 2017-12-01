@@ -1115,7 +1115,7 @@ describe("prerender middleware", function() {
 
       describe("bot userAgent, when botsOnly option is true", function() {
         beforeEach(function(done) {
-          this.req.headers["user-agent"] = "twitterbot";
+          this.req.headers["user-agent"] = "w3c_Validator";
           this.runIt(done, { botsOnly: true });
         });
 

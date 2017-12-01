@@ -46,7 +46,7 @@ const headerWhitelist = [
   "location"
 ];
 
-const userAgentsToPrerender = [
+const botsOnlyList = [
   "googlebot",
   "yahoo",
   "bingbot",
@@ -71,7 +71,7 @@ const userAgentsToPrerender = [
   "flipboard",
   "tumblr",
   "bitlybot"
-];
+].map(ua => ua.toLowerCase());
 
 const getServiceUrl = hardcoded =>
   (hardcoded && hardcoded.replace(/\/+$/, "")) ||
@@ -484,7 +484,7 @@ class Prerender {
 
     if (this.url.path.match(/[?&]_escaped_fragment_/)) return true;
 
-    return userAgentsToPrerender.some(enabledUserAgent =>
+    return botsOnlyList.some(enabledUserAgent =>
       reqUserAgent.includes(enabledUserAgent)
     );
   }
@@ -521,6 +521,8 @@ Prerender.middleware.screenshot = screenshotAndPdf.bind(
   "screenshot"
 );
 Prerender.middleware.pdf = screenshotAndPdf.bind(undefined, "pdf");
+
+Prerender.middleware.botsOnlyList = botsOnlyList
 
 // for testing only
 Prerender.middleware.resetOptions = options.reset.bind(options);
