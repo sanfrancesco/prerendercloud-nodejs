@@ -73,6 +73,18 @@ const botsOnlyList = [
   "bitlybot"
 ].map(ua => ua.toLowerCase());
 
+const userAgentIsBot = (headers, requestedPath = "") => {
+  const reqUserAgent = headers["user-agent"].toLowerCase();
+
+  if (headers["x-bufferbot"]) return true;
+
+  if (requestedPath.match(/[?&]_escaped_fragment_/)) return true;
+
+  return botsOnlyList.some(enabledUserAgent =>
+    reqUserAgent.includes(enabledUserAgent)
+  );
+};
+
 const getServiceUrl = hardcoded =>
   (hardcoded && hardcoded.replace(/\/+$/, "")) ||
   process.env.PRERENDER_SERVICE_URL ||
@@ -465,11 +477,9 @@ class Prerender {
   }
 
   _prerenderableUserAgent() {
-    let reqUserAgent = this.req.headers["user-agent"];
+    const reqUserAgent = this.req.headers["user-agent"];
 
     if (!reqUserAgent) return false;
-
-    reqUserAgent = reqUserAgent.toLowerCase();
 
     if (options.options.whitelistUserAgents)
       return options.options.whitelistUserAgents.some(enabledUserAgent =>
@@ -479,14 +489,7 @@ class Prerender {
     if (!options.options.botsOnly) return true;
 
     // bots only
-
-    if (this.req.headers["x-bufferbot"]) return true;
-
-    if (this.url.path.match(/[?&]_escaped_fragment_/)) return true;
-
-    return botsOnlyList.some(enabledUserAgent =>
-      reqUserAgent.includes(enabledUserAgent)
-    );
+    return userAgentIsBot(this.req.headers, this.url.path);
   }
 
   _requestedUrl() {
@@ -522,7 +525,8 @@ Prerender.middleware.screenshot = screenshotAndPdf.bind(
 );
 Prerender.middleware.pdf = screenshotAndPdf.bind(undefined, "pdf");
 
-Prerender.middleware.botsOnlyList = botsOnlyList
+Prerender.middleware.botsOnlyList = botsOnlyList;
+Prerender.middleware.userAgentIsBot = userAgentIsBot;
 
 // for testing only
 Prerender.middleware.resetOptions = options.reset.bind(options);
