@@ -74,7 +74,7 @@ const botsOnlyList = [
 ].map(ua => ua.toLowerCase());
 
 const userAgentIsBot = (headers, requestedPath = "") => {
-  const reqUserAgent = headers["user-agent"].toLowerCase();
+  const reqUserAgent = headers["user-agent"] && headers["user-agent"].toLowerCase() || "";
 
   if (headers["x-bufferbot"]) return true;
 

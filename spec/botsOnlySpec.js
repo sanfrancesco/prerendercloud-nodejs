@@ -22,7 +22,11 @@ describe("userAgentIsBot", function() {
       false
     );
   });
-
+  it("detects non-bot for empty user-agent", function() {
+    expect(prerenderMiddleware.userAgentIsBot({ })).toBe(
+      false
+    );
+  });
   it("detects escaped fragment", function() {
     expect(
       prerenderMiddleware.userAgentIsBot(
