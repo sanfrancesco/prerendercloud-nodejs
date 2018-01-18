@@ -74,7 +74,8 @@ const botsOnlyList = [
 ].map(ua => ua.toLowerCase());
 
 const userAgentIsBot = (headers, requestedPath = "") => {
-  const reqUserAgent = headers["user-agent"] && headers["user-agent"].toLowerCase() || "";
+  const reqUserAgent =
+    (headers["user-agent"] && headers["user-agent"].toLowerCase()) || "";
 
   if (headers["x-bufferbot"]) return true;
 
@@ -408,6 +409,9 @@ class Prerender {
 
     if (options.options.removeTrailingSlash)
       Object.assign(h, { "Prerender-Remove-Trailing-Slash": true });
+
+    if (options.options.waitExtraLong)
+      Object.assign(h, { "Prerender-Wait-Extra-Long": true });
 
     // disable prerender.cloud caching
     if (options.options.disableServerCache) Object.assign(h, { noCache: true });

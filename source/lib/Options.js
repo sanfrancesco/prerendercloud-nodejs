@@ -68,7 +68,8 @@ module.exports = class Options {
       "removeTrailingSlash",
       "protocol",
       "retries",
-      "host"
+      "host",
+      "waitExtraLong"
     ];
   }
 

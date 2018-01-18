@@ -54,6 +54,7 @@ describe("prerender middleware", function() {
       this.runIt = function(done, options) {
         if (!done) done = () => {};
         if (!options) options = {};
+        this.subject.set("waitExtraLong", options.waitExtraLong);
         this.subject.set("host", options.host);
         this.subject.set("protocol", options.protocol);
         this.subject.set("removeTrailingSlash", !!options.removeTrailingSlash);
@@ -411,6 +412,44 @@ describe("prerender middleware", function() {
             expect(this.uri).toEqual(
               "/http://example.com/files.m4v.storage/lol"
             );
+          });
+        });
+      });
+
+      describe("waitExtraLong option", function() {
+        beforeEach(function() {
+          const that = this;
+          this.prerenderServer = nock("https://service.prerender.cloud")
+            .get(/.*/)
+            .reply(function(uri) {
+              that.headersSentToPrerenderCloud = this.req.headers;
+              return [200, "body"];
+            });
+        });
+        describe("disabled", function() {
+          beforeEach(function(done) {
+            this.runIt(done, { waitExtraLong: false });
+          });
+
+          it("does not send header to prerendercloud", function() {
+            expect(
+              this.headersSentToPrerenderCloud[
+                "prerender-wait-extra-long"
+              ]
+            ).toEqual(undefined);
+          });
+        });
+        describe("enabled", function() {
+          beforeEach(function(done) {
+            this.runIt(done, { waitExtraLong: true });
+          });
+
+          it("it sends header to prerendercloud", function() {
+            expect(
+              this.headersSentToPrerenderCloud[
+                "prerender-wait-extra-long"
+              ]
+            ).toEqual(true);
           });
         });
       });

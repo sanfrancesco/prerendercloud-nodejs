@@ -33,6 +33,7 @@ Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) 
     - [originHeaderWhitelist](#originheaderwhitelist)
     - [removeScriptTags](#removescripttags)
     - [removeTrailingSlash](#removetrailingslash)
+    - [waitExtraLong](#waitextralong)
   - [Middleware Options](#middleware-options)
     - [host](#host)
     - [protocol](#protocol)
@@ -295,6 +296,16 @@ SEO best practices:
 ```javascript
 const prerendercloud = require('prerendercloud');
 prerendercloud.set('removeTrailingSlash', true);
+```
+
+<a name="waitextralong"></a>
+#### waitExtraLong
+
+Prerender.cloud will wait for all in-flight XHR/websockets requests to finish before rendering, but when critical XHR/websockets requests are sent after the page load event, prerender.cloud may not wait long enough to see that it needs to wait for them. Common example use cases are sites hosted on IPFS, or sites that make an initial XHR request that returns endpoints that require additional XHR requests.
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('waitExtraLong', true);
 ```
 
 <a name="middleware-options"></a>
