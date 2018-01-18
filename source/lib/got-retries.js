@@ -15,33 +15,50 @@ module.exports = (got, options, debug) => {
     err instanceof got.HTTPError &&
     isRetryableStatusCode(err.response.statusCode);
 
-  const origGotGet = got.get;
-
   class GotGetWithRetry {
-    constructor(origArguments) {
-      this.origArguments = origArguments;
+    constructor(url, options) {
+      this.url = url;
+      this.options = options;
       this.attempts = 0;
     }
-    get(url) {
-      this.attempts += 1;
-      return origGotGet.apply(got, this.origArguments).catch(err => {
-        if (!isRetryable(err, this.attempts)) return Promise.reject(err);
 
-        debug("retrying", {
-          url: this.origArguments[0],
-          statusCode: err.response.statusCode,
-          attempts: this.attempts
-        });
+    get() {
+      return new Promise((resolve, reject) => {
+        const createGet = () => {
+          this.attempts += 1;
+          const inst = got(this.url, this.options);
+          inst.then(resolve).catch(err => {
+            // noop because we catch downstream... but if we don't have this, it throws unhandled rejection
+          });
+          inst.catch(err => {
+            // https://github.com/sindresorhus/got/pull/360#issuecomment-323501098
+            if (err.name === "RequestError" && err.code === "ETIMEDOUT") {
+              inst.cancel();
+            }
 
-        const noise = Math.random() * 100;
-        const ms = (1 << this.attempts) * DELAY_MS + noise;
+            if (!isRetryable(err, this.attempts)) {
+              return reject(err);
+            }
 
-        return delay(ms).then(this.get.bind(this));
+            debug("retrying", {
+              url: this.url,
+              statusCode: err.response.statusCode,
+              attempts: this.attempts
+            });
+
+            const noise = Math.random() * 100;
+            const ms = (1 << this.attempts) * DELAY_MS + noise;
+
+            delay(ms).then(createGet);
+          });
+        };
+
+        createGet();
       });
     }
   }
 
-  got.get = function() {
-    return new GotGetWithRetry(arguments).get();
+  got.get = function(url, options) {
+    return new GotGetWithRetry(url, options).get();
   };
 };

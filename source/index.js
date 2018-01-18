@@ -257,11 +257,6 @@ class Prerender {
         return buildData(response);
       })
       .catch(err => {
-        // https://github.com/sindresorhus/got/pull/360#issuecomment-323501098
-        if (err.name === "RequestError" && err.code === "ETIMEDOUT") {
-          gotReq.cancel();
-        }
-
         if (err instanceof got.HTTPError) {
           const shouldRejectStatusCode = statusCode =>
             (!options.options.bubbleUp5xxErrors && is5xxError(statusCode)) ||
