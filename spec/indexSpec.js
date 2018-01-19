@@ -77,6 +77,10 @@ describe("prerender middleware", function() {
         this.subject.set("afterRender", options.afterRender);
         this.subject.set("shouldPrerender", options.shouldPrerender);
 
+        if (options.timeout) {
+          this.subject.set("timeout", options.timeout);
+        }
+
         this.next = jasmine.createSpy("nextMiddleware").and.callFake(done);
         this.res.end = jasmine.createSpy("end").and.callFake(done);
         if (this.req._requestedUrl) {
@@ -433,9 +437,7 @@ describe("prerender middleware", function() {
 
           it("does not send header to prerendercloud", function() {
             expect(
-              this.headersSentToPrerenderCloud[
-                "prerender-wait-extra-long"
-              ]
+              this.headersSentToPrerenderCloud["prerender-wait-extra-long"]
             ).toEqual(undefined);
           });
         });
@@ -446,9 +448,7 @@ describe("prerender middleware", function() {
 
           it("it sends header to prerendercloud", function() {
             expect(
-              this.headersSentToPrerenderCloud[
-                "prerender-wait-extra-long"
-              ]
+              this.headersSentToPrerenderCloud["prerender-wait-extra-long"]
             ).toEqual(true);
           });
         });
@@ -1190,13 +1190,16 @@ describe("prerender middleware", function() {
       });
 
       describe("when request lib returns error", function() {
-        function withError(statusCode) {
+        function withError(statusCode, options = {}) {
           beforeEach(function(done) {
             this.prerenderServer = nock("https://service.prerender.cloud")
               .get(/.*/)
               .times(2)
               .reply(() => [statusCode, "errmsg"]);
-            this.runIt(done, { bubbleUp5xxErrors: true });
+            this.runIt(
+              done,
+              Object.assign({ bubbleUp5xxErrors: true }, options)
+            );
           });
         }
 
@@ -1221,6 +1224,25 @@ describe("prerender middleware", function() {
         describe("with 503", function() {
           withError(503);
           itBubblesUp(503);
+        });
+
+        describe("with client-side timeout", function() {
+          describe("bubbleUp5xxErrors=true", function() {
+            withError(200, { timeout: 1 });
+            it("returns client side timeout err with 500 status code", function() {
+              expect(this.res.writeHead.calls.mostRecent().args[0]).toEqual(
+                500,
+                {}
+              );
+              expect(this.res.end.calls.mostRecent().args[0]).toEqual(
+                "Error: prerender.cloud client timeout (as opposed to prerender.cloud server timeout)"
+              );
+            });
+          });
+          describe("bubbleUp5xxErrors=false", function() {
+            withError(200, { timeout: 1, bubbleUp5xxErrors: false });
+            itCalledNext();
+          });
         });
       });
     });

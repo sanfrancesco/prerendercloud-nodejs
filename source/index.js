@@ -106,6 +106,14 @@ const objectKeysToLowerCase = function(origObj) {
 };
 
 const is5xxError = statusCode => parseInt(statusCode / 100) === 5;
+const is4xxError = statusCode => {
+  const n = parseInt(statusCode);
+  const i = parseInt(statusCode / 100);
+
+  return i === 4 && n !== 429;
+};
+const isGotClientTimeout = err =>
+  err.name === "RequestError" && err.code === "ETIMEDOUT";
 
 const zlib = require("zlib");
 function compression(req, res, data) {
@@ -258,19 +266,26 @@ class Prerender {
         return buildData(response);
       })
       .catch(err => {
-        if (err instanceof got.HTTPError) {
-          const shouldRejectStatusCode = statusCode =>
-            (!options.options.bubbleUp5xxErrors && is5xxError(statusCode)) ||
-            statusCode === 429;
+        const shouldBubble = options.options.bubbleUp5xxErrors;
 
-          if (shouldRejectStatusCode(err.response.statusCode)) {
-            return Promise.reject(err);
-          } else {
+        if (shouldBubble) {
+          if (err.response && is5xxError(err.response.statusCode))
             return buildData(err.response);
-          }
-        } else {
+
+          if (isGotClientTimeout(err))
+            return buildData({
+              body:
+                "Error: prerender.cloud client timeout (as opposed to prerender.cloud server timeout)",
+              statusCode: 500,
+              headers: { "content-type": "text/html" }
+            });
+
           return Promise.reject(err);
+        } else if (err.response && is4xxError(err.response.statusCode)) {
+          return buildData(err.response);
         }
+
+        return Promise.reject(err);
       });
   }
 
