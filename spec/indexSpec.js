@@ -1195,6 +1195,7 @@ describe("prerender middleware", function() {
             this.prerenderServer = nock("https://service.prerender.cloud")
               .get(/.*/)
               .times(2)
+              .delay(100)
               .reply(() => [statusCode, "errmsg"]);
             this.runIt(
               done,
