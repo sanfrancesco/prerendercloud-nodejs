@@ -1190,7 +1190,8 @@ describe("prerender middleware", function() {
       });
 
       describe("when request lib returns error", function() {
-        function withError(statusCode, options = {}) {
+        function withError(statusCode, options) {
+          if (!options) options = {};
           beforeEach(function(done) {
             this.prerenderServer = nock("https://service.prerender.cloud")
               .get(/.*/)

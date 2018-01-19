@@ -22,8 +22,9 @@ if (!Array.isArray) {
 
 const debug = require("debug")("prerendercloud");
 
-const middlewareCacheSingleton = {};
+const util = require("./lib/util");
 
+const middlewareCacheSingleton = {};
 const Options = require("./lib/Options");
 const options = new Options(middlewareCacheSingleton);
 
@@ -182,6 +183,10 @@ class Url {
   // if the path is /admin/new.html, this returns /new.html
   get basename() {
     return "/" + this.req.originalUrl.split("/").pop();
+  }
+
+  hasHtmlPath() {
+    return util.urlPathIsHtml(this.basename);
   }
 }
 
@@ -467,17 +472,7 @@ class Prerender {
   }
 
   _prerenderableExtension() {
-    // doesn't detect index.whatever.html (multiple dots)
-    let hasHtmlOrNoExtension = !!this.url.basename.match(/^(([^.]|\.html?)+)$/);
-
-    if (hasHtmlOrNoExtension) return true;
-
-    // hack to handle basenames with multiple dots: index.whatever.html
-    let endsInHtml = !!this.url.basename.match(/.html?$/);
-
-    if (endsInHtml) return true;
-
-    return false;
+    return this.url.hasHtmlPath();
   }
 
   _isPrerenderCloudUserAgent() {
@@ -541,6 +536,8 @@ Prerender.middleware.pdf = screenshotAndPdf.bind(undefined, "pdf");
 
 Prerender.middleware.botsOnlyList = botsOnlyList;
 Prerender.middleware.userAgentIsBot = userAgentIsBot;
+
+Prerender.middleware.util = util;
 
 // for testing only
 Prerender.middleware.resetOptions = options.reset.bind(options);
