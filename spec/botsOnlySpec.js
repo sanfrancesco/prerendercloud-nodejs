@@ -1,11 +1,3 @@
-var prerenderMiddleware;
-if (!!process.env.CI) {
-  console.log("running transpiled code");
-  prerenderMiddleware = require("../distribution/index");
-} else {
-  prerenderMiddleware = require("../source/index");
-}
-
 describe("userAgentIsBot", function() {
   it("detects bot", function() {
     expect(
@@ -23,9 +15,7 @@ describe("userAgentIsBot", function() {
     );
   });
   it("detects non-bot for empty user-agent", function() {
-    expect(prerenderMiddleware.userAgentIsBot({ })).toBe(
-      false
-    );
+    expect(prerenderMiddleware.userAgentIsBot({})).toBe(false);
   });
   it("detects escaped fragment", function() {
     expect(

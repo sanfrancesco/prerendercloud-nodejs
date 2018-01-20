@@ -1,11 +1,3 @@
-var prerenderMiddleware;
-if (!!process.env.CI) {
-  console.log("running transpiled code");
-  prerenderMiddleware = require("../distribution/index");
-} else {
-  prerenderMiddleware = require("../source/index");
-}
-
 const url = require("url");
 const nock = require("nock");
 const zlib = require("zlib");
