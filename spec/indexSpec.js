@@ -11,8 +11,10 @@ const nock = require("nock");
 const zlib = require("zlib");
 
 describe("prerender middleware", function() {
-  beforeEach(function() {
+  afterEach(function() {
     nock.cleanAll();
+  })
+  beforeEach(function() {
     nock.disableNetConnect();
     this.subject = prerenderMiddleware;
     this.subject.resetOptions();
@@ -176,7 +178,7 @@ describe("prerender middleware", function() {
       beforeEach(function() {
         this.req = {
           headers: { "user-agent": "twitterbot/1.0" },
-          _requestedUrl: "http://example.org/files.m4v.storage/lol"
+          _requestedUrl: "http://example.org/files.m4v.storage/lol-valid"
         };
       });
 
@@ -369,7 +371,7 @@ describe("prerender middleware", function() {
 
           it("uses default protocol", function() {
             expect(this.uri).toEqual(
-              "/http://example.org/files.m4v.storage/lol"
+              "/http://example.org/files.m4v.storage/lol-valid"
             );
           });
         });
@@ -380,7 +382,7 @@ describe("prerender middleware", function() {
 
           it("it uses the protocol we specified", function() {
             expect(this.uri).toEqual(
-              "/https://example.org/files.m4v.storage/lol"
+              "/https://example.org/files.m4v.storage/lol-valid"
             );
           });
         });
@@ -403,7 +405,7 @@ describe("prerender middleware", function() {
 
           it("infers host", function() {
             expect(this.uri).toEqual(
-              "/http://example.org/files.m4v.storage/lol"
+              "/http://example.org/files.m4v.storage/lol-valid"
             );
           });
         });
@@ -414,7 +416,7 @@ describe("prerender middleware", function() {
 
           it("it uses the hostl we specified", function() {
             expect(this.uri).toEqual(
-              "/http://example.com/files.m4v.storage/lol"
+              "/http://example.com/files.m4v.storage/lol-valid"
             );
           });
         });
@@ -1185,18 +1187,19 @@ describe("prerender middleware", function() {
       beforeEach(function() {
         this.req = {
           headers: { "user-agent": "twitterbot/1.0" },
-          _requestedUrl: "http://example.org/files.m4v.storage/lol"
+          _requestedUrl: "http://example.org/files.m4v.storage/lol-bubbleup"
         };
       });
 
       describe("when request lib returns error", function() {
-        function withError(statusCode, options) {
+        function withError(statusCode, options, delay) {
           if (!options) options = {};
+          if (delay == null) delay = 0;
           beforeEach(function(done) {
             this.prerenderServer = nock("https://service.prerender.cloud")
               .get(/.*/)
               .times(2)
-              .delay(100)
+              .delay(delay)
               .reply(() => [statusCode, "errmsg"]);
             this.runIt(
               done,
@@ -1246,7 +1249,11 @@ describe("prerender middleware", function() {
 
         describe("with client-side timeout", function() {
           describe("bubbleUp5xxErrors=true", function() {
-            withError(200, { timeout: 1 });
+            beforeEach(function() {
+              this.req._requestedUrl =
+                "http://example.org/files.m4v.storage/lol-bubbleup-client-timeout-1";
+            });
+            withError(200, { timeout: 50 }, 500);
             it("returns client side timeout err with 500 status code", function() {
               expect(this.res.writeHead.calls.mostRecent().args[0]).toEqual(
                 500,
@@ -1258,7 +1265,11 @@ describe("prerender middleware", function() {
             });
           });
           describe("bubbleUp5xxErrors=false", function() {
-            withError(200, { timeout: 1, bubbleUp5xxErrors: false });
+            beforeEach(function() {
+              this.req._requestedUrl =
+                "http://example.org/files.m4v.storage/lol-bubbleup-client-timeout-2";
+            });
+            withError(500, { timeout: 50, bubbleUp5xxErrors: false }, 500);
             itCalledNext();
           });
         });
