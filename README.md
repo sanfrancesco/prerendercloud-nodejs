@@ -348,13 +348,36 @@ prerendercloud.set('afterRender', (err, req, res) => {
 <a name="bubbleup5xxerrors"></a>
 #### bubbleUp5xxErrors
 
+(note: 400 errors are always bubbled up, 429 rate limit errors are never bubbled up. This section is for 5xx errors which are usually either timeouts or prerender.cloud server issues)
+
 This must be enabled if you want your webserver to show a 500 when prerender.cloud throws a 5xx (retriable error). As mentioned in the previous section, by default, 5xx errors are ignored and non-prerendered content is returned so the user is uninterrupted.
 
 Bubbling up the 5xx error is useful if you're using a crawler to trigger prerenders and you want control over retries.
 
+It can take a bool or a function(err, req, res) that returns a bool. The sync function is executed before writing to `res`, or calling `next` (dependending on what bool is returned). It's useful when:
+
+* you want to bubble up errors only for certain errors, user-agents, IPs, etc...
+* or you want to store the errors (analytics)
+
 ```javascript
 const prerendercloud = require('prerendercloud');
 prerendercloud.set('bubbleUp5xxErrors', true);
+```
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('bubbleUp5xxErrors', (err, req, res) => {
+  // err object comes from https://github.com/sindresorhus/got lib
+
+  // examples:
+  //   1. if (err.statusCode === 503) return true;
+  //   2. if (req.headers['user-agent'] === 'googlebot') return true;
+  //   3. if (res.body && res.body.match(/timeout/)) return true;
+  //   4. myDatabase.query('insert into errors(msg) values($1)', [err.message])
+  //   5. Raven.captureException(err, { req, resBody: res.body })
+
+  return false;
+});
 ```
 
 

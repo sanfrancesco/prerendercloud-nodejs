@@ -67,7 +67,7 @@ describe("prerender middleware", function() {
           !!options.enableMiddlewareCache
         );
         this.subject.set("botsOnly", !!options.botsOnly);
-        this.subject.set("bubbleUp5xxErrors", !!options.bubbleUp5xxErrors);
+        this.subject.set("bubbleUp5xxErrors", options.bubbleUp5xxErrors);
         this.subject.set("whitelistUserAgents", options.whitelistUserAgents);
         this.subject.set(
           "originHeaderWhitelist",
@@ -1215,17 +1215,33 @@ describe("prerender middleware", function() {
           });
         }
 
-        describe("with 500", function() {
-          withError(500);
+        describe("bool", function() {
+          describe("with 500", function() {
+            withError(500);
+            itBubblesUp(500);
+          });
+          describe("with 555", function() {
+            withError(555);
+            itBubblesUp(555);
+          });
+          describe("with 503", function() {
+            withError(503);
+            itBubblesUp(503);
+          });
+        });
+        describe("func returns false", function() {
+          const bubbleFunc = (err, req, res) => {
+            return false;
+          };
+          withError(500, { bubbleUp5xxErrors: bubbleFunc });
+          itCalledNext();
+        });
+        describe("func returns true", function() {
+          const bubbleFunc = (err, req, res) => {
+            return true;
+          };
+          withError(500, { bubbleUp5xxErrors: bubbleFunc });
           itBubblesUp(500);
-        });
-        describe("with 555", function() {
-          withError(555);
-          itBubblesUp(555);
-        });
-        describe("with 503", function() {
-          withError(503);
-          itBubblesUp(503);
         });
 
         describe("with client-side timeout", function() {

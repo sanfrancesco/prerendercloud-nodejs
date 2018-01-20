@@ -21,4 +21,12 @@ function urlPathIsHtml(urlPath) {
   return false;
 }
 
-module.exports = { urlPathIsHtml };
+function isFunction(functionToCheck) {
+  var getType = {};
+  return (
+    functionToCheck &&
+    getType.toString.call(functionToCheck) === "[object Function]"
+  );
+}
+
+module.exports = { urlPathIsHtml, isFunction };

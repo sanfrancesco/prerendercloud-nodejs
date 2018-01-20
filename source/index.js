@@ -271,7 +271,7 @@ class Prerender {
         return buildData(response);
       })
       .catch(err => {
-        const shouldBubble = options.options.bubbleUp5xxErrors;
+        const shouldBubble = util.isFunction(options.options.bubbleUp5xxErrors) ? options.options.bubbleUp5xxErrors(err, this.req, err.response) : options.options.bubbleUp5xxErrors;
 
         if (shouldBubble) {
           if (err.response && is5xxError(err.response.statusCode))
