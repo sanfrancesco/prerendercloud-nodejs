@@ -6,14 +6,18 @@ function delay(ms) {
   });
 }
 
+const isClientTimeout = err =>
+  err.name === "RequestError" && err.code === "ETIMEDOUT";
+
 module.exports = (got, options, debug) => {
   const isRetryableStatusCode = code =>
     code === 500 || code === 503 || code === 504;
 
   const isRetryable = (err, retries) =>
     retries <= options.options.retries &&
-    err instanceof got.HTTPError &&
-    isRetryableStatusCode(err.response.statusCode);
+    (isClientTimeout(err) ||
+      (err instanceof got.HTTPError &&
+        isRetryableStatusCode(err.response.statusCode)));
 
   class GotGetWithRetry {
     constructor(url, options) {
@@ -32,7 +36,7 @@ module.exports = (got, options, debug) => {
           });
           inst.catch(err => {
             // https://github.com/sindresorhus/got/pull/360#issuecomment-323501098
-            if (err.name === "RequestError" && err.code === "ETIMEDOUT") {
+            if (isClientTimeout(err)) {
               inst.cancel();
             }
 
@@ -42,7 +46,8 @@ module.exports = (got, options, debug) => {
 
             debug("retrying", {
               url: this.url,
-              statusCode: err.response.statusCode,
+              statusCode:
+                (err.response && err.response.statusCode) || "client-timeout",
               attempts: this.attempts
             });
 

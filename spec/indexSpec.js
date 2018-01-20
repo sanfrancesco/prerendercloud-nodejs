@@ -13,7 +13,7 @@ const zlib = require("zlib");
 describe("prerender middleware", function() {
   afterEach(function() {
     nock.cleanAll();
-  })
+  });
   beforeEach(function() {
     nock.disableNetConnect();
     this.subject = prerenderMiddleware;
@@ -1196,15 +1196,31 @@ describe("prerender middleware", function() {
           if (!options) options = {};
           if (delay == null) delay = 0;
           beforeEach(function(done) {
+            this.attempts = 0;
             this.prerenderServer = nock("https://service.prerender.cloud")
               .get(/.*/)
               .times(2)
               .delay(delay)
-              .reply(() => [statusCode, "errmsg"]);
+              .reply(() => {
+                this.attempts += 1;
+                return [statusCode, "errmsg"];
+              });
             this.runIt(
               done,
               Object.assign({ bubbleUp5xxErrors: true }, options)
             );
+          });
+        }
+
+        function itRetries() {
+          it("retries", function() {
+            expect(this.attempts).toEqual(2);
+          });
+        }
+
+        function itDoesNotRetry() {
+          it("does not retry", function() {
+            expect(this.attempts).toEqual(1);
           });
         }
 
@@ -1222,14 +1238,17 @@ describe("prerender middleware", function() {
           describe("with 500", function() {
             withError(500);
             itBubblesUp(500);
+            itRetries();
           });
           describe("with 555", function() {
             withError(555);
             itBubblesUp(555);
+            itDoesNotRetry();
           });
           describe("with 503", function() {
             withError(503);
             itBubblesUp(503);
+            itRetries();
           });
         });
         describe("func returns false", function() {
@@ -1238,6 +1257,7 @@ describe("prerender middleware", function() {
           };
           withError(500, { bubbleUp5xxErrors: bubbleFunc });
           itCalledNext();
+          itRetries();
         });
         describe("func returns true", function() {
           const bubbleFunc = (err, req, res) => {
@@ -1245,6 +1265,7 @@ describe("prerender middleware", function() {
           };
           withError(500, { bubbleUp5xxErrors: bubbleFunc });
           itBubblesUp(500);
+          itRetries();
         });
 
         describe("with client-side timeout", function() {
@@ -1263,6 +1284,7 @@ describe("prerender middleware", function() {
                 "Error: prerender.cloud client timeout (as opposed to prerender.cloud server timeout)"
               );
             });
+            itRetries();
           });
           describe("bubbleUp5xxErrors=false", function() {
             beforeEach(function() {
@@ -1271,6 +1293,7 @@ describe("prerender middleware", function() {
             });
             withError(500, { timeout: 50, bubbleUp5xxErrors: false }, 500);
             itCalledNext();
+            itRetries();
           });
         });
       });
