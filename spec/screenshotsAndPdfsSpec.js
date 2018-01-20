@@ -1,13 +1,8 @@
-const stdLibUrl = require("url");
 const nock = require("nock");
 
 describe("screenshots and PDFs", function() {
-  beforeEach(function() {
-    nock.cleanAll();
-    nock.disableNetConnect();
-    this.subject = prerenderMiddleware;
-    this.subject.resetOptions();
-  });
+  withNock();
+  withPrerenderMiddleware();
 
   function itWorks(prerenderAction) {
     describe("happy path", function() {
@@ -24,9 +19,9 @@ describe("screenshots and PDFs", function() {
 
       beforeEach(function(done) {
         const self = this;
-        this.subject.set("prerenderToken", "fake-token");
-        this.subject[prerenderAction]
-          .call(this.subject, "http://example.com")
+        this.prerenderMiddleware.set("prerenderToken", "fake-token");
+        this.prerenderMiddleware[prerenderAction]
+          .call(this.prerenderMiddleware, "http://example.com")
           .then(res => {
             self.res = res;
             done();
@@ -60,8 +55,8 @@ describe("screenshots and PDFs", function() {
 
       beforeEach(function(done) {
         const self = this;
-        this.subject[prerenderAction]
-          .call(this.subject, "http://example.com")
+        this.prerenderMiddleware[prerenderAction]
+          .call(this.prerenderMiddleware, "http://example.com")
           .then(res => {
             self.res = res;
             done();
