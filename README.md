@@ -40,6 +40,7 @@ Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) 
     - [afterRender \(a noop\) \(caching, analytics\)](#afterrender-a-noop-caching-analytics)
     - [bubbleUp5xxErrors](#bubbleup5xxerrors)
     - [retries](#retries)
+    - [throttleOnFail](#throttleonfail)
   - [How errors from the server \(service.prerender.cloud\) are handled](#how-errors-from-the-server-serviceprerendercloud-are-handled)
 
 <!-- /MarkdownTOC -->
@@ -389,6 +390,22 @@ HTTP errors 500, 503, 504 and [network errors](https://github.com/floatdrop/is-r
 ```javascript
 const prerendercloud = require('prerendercloud');
 prerendercloud.set('retries', 4);
+```
+
+<a name="throttleonfail"></a>
+#### throttleOnFail
+
+If a request fails due to a retryable error (500, 503, 504) - typically a timeout, then this option will prevent pre-rendering that page for 5 minutes.
+
+It's useful if some of of your pages have an issue causing a timeout, so at least the non-prerendered content will be returned most of the time.
+
+Use this option with a function for `bubbleUp5xxErrors` so you can record the error in your error tracker so you can eventually fix it.
+
+Note, if you're using this with `bubbleUp5xxErrors` function that returns true (or a bool value of true), then a 503 error will be bubbled up.
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('throttleOnFail', true);
 ```
 
 

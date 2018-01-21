@@ -198,6 +198,30 @@ const handleSkip = (msg, next) => {
 
 const concurrentRequestCache = {};
 
+// response: { body, statusCode, headers }
+function createResponse(requestedUrl, response) {
+  const body = response.body;
+
+  const lowerCasedHeaders = objectKeysToLowerCase(response.headers);
+
+  const headers = {};
+  headerWhitelist.forEach(h => {
+    if (lowerCasedHeaders[h]) headers[h] = lowerCasedHeaders[h];
+  });
+
+  const data = { statusCode: response.statusCode, headers, body };
+
+  if (
+    options.options.enableMiddlewareCache &&
+    `${response.statusCode}`.startsWith("2") &&
+    body &&
+    body.length
+  )
+    middlewareCacheSingleton.instance.set(requestedUrl, data);
+
+  return data;
+}
+
 class Prerender {
   constructor(req) {
     this.req = req;
@@ -233,52 +257,46 @@ class Prerender {
     const url = this._createApiRequestUrl();
     const headers = this._createHeaders();
 
-    let gzip = true;
-    debug("prerendering:", url, headers);
+    let requestPromise;
 
-    const buildData = response => {
-      const body = response.body;
-
-      const lowerCasedHeaders = objectKeysToLowerCase(response.headers);
-
-      const headers = {};
-      headerWhitelist.forEach(h => {
-        if (lowerCasedHeaders[h]) headers[h] = lowerCasedHeaders[h];
+    if (options.isThrottled(url)) {
+      requestPromise = Promise.reject(new Error("throttled"));
+    } else {
+      debug("prerendering:", url, headers);
+      requestPromise = got.get(url, {
+        headers,
+        retries: options.options.retries,
+        followRedirect: false,
+        timeout: options.options.timeout || 20000
       });
+    }
 
-      const data = { statusCode: response.statusCode, headers, body };
-
-      if (
-        options.options.enableMiddlewareCache &&
-        `${response.statusCode}`.startsWith("2") &&
-        body &&
-        body.length
-      )
-        middlewareCacheSingleton.instance.set(this._requestedUrl(), data);
-
-      return data;
-    };
-
-    const gotReq = got.get(url, {
-      headers,
-      retries: options.options.retries,
-      followRedirect: false,
-      timeout: options.options.timeout || 20000
-    });
-
-    return gotReq
+    return requestPromise
       .then(response => {
-        return buildData(response);
+        return createResponse(this._requestedUrl(), response);
       })
       .catch(err => {
-        const shouldBubble = util.isFunction(options.options.bubbleUp5xxErrors) ? options.options.bubbleUp5xxErrors(err, this.req, err.response) : options.options.bubbleUp5xxErrors;
+        const shouldBubble = util.isFunction(options.options.bubbleUp5xxErrors)
+          ? options.options.bubbleUp5xxErrors(err, this.req, err.response)
+          : options.options.bubbleUp5xxErrors;
+
+        options.recordFail(url);
 
         if (shouldBubble) {
           if (err.response && is5xxError(err.response.statusCode))
-            return buildData(err.response);
+            return createResponse(this._requestedUrl(), err.response);
+
+          if (err.message && err.message.match(/throttle/)) {
+            return createResponse(this._requestedUrl(), {
+              body:
+                "Error: prerender.cloud client throttled this prerender request due to a recent timeout",
+              statusCode: 503,
+              headers: { "content-type": "text/html" }
+            });
+          }
 
           if (isGotClientTimeout(err))
-            return buildData({
+            return createResponse(this._requestedUrl(), {
               body:
                 "Error: prerender.cloud client timeout (as opposed to prerender.cloud server timeout)",
               statusCode: 500,
@@ -287,7 +305,7 @@ class Prerender {
 
           return Promise.reject(err);
         } else if (err.response && is4xxError(err.response.statusCode)) {
-          return buildData(err.response);
+          return createResponse(this._requestedUrl(), err.response);
         }
 
         return Promise.reject(err);
@@ -541,5 +559,6 @@ Prerender.middleware.util = util;
 
 // for testing only
 Prerender.middleware.resetOptions = options.reset.bind(options);
+Prerender.middleware.Options = Options;
 
 module.exports = Prerender.middleware;

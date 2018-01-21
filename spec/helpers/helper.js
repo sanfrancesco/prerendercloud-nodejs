@@ -86,6 +86,12 @@ global.withHttpMiddlewareMocks = function() {
         this.prerenderMiddleware.set("timeout", options.timeout);
       }
 
+      if (options.retries != null) {
+        this.prerenderMiddleware.set("retries", options.retries);
+      }
+
+      this.prerenderMiddleware.set("throttleOnFail", options.throttleOnFail);
+
       this.next = jasmine.createSpy("nextMiddleware").and.callFake(done);
       this.res.end = jasmine.createSpy("end").and.callFake(done);
       if (this.req._requestedUrl) {

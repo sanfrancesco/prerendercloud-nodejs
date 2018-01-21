@@ -26,6 +26,8 @@ class MiddlewareCache {
   }
 }
 
+let THROTTLED_URLS = {};
+
 const configureMiddlewareCache = (middlewareCacheSingleton, lruCache) => {
   // this prevCache dump/load is just for tests
   const prevCache =
@@ -42,7 +44,21 @@ module.exports = class Options {
     this.reset();
   }
 
+  recordFail(url) {
+    THROTTLED_URLS[url] = new Date();
+    setTimeout(function() {
+      THROTTLED_URLS[url] = undefined;
+      delete THROTTLED_URLS[url];
+    }, 5 * 60 * 1000);
+  }
+
+  isThrottled(url) {
+    if (!this.options.throttleOnFail) return false;
+    return !!THROTTLED_URLS[url];
+  }
+
   reset() {
+    THROTTLED_URLS = {};
     this.options = { retries: 1 };
   }
 
@@ -69,7 +85,8 @@ module.exports = class Options {
       "protocol",
       "retries",
       "host",
-      "waitExtraLong"
+      "waitExtraLong",
+      "throttleOnFail"
     ];
   }
 
