@@ -22,6 +22,8 @@ if (!Array.isArray) {
 
 const debug = require("debug")("prerendercloud");
 
+const stdliburl = require("url");
+const querystring = require("querystring");
 const util = require("./lib/util");
 
 const middlewareCacheSingleton = {};
@@ -144,6 +146,10 @@ function compression(req, res, data) {
 class Url {
   constructor(req) {
     this.req = req;
+    const url = this.req.originalUrl;
+    if (url) {
+      this.parsed = stdliburl.parse(url);
+    }
   }
 
   get protocol() {
@@ -181,16 +187,22 @@ class Url {
   }
 
   get path() {
-    return this.req.path;
+    // in express, this is the same as req.path
+    return this.parsed && this.parsed.pathname;
   }
 
+  // returns {a:b, c:d} if query string exists, else null
   get query() {
-    return this.req.query;
+    // in express, req.query will return key/val object
+    // parsed.query returns string: a=b&c=d
+    const query = this.parsed && this.parsed.query;
+    if (query) return querystring.parse(query);
+    return null;
   }
 
   // if the path is /admin/new.html, this returns /new.html
   get basename() {
-    return "/" + this.req.originalUrl.split("/").pop();
+    return "/" + this.original.split("/").pop();
   }
 
   hasHtmlPath() {
