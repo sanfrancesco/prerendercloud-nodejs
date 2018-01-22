@@ -540,12 +540,34 @@ class Prerender {
   }
 
   _requestedUrl() {
-    const ignoreQuery = options.options.ignoreQuery;
-    if (ignoreQuery && ignoreQuery(this.req)) {
-      return this.url.protocol + "//" + this.url.host + this.url.path;
-    } else {
-      return this.url.protocol + "//" + this.url.host + this.url.original;
+    const whitelistQueryParams = options.options.whitelistQueryParams;
+    if (whitelistQueryParams) {
+      const whitelistedParams = whitelistQueryParams(this.req);
+
+      if (whitelistedParams != null) {
+        const queryParams = Object.assign({}, this.url.query);
+
+        Object.keys(queryParams).forEach(key => {
+          if (!whitelistedParams.includes(key)) {
+            delete queryParams[key];
+          }
+        });
+
+        const whitelistedQueryString =
+          (Object.keys(queryParams).length ? "?" : "") +
+          querystring.stringify(queryParams);
+
+        return (
+          this.url.protocol +
+          "//" +
+          this.url.host +
+          this.url.path +
+          whitelistedQueryString
+        );
+      }
     }
+
+    return this.url.protocol + "//" + this.url.host + this.url.original;
   }
 }
 

@@ -33,6 +33,18 @@ describe("whitelist query params", function() {
     });
   }
 
+  describe("with non-function", function() {
+    callMiddleware({ whitelistQueryParams: () => true });
+
+    it("throws", function() {
+      expect(
+        function() {
+          this.prerenderMiddleware.set("whitelistQueryParams", true);
+        }.bind(this)
+      ).toThrow();
+    });
+  });
+
   describe("with query params", function() {
     beforeEach(function() {
       this.req = {
@@ -43,6 +55,7 @@ describe("whitelist query params", function() {
     withPrerenderServerResponse(200, 0);
     describe("with throttling and bubbleUp5xxErrors enabled", function() {
       callMiddleware();
+
       it("returns pre-rendered content", function() {
         expect(this.res.end).toHaveBeenCalledWith("prerendered-body");
       });
@@ -51,13 +64,52 @@ describe("whitelist query params", function() {
       });
     });
 
-    describe("with ignoreQuery", function() {
-      callMiddleware({ ignoreQuery: () => true });
+    describe("with empty whitelistQueryParams", function() {
+      callMiddleware({ whitelistQueryParams: () => [] });
+
       it("returns pre-rendered content", function() {
         expect(this.res.end).toHaveBeenCalledWith("prerendered-body");
       });
       it("does not pass any query params", function() {
         expect(this.uriCapturedOnPrerender).toEqual("/http://example.org/");
+      });
+    });
+    describe("with present whitelistQueryParams", function() {
+      callMiddleware({ whitelistQueryParams: () => ["a"] });
+
+      it("returns pre-rendered content", function() {
+        expect(this.res.end).toHaveBeenCalledWith("prerendered-body");
+      });
+      it("does not pass any query params", function() {
+        expect(this.uriCapturedOnPrerender).toEqual("/http://example.org/?a=b");
+      });
+    });
+    describe("with conflicting whitelistQueryParams", function() {
+      callMiddleware({ whitelistQueryParams: () => ["b"] });
+
+      it("returns pre-rendered content", function() {
+        expect(this.res.end).toHaveBeenCalledWith("prerendered-body");
+      });
+      it("does not pass any query params", function() {
+        expect(this.uriCapturedOnPrerender).toEqual("/http://example.org/");
+      });
+    });
+    describe("with partial conflicting whitelistQueryParams", function() {
+      beforeEach(function() {
+        this.req = {
+          headers: { "user-agent": "twitterbot/1.0" },
+          _requestedUrl: "http://example.org/?a=b&b=c&d=e"
+        };
+      });
+      callMiddleware({ whitelistQueryParams: () => ["b", "d"] });
+
+      it("returns pre-rendered content", function() {
+        expect(this.res.end).toHaveBeenCalledWith("prerendered-body");
+      });
+      it("does not pass any query params", function() {
+        expect(this.uriCapturedOnPrerender).toEqual(
+          "/http://example.org/?b=c&d=e"
+        );
       });
     });
   });

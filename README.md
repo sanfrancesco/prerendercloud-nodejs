@@ -37,7 +37,7 @@ Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) 
   - [Middleware Options](#middleware-options)
     - [host](#host)
     - [protocol](#protocol)
-    - [ignoreQuery](#ignorequery)
+    - [whitelistQueryParams](#whitelistqueryparams)
     - [afterRender \(a noop\) \(caching, analytics\)](#afterrender-a-noop-caching-analytics)
     - [bubbleUp5xxErrors](#bubbleup5xxerrors)
     - [retries](#retries)
@@ -333,20 +333,29 @@ const prerendercloud = require('prerendercloud');
 prerendercloud.set('protocol', 'https');
 ```
 
-<a name="ignorequery"></a>
-#### ignoreQuery
 
-Ignore the query string part of the url when prerendering the pages specified by this option.
+<a name="whitelistqueryparams"></a>
+#### whitelistQueryParams
 
-e.g.: example.com/docs?source=other -> example.com/docs
+Whitelist query string parameters on each request.
 
 The use case for this option is to achieve higher cache hit rate (so if a user/bots are hitting `docs?source=other` or `/docs` or `docs?source=another&foo=bar`, they'll all be cached on prerender.cloud servers as the same entity).
 
-This option should not be used when a query can change the prerendered content, for example in the case of pagination.
+* `null` (the default), preserve all query params
+* `[]` empty whitelist means drop all query params
+* `['page', 'x', 'y']` only accept page, x, and y params (drop everything else)
 
 ```javascript
 const prerendercloud = require('prerendercloud');
-prerendercloud.set('ignoreQuery', req => req.path.startsWith('/docs')); // Return truthy to ignore
+
+// e.g., the default: example.com/docs?source=other&page=2 -> example.com/docs?source=other&page=2
+prerendercloud.set('whitelistQueryParams', req => null);
+
+// e.g., if you whitelist only `page` query param: example.com/docs?source=other&page=2 -> example.com/docs?page=2
+prerendercloud.set('whitelistQueryParams', req => req.path.startsWith('/docs') ? ['page'] : []);
+
+// e.g., if your whitelist is empty array: example.com/docs?source=other&page=2 -> example.com/docs
+prerendercloud.set('whitelistQueryParams', req => []);
 ```
 
 <a name="afterrender-a-noop-caching-analytics"></a>

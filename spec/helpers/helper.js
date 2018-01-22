@@ -81,7 +81,7 @@ global.withHttpMiddlewareMocks = function() {
       this.prerenderMiddleware.set("beforeRender", options.beforeRender);
       this.prerenderMiddleware.set("afterRender", options.afterRender);
       this.prerenderMiddleware.set("shouldPrerender", options.shouldPrerender);
-      this.prerenderMiddleware.set("ignoreQuery", options.ignoreQuery);
+      this.prerenderMiddleware.set("whitelistQueryParams", options.whitelistQueryParams);
 
       if (options.timeout) {
         this.prerenderMiddleware.set("timeout", options.timeout);

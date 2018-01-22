@@ -1,4 +1,5 @@
 const LRU = require("lru-cache");
+const util = require("./util");
 
 class MiddlewareCache {
   constructor(lruCache) {
@@ -79,7 +80,7 @@ module.exports = class Options {
       "enableMiddlewareCache",
       "middlewareCacheMaxBytes",
       "middlewareCacheMaxAge",
-      "ignoreQuery",
+      "whitelistQueryParams",
       "shouldPrerender",
       "removeScriptTags",
       "removeTrailingSlash",
@@ -110,6 +111,10 @@ module.exports = class Options {
       });
 
       configureMiddlewareCache(this.middlewareCacheSingleton, lruCache);
+    } else if (name === "whitelistQueryParams") {
+      if (val != null && !util.isFunction(val)) {
+        throw new Error("whitelistQueryParams must be a function");
+      }
     }
 
     if (this.options["botsOnly"] && this.options["whitelistUserAgents"])
