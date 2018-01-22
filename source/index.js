@@ -176,8 +176,16 @@ class Url {
     return this.req.headers.host;
   }
 
-  get path() {
+  get original() {
     return this.req.originalUrl;
+  }
+
+  get path() {
+    return this.req.path;
+  }
+
+  get query() {
+    return this.req.query;
   }
 
   // if the path is /admin/new.html, this returns /new.html
@@ -516,11 +524,16 @@ class Prerender {
     if (!options.options.botsOnly) return true;
 
     // bots only
-    return userAgentIsBot(this.req.headers, this.url.path);
+    return userAgentIsBot(this.req.headers, this.url.original);
   }
 
   _requestedUrl() {
-    return this.url.protocol + "//" + this.url.host + this.url.path;
+    const ignoreQuery = options.options.ignoreQuery;
+    if (ignoreQuery && ignoreQuery(this.req)) {
+      return this.url.protocol + "//" + this.url.host + this.url.path;
+    } else {
+      return this.url.protocol + "//" + this.url.host + this.url.original;
+    }
   }
 }
 
