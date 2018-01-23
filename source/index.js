@@ -294,7 +294,7 @@ class Prerender {
     const prerender = new Prerender(req);
     // this is for lambda@edge downstream: https://github.com/sanfrancesco/prerendercloud-lambda-edge
     res.prerender = { url: {} };
-    res.prerender.url.requestedUrl = prerender.url.requestedUrl;
+    res.prerender.url.requestedPath = prerender.url.requestedPath;
 
     if (options.options.botsOnly) {
       vary(res, "User-Agent");
