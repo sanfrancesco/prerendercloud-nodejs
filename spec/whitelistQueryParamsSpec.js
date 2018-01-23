@@ -111,6 +111,12 @@ describe("whitelist query params", function() {
           "/http://example.org/?b=c&d=e"
         );
       });
+      it("exposes requested URL on res obj", function() {
+        // this is for lambda@edge downstream: https://github.com/sanfrancesco/prerendercloud-lambda-edge
+        expect(this.res.prerender.url.requestedUrl).toEqual(
+          "http://example.org/?b=c&d=e"
+        );
+      });
     });
   });
 });

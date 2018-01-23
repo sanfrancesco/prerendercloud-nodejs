@@ -22,10 +22,8 @@ if (!Array.isArray) {
 
 const debug = require("debug")("prerendercloud");
 
-const stdliburl = require("url");
-const querystring = require("querystring");
 const util = require("./lib/util");
-
+const Url = require("./lib/Url");
 const middlewareCacheSingleton = {};
 const Options = require("./lib/Options");
 const options = new Options(middlewareCacheSingleton);
@@ -142,74 +140,6 @@ function compression(req, res, data) {
   }
 }
 
-// http, connect, and express compatible URL parser
-class Url {
-  constructor(req) {
-    this.req = req;
-    const url = this.req.originalUrl;
-    if (url) {
-      this.parsed = stdliburl.parse(url);
-    }
-  }
-
-  get protocol() {
-    if (options.options.protocol) return options.options.protocol + ":";
-
-    // http://stackoverflow.com/a/10353248
-    // https://github.com/expressjs/express/blob/3c54220a3495a7a2cdf580c3289ee37e835c0190/lib/request.js#L301
-    let protocol =
-      this.req.connection && this.req.connection.encrypted ? "https" : "http";
-
-    if (this.req.headers["cf-visitor"]) {
-      const cfVisitorMatch = this.req.headers["cf-visitor"].match(
-        /"scheme":"(https|http)"/
-      );
-      if (cfVisitorMatch) protocol = cfVisitorMatch[1];
-    }
-
-    let xForwardedProto = this.req.headers["x-forwarded-proto"];
-    if (xForwardedProto) {
-      xForwardedProto = xForwardedProto.split(",")[0];
-      const xForwardedProtoMatch = xForwardedProto.match(/(https|http)/);
-      if (xForwardedProtoMatch) protocol = xForwardedProtoMatch[1];
-    }
-
-    return protocol + ":";
-  }
-
-  get host() {
-    if (options.options.host) return options.options.host;
-    return this.req.headers.host;
-  }
-
-  get original() {
-    return this.req.originalUrl;
-  }
-
-  get path() {
-    // in express, this is the same as req.path
-    return this.parsed && this.parsed.pathname;
-  }
-
-  // returns {a:b, c:d} if query string exists, else null
-  get query() {
-    // in express, req.query will return key/val object
-    // parsed.query returns string: a=b&c=d
-    const query = this.parsed && this.parsed.query;
-    if (query) return querystring.parse(query);
-    return null;
-  }
-
-  // if the path is /admin/new.html, this returns /new.html
-  get basename() {
-    return "/" + this.original.split("/").pop();
-  }
-
-  hasHtmlPath() {
-    return util.urlPathIsHtml(this.basename);
-  }
-}
-
 const handleSkip = (msg, next) => {
   debug(msg);
   console.error("prerendercloud middleware SKIPPED:", msg);
@@ -245,22 +175,22 @@ function createResponse(requestedUrl, response) {
 class Prerender {
   constructor(req) {
     this.req = req;
-    this.url = new Url(req);
+    this.url = Url.parse(req, options);
   }
 
   // promise cache wrapper around ._get to prevent concurrent requests to same URL
   get() {
-    if (concurrentRequestCache[this._requestedUrl()])
-      return concurrentRequestCache[this._requestedUrl()];
+    if (concurrentRequestCache[this.url.requestedUrl])
+      return concurrentRequestCache[this.url.requestedUrl];
 
     const promise = this._get();
 
     const deleteCache = () => {
-      concurrentRequestCache[this._requestedUrl()] = undefined;
-      delete concurrentRequestCache[this._requestedUrl()];
+      concurrentRequestCache[this.url.requestedUrl] = undefined;
+      delete concurrentRequestCache[this.url.requestedUrl];
     };
 
-    return (concurrentRequestCache[this._requestedUrl()] = promise)
+    return (concurrentRequestCache[this.url.requestedUrl] = promise)
       .then(res => {
         deleteCache();
         return res;
@@ -274,16 +204,16 @@ class Prerender {
   // fulfills promise when service.prerender.cloud response is: 2xx, 4xx
   // rejects promise when request lib errors or service.prerender.cloud response is: 5xx
   _get() {
-    const url = this._createApiRequestUrl();
+    const apiRequestUrl = this._createApiRequestUrl();
     const headers = this._createHeaders();
 
     let requestPromise;
 
-    if (options.isThrottled(url)) {
+    if (options.isThrottled(this.url.requestedUrl)) {
       requestPromise = Promise.reject(new Error("throttled"));
     } else {
-      debug("prerendering:", url, headers);
-      requestPromise = got.get(url, {
+      debug("prerendering:", apiRequestUrl, headers);
+      requestPromise = got.get(apiRequestUrl, {
         headers,
         retries: options.options.retries,
         followRedirect: false,
@@ -293,21 +223,21 @@ class Prerender {
 
     return requestPromise
       .then(response => {
-        return createResponse(this._requestedUrl(), response);
+        return createResponse(this.url.requestedUrl, response);
       })
       .catch(err => {
         const shouldBubble = util.isFunction(options.options.bubbleUp5xxErrors)
           ? options.options.bubbleUp5xxErrors(err, this.req, err.response)
           : options.options.bubbleUp5xxErrors;
 
-        options.recordFail(url);
+        options.recordFail(this.url.requestedUrl);
 
         if (shouldBubble) {
           if (err.response && is5xxError(err.response.statusCode))
-            return createResponse(this._requestedUrl(), err.response);
+            return createResponse(this.url.requestedUrl, err.response);
 
           if (err.message && err.message.match(/throttle/)) {
-            return createResponse(this._requestedUrl(), {
+            return createResponse(this.url.requestedUrl, {
               body:
                 "Error: prerender.cloud client throttled this prerender request due to a recent timeout",
               statusCode: 503,
@@ -316,7 +246,7 @@ class Prerender {
           }
 
           if (isGotClientTimeout(err))
-            return createResponse(this._requestedUrl(), {
+            return createResponse(this.url.requestedUrl, {
               body:
                 "Error: prerender.cloud client timeout (as opposed to prerender.cloud server timeout)",
               statusCode: 500,
@@ -325,7 +255,7 @@ class Prerender {
 
           return Promise.reject(err);
         } else if (err.response && is4xxError(err.response.statusCode)) {
-          return createResponse(this._requestedUrl(), err.response);
+          return createResponse(this.url.requestedUrl, err.response);
         }
 
         return Promise.reject(err);
@@ -362,6 +292,9 @@ class Prerender {
 
   static middleware(req, res, next) {
     const prerender = new Prerender(req);
+    // this is for lambda@edge downstream: https://github.com/sanfrancesco/prerendercloud-lambda-edge
+    res.prerender = { url: {} };
+    res.prerender.url.requestedUrl = prerender.url.requestedUrl;
 
     if (options.options.botsOnly) {
       vary(res, "User-Agent");
@@ -378,7 +311,7 @@ class Prerender {
 
     if (options.options.enableMiddlewareCache) {
       const cached = middlewareCacheSingleton.instance.get(
-        prerender._requestedUrl()
+        prerender.url.requestedUrl
       );
       if (cached) {
         debug(
@@ -502,7 +435,7 @@ class Prerender {
   }
 
   _createApiRequestUrl() {
-    return getRenderUrl(null, this._requestedUrl());
+    return getRenderUrl(null, this.url.requestedUrl);
   }
 
   _alreadyPrerendered() {
@@ -510,7 +443,7 @@ class Prerender {
   }
 
   _prerenderableExtension() {
-    return this.url.hasHtmlPath();
+    return this.url.hasHtmlPath;
   }
 
   _isPrerenderCloudUserAgent() {
@@ -537,37 +470,6 @@ class Prerender {
 
     // bots only
     return userAgentIsBot(this.req.headers, this.url.original);
-  }
-
-  _requestedUrl() {
-    const whitelistQueryParams = options.options.whitelistQueryParams;
-    if (whitelistQueryParams) {
-      const whitelistedParams = whitelistQueryParams(this.req);
-
-      if (whitelistedParams != null) {
-        const queryParams = Object.assign({}, this.url.query);
-
-        Object.keys(queryParams).forEach(key => {
-          if (!whitelistedParams.includes(key)) {
-            delete queryParams[key];
-          }
-        });
-
-        const whitelistedQueryString =
-          (Object.keys(queryParams).length ? "?" : "") +
-          querystring.stringify(queryParams);
-
-        return (
-          this.url.protocol +
-          "//" +
-          this.url.host +
-          this.url.path +
-          whitelistedQueryString
-        );
-      }
-    }
-
-    return this.url.protocol + "//" + this.url.host + this.url.original;
   }
 }
 
