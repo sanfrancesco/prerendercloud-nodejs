@@ -111,6 +111,10 @@ describe("whitelist query params", function() {
           "/http://example.org/?b=c&d=e"
         );
       });
+      it("exposes requested URL on req obj", function() {
+        // this is for users of the beforeRender(req, done) func
+        expect(this.req.prerender.url.requestedPath).toEqual("/?b=c&d=e");
+      });
       it("exposes requested URL on res obj", function() {
         // this is for lambda@edge downstream: https://github.com/sanfrancesco/prerendercloud-lambda-edge
         expect(this.res.prerender.url.requestedPath).toEqual("/?b=c&d=e");

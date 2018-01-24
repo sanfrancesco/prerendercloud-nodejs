@@ -292,9 +292,14 @@ class Prerender {
 
   static middleware(req, res, next) {
     const prerender = new Prerender(req);
+
+    const objForReqRes = {
+      url: { requestedPath: prerender.url.requestedPath }
+    };
+    // this is for beforeRender(req, done) func so there's visibility into what URL is being used
+    req.prerender = objForReqRes;
     // this is for lambda@edge downstream: https://github.com/sanfrancesco/prerendercloud-lambda-edge
-    res.prerender = { url: {} };
-    res.prerender.url.requestedPath = prerender.url.requestedPath;
+    res.prerender = objForReqRes;
 
     if (options.options.botsOnly) {
       vary(res, "User-Agent");

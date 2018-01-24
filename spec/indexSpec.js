@@ -879,6 +879,7 @@ describe("prerender middleware", function() {
         expect(this.afterRender).toEqual({
           err: null,
           req: {
+            prerender: { url: { requestedPath: "/file" } },
             headers: {
               "user-agent": "Mozilla/5.0",
               host: "example.org"
