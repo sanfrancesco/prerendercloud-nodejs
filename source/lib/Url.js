@@ -23,7 +23,7 @@ class Url {
     if (!req) throw new Error("missing req obj");
     this.req = req;
     this.options = options;
-    const url = this.req.originalUrl;
+    const url = this.original();
     if (url) {
       this.parsed = stdliburl.parse(url, true); // true for 2nd argument means parse query params
     }
@@ -62,7 +62,7 @@ class Url {
   }
 
   original() {
-    return this.req.originalUrl;
+    return this.req.prerenderUrl || this.req.originalUrl || this.req.url;
   }
 
   path() {
