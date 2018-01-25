@@ -1,6 +1,13 @@
 function urlPathIsHtml(urlPath) {
-  const basename = urlPath.split("/").pop();
+  const basename = urlPath
+    .split("/")
+    .pop()
+    .replace(/\?.*/, ""); // remove query params
 
+  return basenameIsHtml(basename);
+}
+
+function basenameIsHtml(basename) {
   if (basename === "") return true;
 
   // doesn't detect index.whatever.html (multiple dots)
@@ -29,4 +36,4 @@ function isFunction(functionToCheck) {
   );
 }
 
-module.exports = { urlPathIsHtml, isFunction };
+module.exports = { urlPathIsHtml, basenameIsHtml, isFunction };

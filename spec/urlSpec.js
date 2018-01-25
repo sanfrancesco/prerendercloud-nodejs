@@ -37,5 +37,13 @@ describe("util", function() {
         )
       ).toBe(true);
     });
+
+    it("handles miscellaneous dots and query strings", function() {
+      expect(
+        this.prerenderMiddleware.util.urlPathIsHtml(
+          "/ProximaNova-Bold.woff?cachebuster"
+        )
+      ).toBe(false);
+    });
   });
 });

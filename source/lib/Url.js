@@ -77,19 +77,14 @@ class Url {
     return this.parsed && this.parsed.query;
   }
 
-  // if the path is /admin/new.html, this returns /new.html
+  // if the path is /admin/new.html?a=b&c=d, this returns /new.html
   basename() {
-    return (
-      "/" +
-        (this.original() &&
-          this.original()
-            .split("/")
-            .pop()) || ""
-    );
+    const path = this.path();
+    return (path && path.split("/").pop()) || "/";
   }
 
   hasHtmlPath() {
-    return util.urlPathIsHtml(this.basename());
+    return util.basenameIsHtml(this.basename());
   }
 
   requestedPath() {
