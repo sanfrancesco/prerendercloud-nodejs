@@ -798,7 +798,8 @@ describe("prerender middleware", function() {
               this.uriCapturedInBeforeRender = req.url;
               beforeRenderDone(null, {
                 status: 202,
-                body: "body-from-before-render"
+                body: "body-from-before-render",
+                headers: { whatever: "works" }
               });
             }
           });
@@ -808,9 +809,10 @@ describe("prerender middleware", function() {
           expect(this.uriCapturedInBeforeRender).toBe(`/file`);
           expect(this.uriCapturedOnPrerender).toBeUndefined();
         });
-        it("returns status from beforeRender and only the content-type header", function() {
+        it("returns status and headers from beforeRender", function() {
           expect(this.res.writeHead).toHaveBeenCalledWith(202, {
-            "content-type": "text/html; charset=utf-8"
+            "content-type": "text/html; charset=utf-8",
+            whatever: "works"
           });
         });
         it("returns beforeRender body", function() {

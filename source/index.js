@@ -354,9 +354,12 @@ class Prerender {
         } else if (typeof stringOrObject === "object") {
           return prerender.writeHttpResponse(req, res, next, {
             statusCode: stringOrObject.status,
-            headers: {
-              "content-type": "text/html; charset=utf-8"
-            },
+            headers: Object.assign(
+              {
+                "content-type": "text/html; charset=utf-8"
+              },
+              stringOrObject.headers
+            ),
             body: stringOrObject.body
           });
         }

@@ -171,6 +171,8 @@ prerendercloud.set('beforeRender', (req, done) => {
   // (useful when implementing your own cache)
   done(null, {status: 202, body: 'hello'}) // returns status 202, content-type text/html
 
+  done(null, {status: 301, headers: {location: '/new-path'}}) // redirect to /new-path
+
   // or call it with nothing/empty/null/undefined to follow the remote prerender path
   // (useful for analytics)
   done();
