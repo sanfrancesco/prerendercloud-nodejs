@@ -73,6 +73,7 @@ const botsOnlyList = [
   "tumblr",
   "bitlybot",
   "Bitrix link preview",
+  "XING-contenttabreceiver",
   "Google Search Console"
 ].map(ua => ua.toLowerCase());
 
