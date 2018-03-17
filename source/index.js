@@ -71,7 +71,8 @@ const botsOnlyList = [
   "WhatsApp",
   "flipboard",
   "tumblr",
-  "bitlybot"
+  "bitlybot",
+  "Google Search Console"
 ].map(ua => ua.toLowerCase());
 
 const userAgentIsBot = (headers, requestedPath = "") => {
