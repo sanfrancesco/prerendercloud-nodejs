@@ -100,7 +100,7 @@ Promise API
 const prerendercloud = require('prerendercloud');
 prerendercloud
   .screenshot("http://example.com")
-  .then(jpgBuffer => fs.writeFileSync("out.jpg", jpgBuffer));
+  .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer));
 ```
 
 
