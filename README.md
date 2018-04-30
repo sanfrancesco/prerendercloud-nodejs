@@ -82,7 +82,6 @@ PRERENDER_TOKEN=mySecretToken node index.js
 ```javascript
 const prerendercloud = require('prerendercloud');
 prerendercloud.set('prerenderToken', 'mySecretToken')
-app.use(prerendercloud);
 ```
 
 <a name="debugging"></a>
@@ -124,7 +123,8 @@ The `prerendercloud` middleware should be loaded first, before your other middle
 
 ```javascript
 // the free, rate limited tier
-app.use(require('prerendercloud'));
+// and using https://expressjs.com/
+expressApp.use(require('prerendercloud'));
 ```
 
 
