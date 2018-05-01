@@ -155,7 +155,15 @@ const concurrentRequestCache = {};
 
 // response: { body, statusCode, headers }
 function createResponse(requestedUrl, response) {
-  const body = response.body;
+  let body = response.body;
+  let screenshot;
+  let meta;
+  if (options.options.withScreenshot) {
+    const json = JSON.parse(body);
+    screenshot = Buffer.from(json.screenshot, "base64");
+    body = Buffer.from(json.body, "base64").toString();
+    meta = JSON.parse(Buffer.from(json.meta, "base64"));
+  }
 
   const lowerCasedHeaders = objectKeysToLowerCase(response.headers);
 
@@ -165,6 +173,9 @@ function createResponse(requestedUrl, response) {
   });
 
   const data = { statusCode: response.statusCode, headers, body };
+
+  if (screenshot) data.screenshot = screenshot;
+  if (meta) data.meta = meta;
 
   if (
     options.options.enableMiddlewareCache &&
@@ -267,8 +278,23 @@ class Prerender {
       });
   }
 
-  // data looks like { statusCode, headers, body }
   writeHttpResponse(req, res, next, data) {
+    const _writeHttpResponse = () =>
+      this._writeHttpResponse(req, res, next, data);
+
+    if (options.options.afterRenderBlocking)
+      return options.options.afterRenderBlocking(
+        null,
+        req,
+        data,
+        _writeHttpResponse
+      );
+
+    _writeHttpResponse();
+  }
+
+  // data looks like { statusCode, headers, body }
+  _writeHttpResponse(req, res, next, data) {
     if (options.options.afterRender)
       process.nextTick(() => options.options.afterRender(null, req, data));
 
@@ -417,12 +443,17 @@ class Prerender {
     if (options.options.waitExtraLong)
       Object.assign(h, { "Prerender-Wait-Extra-Long": true });
 
-    // disable prerender.cloud caching
     if (options.options.disableServerCache) Object.assign(h, { noCache: true });
     if (options.options.disableAjaxBypass)
       Object.assign(h, { "Prerender-Disable-Ajax-Bypass": true });
     if (options.options.disableAjaxPreload)
       Object.assign(h, { "Prerender-Disable-Ajax-Preload": true });
+
+    if (
+      options.options.withScreenshot &&
+      options.options.withScreenshot(this.req)
+    )
+      Object.assign(h, { "Prerender-With-Screenshot": true });
 
     if (this._hasOriginHeaderWhitelist()) {
       options.options.originHeaderWhitelist.forEach(_h => {

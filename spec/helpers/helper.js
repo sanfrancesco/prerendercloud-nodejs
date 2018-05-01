@@ -78,10 +78,18 @@ global.withHttpMiddlewareMocks = function() {
         "originHeaderWhitelist",
         options.originHeaderWhitelist
       );
+      this.prerenderMiddleware.set("withScreenshot", options.withScreenshot);
       this.prerenderMiddleware.set("beforeRender", options.beforeRender);
+      this.prerenderMiddleware.set(
+        "afterRenderBlocking",
+        options.afterRenderBlocking
+      );
       this.prerenderMiddleware.set("afterRender", options.afterRender);
       this.prerenderMiddleware.set("shouldPrerender", options.shouldPrerender);
-      this.prerenderMiddleware.set("whitelistQueryParams", options.whitelistQueryParams);
+      this.prerenderMiddleware.set(
+        "whitelistQueryParams",
+        options.whitelistQueryParams
+      );
 
       if (options.timeout) {
         this.prerenderMiddleware.set("timeout", options.timeout);
