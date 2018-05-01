@@ -402,16 +402,27 @@ class Prerender {
             body: stringOrObject
           });
         } else if (typeof stringOrObject === "object") {
-          return prerender.writeHttpResponse(req, res, next, {
-            statusCode: stringOrObject.status,
-            headers: Object.assign(
+          return prerender.writeHttpResponse(
+            req,
+            res,
+            next,
+            Object.assign(
               {
-                "content-type": "text/html; charset=utf-8"
+                statusCode: stringOrObject.status,
+                headers: Object.assign(
+                  {
+                    "content-type": "text/html; charset=utf-8"
+                  },
+                  stringOrObject.headers
+                ),
+                body: stringOrObject.body
               },
-              stringOrObject.headers
-            ),
-            body: stringOrObject.body
-          });
+              {
+                screenshot: stringOrObject.screenshot,
+                meta: stringOrObject.meta
+              }
+            )
+          );
         }
       };
       return options.options.beforeRender(req, donePassedToUserBeforeRender);

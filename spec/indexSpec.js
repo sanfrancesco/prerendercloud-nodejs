@@ -859,12 +859,16 @@ describe("prerender middleware", function() {
       describe("with object", function() {
         beforeEach(function(done) {
           this.callPrerenderMiddleware(done, {
+            afterRender: (err, req, res) => {
+              this.afterRenderResObj = res;
+            },
             beforeRender: (req, beforeRenderDone) => {
               this.uriCapturedInBeforeRender = req.url;
               beforeRenderDone(null, {
                 status: 202,
                 body: "body-from-before-render",
-                headers: { whatever: "works" }
+                headers: { whatever: "works" },
+                bogus: {}
               });
             }
           });
@@ -882,6 +886,52 @@ describe("prerender middleware", function() {
         });
         it("returns beforeRender body", function() {
           expect(this.res.end).toHaveBeenCalledWith("body-from-before-render");
+        });
+        it("only includes status/headers/body in args to afterRender", function() {
+          expect(this.afterRenderResObj).toEqual({
+            statusCode: 202,
+            headers: {
+              "content-type": "text/html; charset=utf-8",
+              whatever: "works"
+            },
+            body: "body-from-before-render",
+            screenshot: undefined,
+            meta: undefined
+          });
+        });
+      });
+
+      describe("with object that has screenshot and meta", function() {
+        beforeEach(function(done) {
+          this.callPrerenderMiddleware(done, {
+            afterRender: (err, req, res) => {
+              this.afterRenderResObj = res;
+            },
+            beforeRender: (req, beforeRenderDone) => {
+              this.uriCapturedInBeforeRender = req.url;
+              beforeRenderDone(null, {
+                status: 202,
+                body: "body-from-before-render",
+                headers: { whatever: "works" },
+                screenshot: Buffer.from([]),
+                meta: {},
+                bogus: {}
+              });
+            }
+          });
+        });
+
+        it("includes screenshot/meta in args passed to afterRender", function() {
+          expect(this.afterRenderResObj).toEqual({
+            statusCode: 202,
+            headers: {
+              "content-type": "text/html; charset=utf-8",
+              whatever: "works"
+            },
+            body: "body-from-before-render",
+            screenshot: Buffer.from([]),
+            meta: {}
+          });
         });
       });
 
