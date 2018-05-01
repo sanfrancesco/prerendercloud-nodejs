@@ -147,30 +147,44 @@ function compression(req, res, data) {
 
 const handleSkip = (msg, next) => {
   debug(msg);
-  console.error("prerendercloud middleware SKIPPED:", msg);
+  if (process.env.NODE_ENV !== "test")
+    console.error("prerendercloud middleware SKIPPED:", msg);
   return next();
 };
 
 const concurrentRequestCache = {};
 
 // response: { body, statusCode, headers }
-function createResponse(requestedUrl, response) {
-  let body = response.body;
-  let screenshot;
-  let meta;
-  if (options.options.withScreenshot) {
-    const json = JSON.parse(body);
-    screenshot = Buffer.from(json.screenshot, "base64");
-    body = Buffer.from(json.body, "base64").toString();
-    meta = JSON.parse(Buffer.from(json.meta, "base64"));
-  }
-
+function createResponse(req, requestedUrl, response) {
   const lowerCasedHeaders = objectKeysToLowerCase(response.headers);
 
   const headers = {};
   headerWhitelist.forEach(h => {
     if (lowerCasedHeaders[h]) headers[h] = lowerCasedHeaders[h];
   });
+
+  let body = response.body;
+  let screenshot;
+  let meta;
+  if (options.options.withScreenshot && options.options.withScreenshot(req)) {
+    headers["content-type"] = "text/html";
+    let json;
+    try {
+      json = JSON.parse(body);
+    } catch (err) {
+      if (err.name && err.name.match(/SyntaxError/)) {
+        console.error(
+          "withScreenshot expects JSON from server but parsing this failed:",
+          body && body.toString().slice(0, 140) + "..."
+        );
+      }
+
+      throw err;
+    }
+    screenshot = json.screenshot && Buffer.from(json.screenshot, "base64");
+    body = json.body && Buffer.from(json.body, "base64").toString();
+    meta = json.meta && JSON.parse(Buffer.from(json.meta, "base64"));
+  }
 
   const data = { statusCode: response.statusCode, headers, body };
 
@@ -239,7 +253,7 @@ class Prerender {
 
     return requestPromise
       .then(response => {
-        return createResponse(this.url.requestedUrl, response);
+        return createResponse(this.req, this.url.requestedUrl, response);
       })
       .catch(err => {
         const shouldBubble = util.isFunction(options.options.bubbleUp5xxErrors)
@@ -250,10 +264,14 @@ class Prerender {
 
         if (shouldBubble) {
           if (err.response && is5xxError(err.response.statusCode))
-            return createResponse(this.url.requestedUrl, err.response);
+            return createResponse(
+              this.req,
+              this.url.requestedUrl,
+              err.response
+            );
 
           if (err.message && err.message.match(/throttle/)) {
-            return createResponse(this.url.requestedUrl, {
+            return createResponse(this.req, this.url.requestedUrl, {
               body:
                 "Error: prerender.cloud client throttled this prerender request due to a recent timeout",
               statusCode: 503,
@@ -262,7 +280,7 @@ class Prerender {
           }
 
           if (isGotClientTimeout(err))
-            return createResponse(this.url.requestedUrl, {
+            return createResponse(this.req, this.url.requestedUrl, {
               body:
                 "Error: prerender.cloud client timeout (as opposed to prerender.cloud server timeout)",
               statusCode: 500,
@@ -271,7 +289,7 @@ class Prerender {
 
           return Promise.reject(err);
         } else if (err.response && is4xxError(err.response.statusCode)) {
-          return createResponse(this.url.requestedUrl, err.response);
+          return createResponse(this.req, this.url.requestedUrl, err.response);
         }
 
         return Promise.reject(err);
@@ -366,6 +384,7 @@ class Prerender {
           return prerender.writeHttpResponse(req, res, next, data);
         })
         .catch(function(error) {
+          if (process.env.NODE_ENV !== "test") console.error(error);
           return handleSkip(`server error: ${error && error.message}`, next);
         });
     };

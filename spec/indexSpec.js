@@ -396,21 +396,29 @@ describe("prerender middleware", function() {
             .get(/.*/)
             .reply(function(uri) {
               that.headersSentToPrerenderCloud = this.req.headers;
-              return [200, "body"];
+
+              if (this.req.headers["prerender-with-screenshot"]) {
+                return [
+                  200,
+                  { body: Buffer.from("base64-body").toString("base64") }
+                ];
+              } else {
+                return [200, "body"];
+              }
             });
         });
         describe("disabled", function() {
           beforeEach(function(done) {
             this.callPrerenderMiddleware(done, {
               withScreenshot: req => {
-                this.reqdata = req;
+                this.reqDataPassedToWithScreenshot = req;
                 return false;
               }
             });
           });
 
           it("it sets req obj", function() {
-            expect(this.reqdata).toEqual({
+            expect(this.reqDataPassedToWithScreenshot).toEqual({
               headers: { "user-agent": "twitterbot/1.0", host: "example.org" },
               _requestedUrl: "http://example.org/files.m4v.storage/lol-valid",
               url: "/files.m4v.storage/lol-valid",
@@ -432,8 +440,13 @@ describe("prerender middleware", function() {
             this.callPrerenderMiddleware(done, { withScreenshot: () => true });
           });
 
+          it("returns pre-rendered body", function() {
+            expect(this.res.end.calls.mostRecent().args[0]).toEqual(
+              "base64-body"
+            );
+          });
+
           it("it sends header to prerendercloud", function() {
-            console.log(this.headersSentToPrerenderCloud);
             expect(
               this.headersSentToPrerenderCloud["prerender-with-screenshot"]
             ).toEqual(true);
