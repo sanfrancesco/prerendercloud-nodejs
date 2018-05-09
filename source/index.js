@@ -442,6 +442,8 @@ class Prerender {
 
     if (this._isPrerenderCloudUserAgent()) return false;
 
+    if (this._isBlacklistedPath()) return false;
+
     if (options.options.shouldPrerender) {
       return options.options.shouldPrerender(this.req);
     } else {
@@ -528,6 +530,16 @@ class Prerender {
     reqUserAgent = reqUserAgent.toLowerCase();
 
     return reqUserAgent.match(/prerendercloud/i);
+  }
+
+  _isBlacklistedPath() {
+    if (options.options.blacklistPaths) {
+      const paths = options.options.blacklistPaths(this.req);
+
+      if (paths && Array.isArray(paths)) return paths.includes(this.req.url);
+    }
+
+    return false;
   }
 
   _prerenderableUserAgent() {

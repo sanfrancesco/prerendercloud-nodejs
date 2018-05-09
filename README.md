@@ -24,6 +24,7 @@ Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) 
     - [Enable for bots **ONLY** \(google, facebook, twitter, slack etc...\)](#enable-for-bots-only-google-facebook-twitter-slack-etc)
     - [Whitelist your own user-agent list \(overrides `botsOnly`\) \(case sensitive\)](#whitelist-your-own-user-agent-list-overrides-botsonly-case-sensitive)
     - [beforeRender \(short circuit the remote call to service.prerender.cloud\)](#beforerender-short-circuit-the-remote-call-to-serviceprerendercloud)
+    - [blacklistPaths](#blacklistpaths)
     - [shouldPrerender](#shouldprerender)
   - [Caching](#caching)
     - [Disable prerender.cloud server cache](#disable-prerendercloud-server-cache)
@@ -199,6 +200,25 @@ prerendercloud.set('beforeRender', (req, done) => {
   done(null);
   done(undefined);
 });
+```
+
+<a id="blacklistpaths"></a>
+#### blacklistPaths
+
+Prevent paths from being prerendered. Takes a function that returns an array. It is executed before the shouldPrerender option.
+
+The primary use case is for CDN edge node clients (CloudFront Lambda@Edge) because they don't have the ability to quickly read the origin (AWS S3) filesystem, so they have to hard-code paths that shouldn't be prerendered.
+
+Paths you may not want prerendered are non-SPA, large pages, or pages with JavaScript that can't rehydrate prerendered DOMs.
+
+```javascript
+const prerendercloud = require("prerendercloud");
+prerendercloud.set("blacklistPaths", req => [
+  "/google-domain-verification",
+  "/google-domain-verification.html",
+  "/google-domain-verification/"
+]);
+
 ```
 
 <a name="shouldprerender"></a>

@@ -731,6 +731,82 @@ describe("prerender middleware", function() {
       });
     });
 
+    describe("blacklistPaths option", function() {
+      beforeEach(function() {
+        this.req = {
+          headers: {
+            "user-agent": "chrome"
+          }
+        };
+        this.uri = undefined;
+        this.prerenderServer = nock("https://service.prerender.cloud")
+          .get(/.*/)
+          .reply(uri => {
+            this.uri = uri;
+            return [
+              200,
+              "body",
+              {
+                "content-type": "text/html; charset=utf-8"
+              }
+            ];
+          });
+      });
+
+      describe("when path is not in blacklist", function() {
+        beforeEach(function(done) {
+          this.req._requestedUrl = "https://example.org/should-prerender";
+          this.callPrerenderMiddleware(done, {
+            blacklistPaths: req => ["/dont-prerender"]
+          });
+        });
+
+        it("prerenders", function() {
+          expect(this.uri).toEqual("/http://example.org/should-prerender");
+        });
+      });
+
+      describe("when path is not array", function() {
+        beforeEach(function(done) {
+          this.req._requestedUrl = "https://example.org/dont-prerender";
+          this.callPrerenderMiddleware(done, {
+            blacklistPaths: req => "/dont-prerender"
+          });
+        });
+
+        it("prerenders", function() {
+          expect(this.uri).toEqual("/http://example.org/dont-prerender");
+        });
+      });
+
+      describe("when path is in blacklist", function() {
+        beforeEach(function(done) {
+          this.req._requestedUrl = "https://example.org/dont-prerender";
+          this.reqObj = undefined;
+          this.callPrerenderMiddleware(done, {
+            blacklistPaths: req => {
+              this.reqObj = req;
+              return ["/dont-prerender"];
+            }
+          });
+        });
+        it("passes req obj", function() {
+          expect(this.reqObj).toEqual({
+            headers: { "user-agent": "chrome", host: "example.org" },
+            _requestedUrl: "https://example.org/dont-prerender",
+            url: "/dont-prerender",
+            originalUrl: "/dont-prerender",
+            method: "GET",
+            prerender: { url: { requestedPath: "/dont-prerender" } }
+          });
+        });
+        it("does not prerender", function() {
+          expect(this.uri).toBeUndefined();
+        });
+        itCalledNext();
+      });
+    });
+
     describe("shouldPrerender option", function() {
       beforeEach(function() {
         this.req = {

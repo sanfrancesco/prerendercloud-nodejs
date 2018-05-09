@@ -90,7 +90,8 @@ module.exports = class Options {
       "waitExtraLong",
       "throttleOnFail",
       "withScreenshot",
-      "afterRenderBlocking"
+      "afterRenderBlocking",
+      "blacklistPaths"
     ];
   }
 
@@ -116,7 +117,8 @@ module.exports = class Options {
     } else if (
       name === "whitelistQueryParams" ||
       name === "withScreenshot" ||
-      name === "afterRenderBlocking"
+      name === "afterRenderBlocking" ||
+      name === "blacklistPaths"
     ) {
       if (val != null && !util.isFunction(val)) {
         throw new Error(`${name} must be a function`);

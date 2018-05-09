@@ -84,6 +84,10 @@ global.withHttpMiddlewareMocks = function() {
         "afterRenderBlocking",
         options.afterRenderBlocking
       );
+      this.prerenderMiddleware.set(
+        "blacklistPaths",
+        options.blacklistPaths
+      );
       this.prerenderMiddleware.set("afterRender", options.afterRender);
       this.prerenderMiddleware.set("shouldPrerender", options.shouldPrerender);
       this.prerenderMiddleware.set(
