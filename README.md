@@ -31,6 +31,7 @@ Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) 
     - [Using the \(optional\) middleware cache](#using-the-optional-middleware-cache)
       - [Clearing the middleware cache](#clearing-the-middleware-cache)
   - [Server Options](#server-options)
+    - [metaOnly](#metaonly)
     - [disableAjaxBypass](#disableajaxbypass)
     - [disableAjaxPreload](#disableajaxpreload)
     - [originHeaderWhitelist](#originheaderwhitelist)
@@ -286,6 +287,21 @@ prerendercloud.cache.reset();
 ### Server Options
 
 These options map to the HTTP header options listed here: https://www.prerender.cloud/docs/api
+
+<a id="metaonly"></a>
+#### metaOnly
+
+This option tells the server to only prerender the `<title>` and `<meta>` tags in the `<head>` section. The returned HTML payload will otherwise be unmodified.
+
+Example use case 1: your single-page app does not rehydrate the body/div cleanly but you still want open graph (link previews) to work.
+
+Example use case 2: you don't care about the benefits of server-side rendering but still want open graph (link previews) to work.
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('metaOnly', req => req.url === "/long-page-insuitable-for-full-prerender" ? true : false);
+app.use(prerendercloud);
+```
 
 <a name="disableajaxbypass"></a>
 <a id="disableajaxbypass"></a>

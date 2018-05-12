@@ -94,6 +94,10 @@ global.withHttpMiddlewareMocks = function() {
         "whitelistQueryParams",
         options.whitelistQueryParams
       );
+      this.prerenderMiddleware.set(
+        "metaOnly",
+        options.metaOnly
+      );
 
       if (options.timeout) {
         this.prerenderMiddleware.set("timeout", options.timeout);

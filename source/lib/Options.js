@@ -91,7 +91,8 @@ module.exports = class Options {
       "throttleOnFail",
       "withScreenshot",
       "afterRenderBlocking",
-      "blacklistPaths"
+      "blacklistPaths",
+      "metaOnly"
     ];
   }
 
@@ -118,7 +119,8 @@ module.exports = class Options {
       name === "whitelistQueryParams" ||
       name === "withScreenshot" ||
       name === "afterRenderBlocking" ||
-      name === "blacklistPaths"
+      name === "blacklistPaths" ||
+      name === "metaOnly"
     ) {
       if (val != null && !util.isFunction(val)) {
         throw new Error(`${name} must be a function`);
