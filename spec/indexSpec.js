@@ -1090,7 +1090,8 @@ describe("prerender middleware", function() {
             },
             body: "body-from-before-render",
             screenshot: undefined,
-            meta: undefined
+            meta: undefined,
+            links: undefined
           });
         });
       });
@@ -1109,6 +1110,7 @@ describe("prerender middleware", function() {
                 headers: { whatever: "works" },
                 screenshot: Buffer.from([]),
                 meta: {},
+                links: [],
                 bogus: {}
               });
             }
@@ -1124,7 +1126,8 @@ describe("prerender middleware", function() {
             },
             body: "body-from-before-render",
             screenshot: Buffer.from([]),
-            meta: {}
+            meta: {},
+            links: []
           });
         });
       });

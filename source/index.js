@@ -425,7 +425,8 @@ class Prerender {
               },
               {
                 screenshot: stringOrObject.screenshot,
-                meta: stringOrObject.meta
+                meta: stringOrObject.meta,
+                links: stringOrObject.links
               }
             )
           );
