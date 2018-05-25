@@ -79,6 +79,7 @@ global.withHttpMiddlewareMocks = function() {
         options.originHeaderWhitelist
       );
       this.prerenderMiddleware.set("withScreenshot", options.withScreenshot);
+      this.prerenderMiddleware.set("withMetadata", options.withMetadata);
       this.prerenderMiddleware.set("beforeRender", options.beforeRender);
       this.prerenderMiddleware.set(
         "afterRenderBlocking",

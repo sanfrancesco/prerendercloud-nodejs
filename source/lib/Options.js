@@ -92,7 +92,8 @@ module.exports = class Options {
       "withScreenshot",
       "afterRenderBlocking",
       "blacklistPaths",
-      "metaOnly"
+      "metaOnly",
+      "withMetadata"
     ];
   }
 
@@ -120,7 +121,8 @@ module.exports = class Options {
       name === "withScreenshot" ||
       name === "afterRenderBlocking" ||
       name === "blacklistPaths" ||
-      name === "metaOnly"
+      name === "metaOnly" ||
+      name === "withMetadata"
     ) {
       if (val != null && !util.isFunction(val)) {
         throw new Error(`${name} must be a function`);

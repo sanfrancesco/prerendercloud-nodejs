@@ -389,6 +389,71 @@ describe("prerender middleware", function() {
         });
       });
 
+      describe("withMetadata option", function() {
+        beforeEach(function() {
+          const that = this;
+          this.prerenderServer = nock("https://service.prerender.cloud")
+            .get(/.*/)
+            .reply(function(uri) {
+              that.headersSentToPrerenderCloud = this.req.headers;
+
+              if (this.req.headers["prerender-with-metadata"]) {
+                return [
+                  200,
+                  { body: Buffer.from("base64-body").toString("base64"), links: Buffer.from(JSON.stringify(['/path1'])).toString('base64') }
+                ];
+              } else {
+                return [200, "body"];
+              }
+            });
+        });
+        describe("disabled", function() {
+          beforeEach(function(done) {
+            this.callPrerenderMiddleware(done, {
+              withMetadata: req => {
+                this.reqDataPassedToWithMetadata = req;
+                return false;
+              }
+            });
+          });
+
+          it("it sets req obj", function() {
+            expect(this.reqDataPassedToWithMetadata).toEqual({
+              headers: { "user-agent": "twitterbot/1.0", host: "example.org" },
+              _requestedUrl: "http://example.org/files.m4v.storage/lol-valid",
+              url: "/files.m4v.storage/lol-valid",
+              originalUrl: "/files.m4v.storage/lol-valid",
+              method: "GET",
+              prerender: {
+                url: { requestedPath: "/files.m4v.storage/lol-valid" }
+              }
+            });
+          });
+          it("does not send header to prerendercloud", function() {
+            expect(
+              this.headersSentToPrerenderCloud["prerender-with-metadata"]
+            ).toEqual(undefined);
+          });
+        });
+        describe("enabled", function() {
+          beforeEach(function(done) {
+            this.callPrerenderMiddleware(done, { withMetadata: () => true });
+          });
+
+          it("returns pre-rendered body", function() {
+            expect(this.res.end.calls.mostRecent().args[0]).toEqual(
+              "base64-body"
+            );
+          });
+
+          it("it sends header to prerendercloud", function() {
+            expect(
+              this.headersSentToPrerenderCloud["prerender-with-metadata"]
+            ).toEqual(true);
+          });
+        });
+      });
+
       describe("withScreenshot option", function() {
         beforeEach(function() {
           const that = this;

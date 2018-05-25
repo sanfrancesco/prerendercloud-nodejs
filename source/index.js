@@ -166,7 +166,11 @@ function createResponse(req, requestedUrl, response) {
   let body = response.body;
   let screenshot;
   let meta;
-  if (options.options.withScreenshot && options.options.withScreenshot(req)) {
+  let links;
+  if (
+    (options.options.withScreenshot && options.options.withScreenshot(req)) ||
+    (options.options.withMetadata && options.options.withMetadata(req))
+  ) {
     headers["content-type"] = "text/html";
     let json;
     try {
@@ -184,12 +188,14 @@ function createResponse(req, requestedUrl, response) {
     screenshot = json.screenshot && Buffer.from(json.screenshot, "base64");
     body = json.body && Buffer.from(json.body, "base64").toString();
     meta = json.meta && JSON.parse(Buffer.from(json.meta, "base64"));
+    links = json.links && JSON.parse(Buffer.from(json.links, "base64"));
   }
 
   const data = { statusCode: response.statusCode, headers, body };
 
   if (screenshot) data.screenshot = screenshot;
   if (meta) data.meta = meta;
+  if (links) data.links = links;
 
   if (
     options.options.enableMiddlewareCache &&
@@ -489,6 +495,9 @@ class Prerender {
       options.options.withScreenshot(this.req)
     )
       Object.assign(h, { "Prerender-With-Screenshot": true });
+
+    if (options.options.withMetadata && options.options.withMetadata(this.req))
+      Object.assign(h, { "Prerender-With-Metadata": true });
 
     if (this._hasOriginHeaderWhitelist()) {
       options.options.originHeaderWhitelist.forEach(_h => {

@@ -38,6 +38,7 @@ Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) 
     - [removeScriptTags](#removescripttags)
     - [removeTrailingSlash](#removetrailingslash)
     - [waitExtraLong](#waitextralong)
+    - [withMetadata](#withmetadata)
     - [withScreenshot](#withscreenshot)
   - [Middleware Options](#middleware-options)
     - [host](#host)
@@ -379,6 +380,19 @@ const prerendercloud = require('prerendercloud');
 prerendercloud.set('waitExtraLong', true);
 ```
 
+<a id="withmetadata"></a>
+#### withMetadata
+
+When a function is passed that returns true, Prerender.cloud will return both the prerendered HTML, meta, and links
+
+```javascript
+const prerendercloud = require('prerendercloud');
+
+prerendercloud.set('withMetadata', req => true);
+```
+
+To make use of the meta and links, call `res.meta` or `res.links` from either `afterRender` or `afterRenderBlock`
+
 <a id="withscreenshot"></a>
 #### withScreenshot
 
@@ -390,7 +404,7 @@ const prerendercloud = require('prerendercloud');
 prerendercloud.set('withScreenshot', req => true);
 ```
 
-To make use of the screenshot, use either `afterRender` or `afterRenderBlock`
+To make use of the screenshot, call `res.screenshot` from either `afterRender` or `afterRenderBlock`
 
 <a name="middleware-options"></a>
 <a id="middleware-options"></a>
@@ -451,13 +465,14 @@ Same thing as `afterRender`, except it blocks. This is useful for mutating the r
 
 Since it blocks, you have to call the `next` callback when done.
 
-Example use case: use with the `withScreenshot` option to save the screenshot to disk and add it as an open graph tag.
+Example use case: use with the `withMetadata` and/or `withScreenshot` option to save metadata or the screenshot to disk and add it as an open graph tag.
 
 ```javascript
 const prerendercloud = require('prerendercloud');
 prerendercloud.set('afterRenderBlocking', (err, req, res, next) => {
   // req: (standard node.js req object)
-  // res: { statusCode, headers, body, screenshot }
+  // res: { statusCode, headers, body, screenshot, meta, links }
+  console.log({meta: res.meta, links: res.links});
   if (res.screenshot) {
     fs.writeFileSync('og.jpg', res.screenshot);
     res.body = res.body.replace(/\<\/head\>/, "<meta property='og:image' content='/og.jpg' /></head>")
