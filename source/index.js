@@ -306,13 +306,21 @@ class Prerender {
     const _writeHttpResponse = () =>
       this._writeHttpResponse(req, res, next, data);
 
-    if (options.options.afterRenderBlocking)
+    if (options.options.afterRenderBlocking) {
+      // preserve original body from origin prerender.cloud so mutations
+      // from afterRenderBlocking don't affect concurrentRequestCache
+      if (!data.origBodyBeforeAfterRenderBlocking) {
+        data.origBodyBeforeAfterRenderBlocking = data.body;
+      } else {
+        data.body = data.origBodyBeforeAfterRenderBlocking;
+      }
       return options.options.afterRenderBlocking(
         null,
         req,
         data,
         _writeHttpResponse
       );
+    }
 
     _writeHttpResponse();
   }

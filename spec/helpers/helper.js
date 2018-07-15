@@ -47,7 +47,7 @@ global.withHttpMiddlewareMocks = function() {
       setHeader: jasmine.createSpy("setHeader")
     };
     this.prerenderMiddleware.cache && this.prerenderMiddleware.cache.reset();
-    this.callPrerenderMiddleware = function(done, options) {
+    this.configurePrerenderMiddleware = function(done, options) {
       if (!done) done = () => {};
       if (!options) options = {};
       this.prerenderMiddleware.set("waitExtraLong", options.waitExtraLong);
@@ -120,8 +120,12 @@ global.withHttpMiddlewareMocks = function() {
       this.res.end = jasmine.createSpy("end").and.callFake(done);
 
       configureUrlForReq(this.req, options);
+    }.bind(this);
 
+    this.callPrerenderMiddleware = function(done, options) {
+      this.configurePrerenderMiddleware(done, options)
       this.prerenderMiddleware(this.req, this.res, this.next);
     }.bind(this);
+
   });
 };
