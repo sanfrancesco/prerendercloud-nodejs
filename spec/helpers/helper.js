@@ -25,6 +25,18 @@ global.withPrerenderMiddleware = function() {
   });
 };
 
+global.configureUrlForReq = function(req, options) {
+  if (req._requestedUrl) {
+    parsed = stdliburl.parse(req._requestedUrl);
+    // connect only has: req.headers.host (which includes port), req.url and req.originalUrl
+    // express has .protocol and .path but we're optimizing for connect
+    req.headers["host"] = parsed.host;
+    req.url = parsed.path;
+    req.originalUrl = parsed.path;
+    req.method = options.method || "GET";
+  }
+}
+
 global.withHttpMiddlewareMocks = function() {
   withPrerenderMiddleware();
   beforeEach(function() {
@@ -85,20 +97,14 @@ global.withHttpMiddlewareMocks = function() {
         "afterRenderBlocking",
         options.afterRenderBlocking
       );
-      this.prerenderMiddleware.set(
-        "blacklistPaths",
-        options.blacklistPaths
-      );
+      this.prerenderMiddleware.set("blacklistPaths", options.blacklistPaths);
       this.prerenderMiddleware.set("afterRender", options.afterRender);
       this.prerenderMiddleware.set("shouldPrerender", options.shouldPrerender);
       this.prerenderMiddleware.set(
         "whitelistQueryParams",
         options.whitelistQueryParams
       );
-      this.prerenderMiddleware.set(
-        "metaOnly",
-        options.metaOnly
-      );
+      this.prerenderMiddleware.set("metaOnly", options.metaOnly);
 
       if (options.timeout) {
         this.prerenderMiddleware.set("timeout", options.timeout);
@@ -112,15 +118,8 @@ global.withHttpMiddlewareMocks = function() {
 
       this.next = jasmine.createSpy("nextMiddleware").and.callFake(done);
       this.res.end = jasmine.createSpy("end").and.callFake(done);
-      if (this.req._requestedUrl) {
-        parsed = stdliburl.parse(this.req._requestedUrl);
-        // connect only has: req.headers.host (which includes port), req.url and req.originalUrl
-        // express has .protocol and .path but we're optimizing for connect
-        this.req.headers["host"] = parsed.host;
-        this.req.url = parsed.path;
-        this.req.originalUrl = parsed.path;
-        this.req.method = options.method || "GET";
-      }
+
+      configureUrlForReq(this.req, options);
 
       this.prerenderMiddleware(this.req, this.res, this.next);
     }.bind(this);

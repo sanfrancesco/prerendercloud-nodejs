@@ -755,7 +755,7 @@ describe("prerender middleware", function() {
       describe("concurrent requests", function() {
         beforeEach(function(done) {
           this.requestCount = 0;
-          this.req._requestedUrl = `http://example.org/`;
+          this.req._requestedUrl = "http://example.org/";
           this.prerenderServer = nock("https://service.prerender.cloud")
             .get(/.*/)
             .reply(uri => {
@@ -763,26 +763,36 @@ describe("prerender middleware", function() {
               this.requestCount += 1;
               return [200, "body", { "content-type": "text/plain" }];
             });
-          this.prerenderServer = nock("https://service.prerender.cloud")
-            .get(/.*/)
-            .reply(uri => {
-              this.requestCount += 1;
-              return [200, "body2", { "content-type": "text/html" }];
-            });
           var callCounter = 0;
           const _done = () => {
             callCounter += 1;
             if (callCounter === 2) done();
           };
+          // setup and call the middleware with this.req and this.res
           this.callPrerenderMiddleware(_done, { enableMiddlewareCache: false });
-          this.callPrerenderMiddleware(_done, { enableMiddlewareCache: false });
+
+          // make a new set of req/res objs
+          this.req2 = {
+            _requestedUrl: "http://example.org/",
+            headers: { "user-agent": "twitterbot/1.0" }
+          };
+          this.res2 = {
+            writeHead: jasmine.createSpy("writeHead"),
+            getHeader: jasmine.createSpy("getHeader"),
+            setHeader: jasmine.createSpy("setHeader")
+          };
+          this.res2.end = jasmine.createSpy("end2").and.callFake(_done);
+          configureUrlForReq(this.req2, {});
+
+          // call the _same_ middleware immediately, but with a new req/res obj
+          this.prerenderMiddleware(this.req2, this.res2, () => {});
         });
         it("only makes 1 request", function() {
           expect(this.requestCount).toBe(1);
         });
         it("returns body from first request", function() {
           expect(this.res.end.calls.argsFor(0)).toEqual(["body"]);
-          expect(this.res.end.calls.argsFor(1)).toEqual(["body"]);
+          expect(this.res2.end.calls.argsFor(0)).toEqual(["body"]);
         });
       });
 
