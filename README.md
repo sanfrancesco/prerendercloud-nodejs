@@ -6,10 +6,12 @@
 
 Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) for **prerendering** (server-side rendering), or taking **screenshots** of webpages or converting webpages to **PDFs**.
 
-If using the pre-render/server-side render functionality this should be used with an Express/Connect Node.js web server where 404s are rendered as index.html.
+The pre-render/server-side rendering functionality of this library (as opposed to mere screenshots/pdfs) is meant to be included in an existing web server where 404s are rendered as index.html
 
 * For an all-in-one single-page app web server plus server-side rendering see: https://github.com/sanfrancesco/prerendercloud-server
 * For a hosted all-in-one solution see: https://www.roast.io/
+
+----
 
 <!-- MarkdownTOC autolink="true" autoanchor="true" bracket="round" -->
 
