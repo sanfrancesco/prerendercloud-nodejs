@@ -93,7 +93,8 @@ module.exports = class Options {
       "afterRenderBlocking",
       "blacklistPaths",
       "metaOnly",
-      "withMetadata"
+      "withMetadata",
+      "followRedirects"
     ];
   }
 

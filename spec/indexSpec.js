@@ -591,6 +591,59 @@ describe("prerender middleware", function() {
         });
       });
 
+      describe("followRedirects option", function() {
+        beforeEach(function() {
+          const that = this;
+          this.prerenderServer = nock("https://service.prerender.cloud")
+            .get(/.*/)
+            .reply(function(uri) {
+              that.headersSentToPrerenderCloud = this.req.headers;
+              return [200, "body"];
+            });
+        });
+        describe("disabled", function() {
+          beforeEach(function(done) {
+            const that = this;
+            this.callPrerenderMiddleware(done, {
+              metaOnly: req => {
+                that.reqObj = req;
+                return false;
+              }
+            });
+          });
+
+          it("passes headers to fn", function() {
+            expect(this.reqObj).toEqual({
+              headers: { "user-agent": "twitterbot/1.0", host: "example.org" },
+              _requestedUrl: "http://example.org/files.m4v.storage/lol-valid",
+              url: "/files.m4v.storage/lol-valid",
+              originalUrl: "/files.m4v.storage/lol-valid",
+              method: "GET",
+              prerender: {
+                url: { requestedPath: "/files.m4v.storage/lol-valid" }
+              }
+            });
+          });
+
+          it("does not send header to prerendercloud", function() {
+            expect(
+              this.headersSentToPrerenderCloud["prerender-follow-redirects"]
+            ).toEqual(undefined);
+          });
+        });
+        describe("enabled", function() {
+          beforeEach(function(done) {
+            this.callPrerenderMiddleware(done, { metaOnly: () => true });
+          });
+
+          it("it sends header to prerendercloud", function() {
+            expect(
+              this.headersSentToPrerenderCloud["prerender-follow-redirects"]
+            ).toEqual(true);
+          });
+        });
+      });
+
       describe("metaOnly option", function() {
         beforeEach(function() {
           const that = this;

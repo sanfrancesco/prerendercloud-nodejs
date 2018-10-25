@@ -37,6 +37,7 @@ The pre-render/server-side rendering functionality of this library (as opposed t
       - [Clearing the middleware cache](#clearing-the-middleware-cache)
   - [Server Options](#server-options)
     - [metaOnly](#metaonly)
+    - [followRedirects](#followredirects)
     - [disableAjaxBypass](#disableajaxbypass)
     - [disableAjaxPreload](#disableajaxpreload)
     - [originHeaderWhitelist](#originheaderwhitelist)
@@ -306,6 +307,19 @@ Example use case 2: you don't care about the benefits of server-side rendering b
 ```javascript
 const prerendercloud = require('prerendercloud');
 prerendercloud.set('metaOnly', req => req.url === "/long-page-insuitable-for-full-prerender" ? true : false);
+app.use(prerendercloud);
+```
+
+<a id="followredirects"></a>
+#### followRedirects
+
+This option tells the server to follow a redirect.
+
+By default, if your origin server returns 301/302, prerender.cloud will just return that outright - which is appropriate for the common use case of proxying traffic since it informs a bot that a URL has changed.
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('followRedirects', req => true);
 app.use(prerendercloud);
 ```
 

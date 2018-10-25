@@ -490,6 +490,9 @@ class Prerender {
     if (options.options.metaOnly && options.options.metaOnly(this.req))
       Object.assign(h, { "Prerender-Meta-Only": true });
 
+    if (options.options.followRedirects && options.options.followRedirects(this.req))
+      Object.assign(h, { "Prerender-Follow-Redirects": true });
+
     if (options.options.waitExtraLong)
       Object.assign(h, { "Prerender-Wait-Extra-Long": true });
 

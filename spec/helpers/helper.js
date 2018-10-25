@@ -105,6 +105,7 @@ global.withHttpMiddlewareMocks = function() {
         options.whitelistQueryParams
       );
       this.prerenderMiddleware.set("metaOnly", options.metaOnly);
+      this.prerenderMiddleware.set("followRedirects", options.metaOnly);
 
       if (options.timeout) {
         this.prerenderMiddleware.set("timeout", options.timeout);
