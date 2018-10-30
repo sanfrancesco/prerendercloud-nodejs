@@ -560,7 +560,21 @@ class Prerender {
     if (options.options.blacklistPaths) {
       const paths = options.options.blacklistPaths(this.req);
 
-      if (paths && Array.isArray(paths)) return paths.includes(this.req.url);
+      if (paths && Array.isArray(paths)) {
+        for (var path in paths) {
+          if(path === this.req.url) {
+            return true;
+          }
+          else if(path.contains('/*')) {
+            const starIndex = path.indexOf("*");
+            const routeIndex = starIndex - 1;
+            const pathSlice = path.slice(0, routeIndex);
+            if(pathSlice === this.req.url) {
+              return true;
+            }
+          }
+        }
+      }    
     }
 
     return false;
