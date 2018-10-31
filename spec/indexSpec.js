@@ -400,7 +400,12 @@ describe("prerender middleware", function() {
               if (this.req.headers["prerender-with-metadata"]) {
                 return [
                   200,
-                  { body: Buffer.from("base64-body").toString("base64"), links: Buffer.from(JSON.stringify(['/path1'])).toString('base64') }
+                  {
+                    body: Buffer.from("base64-body").toString("base64"),
+                    links: Buffer.from(JSON.stringify(["/path1"])).toString(
+                      "base64"
+                    )
+                  }
                 ];
               } else {
                 return [200, "body"];
@@ -827,7 +832,7 @@ describe("prerender middleware", function() {
             enableMiddlewareCache: false,
             afterRenderBlocking: (err, req, res, next) => {
               if (req.req1) {
-                res.body = 'req1';
+                res.body = "req1";
               }
               next();
             }
@@ -997,6 +1002,45 @@ describe("prerender middleware", function() {
           expect(this.uri).toBeUndefined();
         });
         itCalledNext();
+      });
+
+      fdescribe("with wildcard", function() {
+        beforeEach(function() {
+          this.reqObj = undefined;
+        });
+
+        function callPrerender() {
+          beforeEach(function(done) {
+            this.callPrerenderMiddleware(done, {
+              blacklistPaths: req => {
+                this.reqObj = req;
+                return ["/dont*"];
+              }
+            });
+          });
+        }
+
+        describe("when path is in wildcard", function() {
+          beforeEach(function() {
+            this.req._requestedUrl = "https://example.org/dont-prerender";
+          });
+          callPrerender();
+
+          it("does not prerender", function() {
+            expect(this.uri).toBeUndefined();
+          });
+          itCalledNext();
+        });
+
+        describe("when path is not in wildcard", function() {
+          beforeEach(function() {
+            this.req._requestedUrl = "https://example.org/dons-prerender";
+          });
+          callPrerender();
+          it("prerenders", function() {
+            expect(this.uri).toEqual("/http://example.org/dons-prerender");
+          });
+        });
       });
     });
 
@@ -1338,7 +1382,7 @@ describe("prerender middleware", function() {
             method: "GET"
           },
           res: {
-            origBodyBeforeAfterRenderBlocking: 'body',
+            origBodyBeforeAfterRenderBlocking: "body",
             statusCode: 200,
             headers: {
               "content-type": "text/html; charset=utf-8"
