@@ -219,12 +219,15 @@ The primary use case is for CDN edge node clients (CloudFront Lambda@Edge) becau
 
 Paths you may not want prerendered are non-SPA, large pages, or pages with JavaScript that can't rehydrate prerendered DOMs.
 
+Trailing `*` works as wildcard. Only works when at the end.
+
 ```javascript
 const prerendercloud = require("prerendercloud");
 prerendercloud.set("blacklistPaths", req => [
   "/google-domain-verification",
   "/google-domain-verification.html",
-  "/google-domain-verification/"
+  "/google-domain-verification/",
+  "/image-gallery/*",
 ]);
 
 ```

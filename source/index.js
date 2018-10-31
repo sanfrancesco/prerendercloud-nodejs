@@ -334,7 +334,9 @@ class Prerender {
       if (data.statusCode === 400) {
         res.statusCode = 400;
         return res.end(
-          `service.prerender.cloud can't prerender this page due to user error: ${data.body}`
+          `service.prerender.cloud can't prerender this page due to user error: ${
+            data.body
+          }`
         );
       } else if (data.statusCode === 429) {
         return handleSkip("rate limited due to free tier", next);
@@ -490,7 +492,10 @@ class Prerender {
     if (options.options.metaOnly && options.options.metaOnly(this.req))
       Object.assign(h, { "Prerender-Meta-Only": true });
 
-    if (options.options.followRedirects && options.options.followRedirects(this.req))
+    if (
+      options.options.followRedirects &&
+      options.options.followRedirects(this.req)
+    )
       Object.assign(h, { "Prerender-Follow-Redirects": true });
 
     if (options.options.waitExtraLong)
@@ -561,20 +566,19 @@ class Prerender {
       const paths = options.options.blacklistPaths(this.req);
 
       if (paths && Array.isArray(paths)) {
-        for (var path in paths) {
-          if(path === this.req.url) {
-            return true;
-          }
-          else if(path.contains('/*')) {
+        return paths.some(path => {
+          if (path === this.req.url) return true;
+
+          if (path.endsWith("*")) {
             const starIndex = path.indexOf("*");
-            const routeIndex = starIndex - 1;
-            const pathSlice = path.slice(0, routeIndex);
-            if(pathSlice === this.req.url) {
-              return true;
-            }
+            const pathSlice = path.slice(0, starIndex);
+
+            if (this.req.url.startsWith(pathSlice)) return true;
           }
-        }
-      }    
+
+          return false;
+        });
+      }
     }
 
     return false;
