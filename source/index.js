@@ -498,6 +498,13 @@ class Prerender {
     )
       Object.assign(h, { "Prerender-Follow-Redirects": true });
 
+    if (options.options.serverCacheDurationSeconds) {
+      const duration = options.options.serverCacheDurationSeconds(this.req);
+      if (duration != null) {
+        Object.assign(h, { "Prerender-Cache-Duration": duration });
+      }
+    }
+
     if (options.options.waitExtraLong)
       Object.assign(h, { "Prerender-Wait-Extra-Long": true });
 

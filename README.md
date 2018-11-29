@@ -36,6 +36,8 @@ The pre-render/server-side rendering functionality of this library (as opposed t
     - [Using the \(optional\) middleware cache](#using-the-optional-middleware-cache)
       - [Clearing the middleware cache](#clearing-the-middleware-cache)
   - [Server Options](#server-options)
+    - [disableServerCache](#disableservercache)
+    - [serverCacheDurationSeconds](#servercachedurationseconds)
     - [metaOnly](#metaonly)
     - [followRedirects](#followredirects)
     - [disableAjaxBypass](#disableajaxbypass)
@@ -254,7 +256,7 @@ prerendercloud.set('shouldPrerender', (req) => {
 <a id="disable-prerendercloud-server-cache"></a>
 #### Disable prerender.cloud server cache
 
-service.prerender.cloud will cache for 1-5 minutes (usually less) as a best practice. Adding the `nocache` HTTP header via this config option disables that cache entirely. Disabling the service.prerender.cloud cache is only recommended if you have your own cache either in this middleware or your client, otherwise all of your requests are going to be slow.
+The servers behind service.prerender.cloud will cache for 5 minutes as a best practice. Adding the `Prerender-Disable-Cache` HTTP header via this config option disables that cache entirely. Disabling the service.prerender.cloud cache is only recommended if you have your own cache either in this middleware or your client, otherwise all of your requests are going to be slow.
 
 ```javascript
 const prerendercloud = require('prerendercloud');
@@ -297,6 +299,33 @@ prerendercloud.cache.reset();
 ### Server Options
 
 These options map to the HTTP header options listed here: https://www.prerender.cloud/docs/api
+
+<a id="disableservercache"></a>
+#### disableServerCache
+
+This option disables an enabled-by-default 5-minute cache.
+
+The servers behind service.prerender.cloud will cache for 5 minutes as a best practice. Adding the `Prerender-Disable-Cache` HTTP header via this config option disables that cache entirely. Disabling the service.prerender.cloud cache is only recommended if you have your own cache either in this middleware or your client, otherwise all of your requests are going to be slow.
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('disableServerCache', true);
+app.use(prerendercloud);
+```
+
+<a id="servercachedurationseconds"></a>
+#### serverCacheDurationSeconds
+
+This option configures the duration for prerender.cloud's server cache:
+
+The servers behind service.prerender.cloud will cache for 5 minutes as a best practice, configure that duration (in seconds):
+
+```javascript
+const prerendercloud = require('prerendercloud');
+// max value: 2592000 (1 month)
+prerendercloud.set('serverCacheDurationSeconds', req => 300);
+app.use(prerendercloud);
+```
 
 <a id="metaonly"></a>
 #### metaOnly

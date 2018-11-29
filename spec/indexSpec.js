@@ -638,13 +638,72 @@ describe("prerender middleware", function() {
         });
         describe("enabled", function() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, { metaOnly: () => true });
+            this.callPrerenderMiddleware(done, { followRedirects: () => true });
+          });
+
+          it("it sends header to prerendercloud", function() {
+            console.log(
+              "headers",
+              this.headersSentToPrerenderCloud["prerender-follow-redirects"]
+            );
+            expect(
+              this.headersSentToPrerenderCloud["prerender-follow-redirects"]
+            ).toEqual(true);
+          });
+        });
+      });
+
+      describe("serverCacheDurationSeconds option", function() {
+        beforeEach(function() {
+          const that = this;
+          this.prerenderServer = nock("https://service.prerender.cloud")
+            .get(/.*/)
+            .reply(function(uri) {
+              that.headersSentToPrerenderCloud = this.req.headers;
+              return [200, "body"];
+            });
+        });
+        describe("disabled", function() {
+          beforeEach(function(done) {
+            const that = this;
+            this.callPrerenderMiddleware(done, {
+              metaOnly: req => {
+                that.reqObj = req;
+                return false;
+              }
+            });
+          });
+
+          it("passes headers to fn", function() {
+            expect(this.reqObj).toEqual({
+              headers: { "user-agent": "twitterbot/1.0", host: "example.org" },
+              _requestedUrl: "http://example.org/files.m4v.storage/lol-valid",
+              url: "/files.m4v.storage/lol-valid",
+              originalUrl: "/files.m4v.storage/lol-valid",
+              method: "GET",
+              prerender: {
+                url: { requestedPath: "/files.m4v.storage/lol-valid" }
+              }
+            });
+          });
+
+          it("does not send header to prerendercloud", function() {
+            expect(
+              this.headersSentToPrerenderCloud["prerender-cache-duration"]
+            ).toEqual(undefined);
+          });
+        });
+        describe("enabled", function() {
+          beforeEach(function(done) {
+            this.callPrerenderMiddleware(done, {
+              serverCacheDurationSeconds: () => "1234"
+            });
           });
 
           it("it sends header to prerendercloud", function() {
             expect(
-              this.headersSentToPrerenderCloud["prerender-follow-redirects"]
-            ).toEqual(true);
+              this.headersSentToPrerenderCloud["prerender-cache-duration"]
+            ).toEqual("1234");
           });
         });
       });
@@ -1004,7 +1063,7 @@ describe("prerender middleware", function() {
         itCalledNext();
       });
 
-      fdescribe("with wildcard", function() {
+      describe("with wildcard", function() {
         beforeEach(function() {
           this.reqObj = undefined;
         });
@@ -1014,7 +1073,7 @@ describe("prerender middleware", function() {
             this.callPrerenderMiddleware(done, {
               blacklistPaths: req => {
                 this.reqObj = req;
-                return ["/dont*"];
+                return ["/signup/*", "/dont*"];
               }
             });
           });
@@ -1022,7 +1081,8 @@ describe("prerender middleware", function() {
 
         describe("when path is in wildcard", function() {
           beforeEach(function() {
-            this.req._requestedUrl = "https://example.org/dont-prerender";
+            this.req._requestedUrl =
+              "https://example.org/signup/dont-prerender";
           });
           callPrerender();
 

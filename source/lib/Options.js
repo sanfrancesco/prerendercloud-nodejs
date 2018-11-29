@@ -94,7 +94,8 @@ module.exports = class Options {
       "blacklistPaths",
       "metaOnly",
       "withMetadata",
-      "followRedirects"
+      "followRedirects",
+      "serverCacheDurationSeconds"
     ];
   }
 
