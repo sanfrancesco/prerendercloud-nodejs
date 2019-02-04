@@ -193,20 +193,33 @@ describe("prerender middleware", function() {
       });
 
       describe("when server returns 404", function() {
-        beforeEach(function(done) {
-          this.prerenderServer = nock("https://service.prerender.cloud")
-            .get(/.*/)
-            .reply(() => [404, "notfound"]);
-          this.callPrerenderMiddleware(done);
-        });
+        function itWorks() {
+          it("preserves 404 status-code", function() {
+            expect(this.res.writeHead.calls.mostRecent().args).toEqual([404, {}]);
+          });
 
-        it("preserves 404 status-code", function() {
-          expect(this.res.writeHead.calls.mostRecent().args).toEqual([404, {}]);
-        });
-
-        it("returns pre-rendered body", function() {
-          expect(this.res.end.calls.mostRecent().args[0]).toEqual("notfound");
-        });
+          it("returns pre-rendered body", function() {
+            expect(this.res.end.calls.mostRecent().args[0]).toEqual("notfound");
+          });
+        }
+        describe('with bubbleUp5xxErrors', function() {
+          beforeEach(function(done) {
+            this.prerenderServer = nock("https://service.prerender.cloud")
+              .get(/.*/)
+              .reply(() => [404, "notfound"]);
+            this.callPrerenderMiddleware(done,Object.assign({ bubbleUp5xxErrors: true }));
+          });
+          itWorks()
+        })
+        describe('without bubbleUp5xxErrors', function() {
+          beforeEach(function(done) {
+            this.prerenderServer = nock("https://service.prerender.cloud")
+              .get(/.*/)
+              .reply(() => [404, "notfound"]);
+            this.callPrerenderMiddleware(done);
+          });
+          itWorks()
+        })
       });
 
       describe("when server returns 301", function() {

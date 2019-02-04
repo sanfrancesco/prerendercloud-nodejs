@@ -266,9 +266,15 @@ class Prerender {
           ? options.options.bubbleUp5xxErrors(err, this.req, err.response)
           : options.options.bubbleUp5xxErrors;
 
-        options.recordFail(this.url.requestedUrl);
+        const statusCode = err.response && parseInt(err.response.statusCode);
 
-        if (shouldBubble) {
+        const nonErrorStatusCode = statusCode === 404 || statusCode === 301 || statusCode === 302;
+
+        if (!nonErrorStatusCode) {
+          options.recordFail(this.url.requestedUrl);
+        }
+
+        if (shouldBubble && !nonErrorStatusCode) {
           if (err.response && is5xxError(err.response.statusCode))
             return createResponse(
               this.req,
