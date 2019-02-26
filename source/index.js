@@ -511,6 +511,20 @@ class Prerender {
       }
     }
 
+    if (options.options.deviceWidth) {
+      const deviceWidth = options.options.deviceWidth(this.req);
+      if (deviceWidth != null && typeof deviceWidth === 'number') {
+        Object.assign(h, { "Prerender-Device-Width": deviceWidth });
+      }
+    }
+
+    if (options.options.deviceHeight) {
+      const deviceHeight = options.options.deviceHeight(this.req);
+      if (deviceHeight != null && typeof deviceHeight === 'number') {
+        Object.assign(h, { "Prerender-Device-Height": deviceHeight });
+      }
+    }
+
     if (options.options.waitExtraLong)
       Object.assign(h, { "Prerender-Wait-Extra-Long": true });
 
@@ -622,12 +636,24 @@ Object.defineProperty(Prerender.middleware, "cache", {
   }
 });
 
-const screenshotAndPdf = (action, url, params) => {
+const screenshotAndPdf = (action, url, params = {}) => {
   const headers = {};
 
   const token = options.options.prerenderToken || process.env.PRERENDER_TOKEN;
 
   if (token) Object.assign(headers, { "X-Prerender-Token": token });
+
+  if (params.deviceWidth)
+    Object.assign(headers, { "Prerender-Device-Width": params.deviceWidth });
+
+  if (params.deviceHeight)
+    Object.assign(headers, { "Prerender-Device-Width": params.deviceHeight });
+
+  if (params.viewportX)
+    Object.assign(headers, { "Prerender-Viewport-X": params.viewportX });
+
+  if (params.viewportY)
+    Object.assign(headers, { "Prerender-Viewport-Y": params.viewportY });
 
   return got(getRenderUrl(action, url), {
     encoding: null,

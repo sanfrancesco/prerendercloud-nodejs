@@ -95,7 +95,9 @@ module.exports = class Options {
       "metaOnly",
       "withMetadata",
       "followRedirects",
-      "serverCacheDurationSeconds"
+      "serverCacheDurationSeconds",
+      "deviceWidth",
+      "deviceHeight"
     ];
   }
 

@@ -48,6 +48,8 @@ The pre-render/server-side rendering functionality of this library (as opposed t
     - [waitExtraLong](#waitextralong)
     - [withMetadata](#withmetadata)
     - [withScreenshot](#withscreenshot)
+  - [DeviceWidth](#devicewidth)
+  - [DeviceHeight](#deviceheight)
   - [Middleware Options](#middleware-options)
     - [host](#host)
     - [protocol](#protocol)
@@ -124,6 +126,14 @@ Promise API
 const prerendercloud = require('prerendercloud');
 prerendercloud
   .screenshot("http://example.com")
+  .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer));
+```
+
+Optionally specify any of width/height/viewport:
+
+```javascript
+prerendercloud
+  .screenshot("http://example.com", { deviceWidth: 800, deviceHeight: 600, viewportX: 0, viewportY: 0 })
   .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer));
 ```
 
@@ -456,6 +466,28 @@ prerendercloud.set('withScreenshot', req => true);
 ```
 
 To make use of the screenshot, call `res.screenshot` from either `afterRender` or `afterRenderBlock`
+
+<a id="devicewidth"></a>
+### DeviceWidth
+
+Self explanatory
+
+```javascript
+const prerendercloud = require('prerendercloud');
+
+prerendercloud.set('deviceWidth', req => req.url.match(/shareable\-cards/) ? 800 : null);
+```
+
+<a id="deviceheight"></a>
+### DeviceHeight
+
+Self explanatory
+
+```javascript
+const prerendercloud = require('prerendercloud');
+
+prerendercloud.set('deviceHeight', req => req.url.match(/shareable\-cards/) ? 600 : null);
+```
 
 <a name="middleware-options"></a>
 <a id="middleware-options"></a>
