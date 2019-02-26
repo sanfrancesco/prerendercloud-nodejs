@@ -647,7 +647,7 @@ const screenshotAndPdf = (action, url, params = {}) => {
     Object.assign(headers, { "Prerender-Device-Width": params.deviceWidth });
 
   if (params.deviceHeight)
-    Object.assign(headers, { "Prerender-Device-Width": params.deviceHeight });
+    Object.assign(headers, { "Prerender-Device-Height": params.deviceHeight });
 
   if (params.viewportX)
     Object.assign(headers, { "Prerender-Viewport-X": params.viewportX });
