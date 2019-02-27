@@ -155,6 +155,16 @@ prerendercloud
   .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer));
 ```
 
+Alternatively set `viewportQuerySelector` and optionally `viewportQuerySelectorPadding` to specify a DOM element on the page to take a screenshot of. If both `viewportQuerySelector` and viewportWidth/viewportHeight are set, the querySelector will be attempted first and if not found, fallback to viewportWidth/viewportHeight (and if that's not set, default width/height will be used).
+
+```javascript
+prerendercloud
+  .screenshot("http://example.com", {
+    viewportQuerySelector: '#open-graph-div',
+    viewportQuerySelectorPadding: 10,
+  })
+  .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer));
+```
 
 <a name="pdfs"></a>
 <a id="pdfs"></a>

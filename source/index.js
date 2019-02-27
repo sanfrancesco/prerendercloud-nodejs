@@ -644,6 +644,19 @@ const screenshotAndPdf = (action, url, params = {}) => {
 
   if (token) Object.assign(headers, { "X-Prerender-Token": token });
 
+  if (params.viewportQuerySelector) {
+    Object.assign(headers, {
+      "Prerender-Viewport-Query-Selector": params.viewportQuerySelector
+    });
+
+    if (params.viewportQuerySelectorPadding) {
+      Object.assign(headers, {
+        "Prerender-Viewport-Query-Selector-Padding":
+          params.viewportQuerySelectorPadding
+      });
+    }
+  }
+
   if (params.deviceWidth)
     Object.assign(headers, { "Prerender-Device-Width": params.deviceWidth });
 
