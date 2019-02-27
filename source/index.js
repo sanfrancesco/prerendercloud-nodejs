@@ -268,7 +268,8 @@ class Prerender {
 
         const statusCode = err.response && parseInt(err.response.statusCode);
 
-        const nonErrorStatusCode = statusCode === 404 || statusCode === 301 || statusCode === 302;
+        const nonErrorStatusCode =
+          statusCode === 404 || statusCode === 301 || statusCode === 302;
 
         if (!nonErrorStatusCode) {
           options.recordFail(this.url.requestedUrl);
@@ -513,14 +514,14 @@ class Prerender {
 
     if (options.options.deviceWidth) {
       const deviceWidth = options.options.deviceWidth(this.req);
-      if (deviceWidth != null && typeof deviceWidth === 'number') {
+      if (deviceWidth != null && typeof deviceWidth === "number") {
         Object.assign(h, { "Prerender-Device-Width": deviceWidth });
       }
     }
 
     if (options.options.deviceHeight) {
       const deviceHeight = options.options.deviceHeight(this.req);
-      if (deviceHeight != null && typeof deviceHeight === 'number') {
+      if (deviceHeight != null && typeof deviceHeight === "number") {
         Object.assign(h, { "Prerender-Device-Height": deviceHeight });
       }
     }
@@ -649,11 +650,32 @@ const screenshotAndPdf = (action, url, params = {}) => {
   if (params.deviceHeight)
     Object.assign(headers, { "Prerender-Device-Height": params.deviceHeight });
 
+  if (params.viewportWidth)
+    Object.assign(headers, {
+      "Prerender-Viewport-Width": params.viewportWidth
+    });
+
+  if (params.viewportHeight)
+    Object.assign(headers, {
+      "Prerender-Viewport-Height": params.viewportHeight
+    });
+
   if (params.viewportX)
     Object.assign(headers, { "Prerender-Viewport-X": params.viewportX });
 
   if (params.viewportY)
     Object.assign(headers, { "Prerender-Viewport-Y": params.viewportY });
+
+  if (
+    (params.viewportX || params.viewportY) &&
+    !(params.viewportWidth && params.viewportHeight)
+  ) {
+    return Promise.reject(
+      new Error(
+        "can't set viewportX or viewportY without viewportWidth and viewportHeight"
+      )
+    );
+  }
 
   return got(getRenderUrl(action, url), {
     encoding: null,

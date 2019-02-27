@@ -129,11 +129,29 @@ prerendercloud
   .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer));
 ```
 
-Optionally specify any of width/height/viewport:
+Optionally specify deviceWidth/deviceHeight/viewportWidth/viewportHeight, but can't set a width without setting a height.
 
 ```javascript
 prerendercloud
-  .screenshot("http://example.com", { deviceWidth: 800, deviceHeight: 600, viewportX: 0, viewportY: 0 })
+  .screenshot("http://example.com", {
+    deviceWidth: 800,
+    deviceHeight: 600,
+    viewportWidth: 640,
+    viewportHeight: 480
+  })
+  .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer));
+```
+
+Set viewportX and viewportY is possible if viewportWidth and viewportHeight is set:
+
+```javascript
+prerendercloud
+  .screenshot("http://example.com", {
+    viewportWidth: 640,
+    viewportHeight: 480,
+    viewportX: 10,
+    viewportY: 10
+  })
   .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer));
 ```
 
