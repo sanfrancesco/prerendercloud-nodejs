@@ -690,6 +690,9 @@ const screenshotAndPdf = (action, url, params = {}) => {
     );
   }
 
+  if (params.noPageBreaks)
+    Object.assign(headers, { "Prerender-Pdf-No-Page-Breaks": "true" });
+
   return got(getRenderUrl(action, url), {
     encoding: null,
     headers,

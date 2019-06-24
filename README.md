@@ -126,7 +126,7 @@ Promise API
 const prerendercloud = require('prerendercloud');
 prerendercloud
   .screenshot("http://example.com")
-  .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer));
+  .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer, { encoding: null }));
 ```
 
 Optionally specify deviceWidth/deviceHeight/viewportWidth/viewportHeight, but can't set a width without setting a height.
@@ -139,7 +139,7 @@ prerendercloud
     viewportWidth: 640,
     viewportHeight: 480
   })
-  .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer));
+  .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer, { encoding: null }));
 ```
 
 Set viewportX and viewportY is possible if viewportWidth and viewportHeight is set:
@@ -152,7 +152,7 @@ prerendercloud
     viewportX: 10,
     viewportY: 10
   })
-  .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer));
+  .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer, { encoding: null }));
 ```
 
 Alternatively set `viewportQuerySelector` and optionally `viewportQuerySelectorPadding` to specify a DOM element on the page to take a screenshot of. If both `viewportQuerySelector` and viewportWidth/viewportHeight are set, the querySelector will be attempted first and if not found, fallback to viewportWidth/viewportHeight (and if that's not set, default width/height will be used).
@@ -163,7 +163,7 @@ prerendercloud
     viewportQuerySelector: '#open-graph-div',
     viewportQuerySelectorPadding: 10,
   })
-  .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer));
+  .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer, { encoding: null }));
 ```
 
 <a name="pdfs"></a>
@@ -176,7 +176,16 @@ Promise API
 const prerendercloud = require('prerendercloud');
 prerendercloud
   .pdf("http://example.com")
-  .then(pdfBuffer => fs.writeFileSync("out.pdf", pdfBuffer));
+  .then(pdfBuffer => fs.writeFileSync("out.pdf", pdfBuffer, { encoding: null }));
+```
+
+Disable PDF page breaks
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud
+  .pdf("http://example.com", { noPageBreaks: true })
+  .then(pdfBuffer => fs.writeFileSync("out.pdf", pdfBuffer, { encoding: null }));
 ```
 
 <a name="prerendering-or-server-side-rendering-with-expressconnectnode-http"></a>
