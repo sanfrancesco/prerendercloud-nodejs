@@ -51,6 +51,7 @@ const botsOnlyList = [
   "googlebot",
   "yahoo",
   "bingbot",
+  "yandex",
   "baiduspider",
   "facebookexternalhit",
   "twitterbot",
