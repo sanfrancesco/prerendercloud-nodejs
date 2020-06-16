@@ -77,7 +77,7 @@ global.withHttpMiddlewareMocks = function() {
         "enableMiddlewareCache",
         !!options.enableMiddlewareCache
       );
-      this.prerenderMiddleware.set("botsOnly", !!options.botsOnly);
+      this.prerenderMiddleware.set("botsOnly", options.botsOnly);
       this.prerenderMiddleware.set(
         "bubbleUp5xxErrors",
         options.bubbleUp5xxErrors

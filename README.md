@@ -197,7 +197,8 @@ The `prerendercloud` middleware should be loaded first, before your other middle
 ```javascript
 // the free, rate limited tier
 // and using https://expressjs.com/
-expressApp.use(require('prerendercloud'));
+const prerendercloud = require('prerendercloud');
+expressApp.use(prerendercloud);
 ```
 
 
@@ -218,6 +219,13 @@ We don't recommend this setting, instead use the **default** setting of pre-rend
 ```javascript
 const prerendercloud = require('prerendercloud');
 prerendercloud.set('botsOnly', true);
+```
+
+You can also append your own agents to our botsOnly list by using an array:
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('botsOnly', ["altavista", "dogpile", "excite", "askjeeves"]);
 ```
 
 <a name="whitelist-your-own-user-agent-list-overrides-botsonly-case-sensitive"></a>
