@@ -197,7 +197,8 @@ The `prerendercloud` middleware should be loaded first, before your other middle
 ```javascript
 // the free, rate limited tier
 // and using https://expressjs.com/
-expressApp.use(require('prerendercloud'));
+const prerendercloud = require('prerendercloud');
+expressApp.use(prerendercloud);
 ```
 
 
