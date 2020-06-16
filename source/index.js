@@ -47,6 +47,8 @@ const headerWhitelist = [
   "location"
 ];
 
+const botUserAgentMapper = ua => ua.toLowerCase();
+
 const botsOnlyList = [
   "googlebot",
   "yahoo",
@@ -78,9 +80,22 @@ const botsOnlyList = [
   "Discordbot",
   "TelegramBot",
   "Google Search Console"
-].map(ua => ua.toLowerCase());
+].map(botUserAgentMapper);
 
 const userAgentIsBot = (headers, requestedPath = "") => {
+  const reqUserAgent =
+    (headers["user-agent"] && headers["user-agent"].toLowerCase()) || "";
+
+  if (headers["x-bufferbot"]) return true;
+
+  if (requestedPath.match(/[?&]_escaped_fragment_/)) return true;
+
+  return botsOnlyList.some(enabledUserAgent =>
+    reqUserAgent.includes(enabledUserAgent)
+  );
+};
+
+const userAgentIsBotFromList = (botsOnlyList, headers, requestedPath = "") => {
   const reqUserAgent =
     (headers["user-agent"] && headers["user-agent"].toLowerCase()) || "";
 
@@ -218,6 +233,22 @@ class Prerender {
   constructor(req) {
     this.req = req;
     this.url = Url.parse(req, options);
+    this.configureBotsOnlyList();
+  }
+
+  configureBotsOnlyList() {
+    this.botsOnlyList = botsOnlyList;
+
+    if (options.options.botsOnly && Array.isArray(options.options.botsOnly)) {
+      options.options.botsOnly.forEach(additionalBotUserAgent => {
+        const alreadyExistsInList = this.botsOnlyList.find(
+          b => b === additionalBotUserAgent
+        );
+        if (!alreadyExistsInList) {
+          this.botsOnlyList.push(botUserAgentMapper(additionalBotUserAgent));
+        }
+      });
+    }
   }
 
   // promise cache wrapper around ._get to prevent concurrent requests to same URL
@@ -631,7 +662,11 @@ class Prerender {
     if (!options.options.botsOnly) return true;
 
     // bots only
-    return userAgentIsBot(this.req.headers, this.url.original);
+    return userAgentIsBotFromList(
+      this.botsOnlyList,
+      this.req.headers,
+      this.url.original
+    );
   }
 }
 

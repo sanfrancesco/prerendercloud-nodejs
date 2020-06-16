@@ -220,6 +220,13 @@ const prerendercloud = require('prerendercloud');
 prerendercloud.set('botsOnly', true);
 ```
 
+You can also append your own agents to our botsOnly list by using an array:
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('botsOnly', ["altavista", "dogpile", "excite", "askjeeves"]);
+```
+
 <a name="whitelist-your-own-user-agent-list-overrides-botsonly-case-sensitive"></a>
 <a id="whitelist-your-own-user-agent-list-overrides-botsonly-case-sensitive"></a>
 #### Whitelist your own user-agent list (overrides `botsOnly`) (case sensitive)

@@ -1666,6 +1666,68 @@ describe("prerender middleware", function() {
         itCalledNext();
       });
 
+      describe("when botsOnly is array", function() {
+        describe("when request does not match any of the bots", function() {
+          beforeEach(function(done) {
+            this.req.headers["user-agent"] = "chrome";
+            this.callPrerenderMiddleware(done, {
+              botsOnly: ["another-bot-user-agent"]
+            });
+          });
+          it("does not prerender", function() {
+            expect(this.uri).toBeUndefined();
+          });
+
+          it("sets Vary header", function() {
+            expect(this.res.setHeader).toHaveBeenCalledWith(
+              "Vary",
+              "User-Agent"
+            );
+          });
+
+          itCalledNext();
+        });
+        describe("when request matches the configured user agent", function() {
+          const newBotUserAgent = "another-bot-user-agent";
+          beforeEach(function(done) {
+            this.req.headers["user-agent"] = newBotUserAgent;
+            this.callPrerenderMiddleware(done, {
+              botsOnly: [newBotUserAgent]
+            });
+          });
+
+          it("sets Vary header", function() {
+            expect(this.res.setHeader).toHaveBeenCalledWith(
+              "Vary",
+              "User-Agent"
+            );
+          });
+
+          it("prerenders the configured user-agent", function() {
+            expect(this.uri).toEqual("/http://example.org/file");
+          });
+        });
+        describe("when request matches a bot not in the configured botsOnly list", function() {
+          beforeEach(function(done) {
+            this.req.headers["user-agent"] = "w3c_Validator";
+            this.callPrerenderMiddleware(done, {
+              botsOnly: ["another-bot-user-agent"]
+            });
+          });
+
+          it("sets Vary header", function() {
+            expect(this.res.setHeader).toHaveBeenCalledWith(
+              "Vary",
+              "User-Agent"
+            );
+          });
+
+          it("prerenders the configured user-agent", function() {
+            expect(this.uri).toEqual("/http://example.org/file");
+          });
+        });
+      });
+
       describe("bot userAgent, when botsOnly option is true", function() {
         beforeEach(function(done) {
           this.req.headers["user-agent"] = "w3c_Validator";
