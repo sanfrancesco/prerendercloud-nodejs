@@ -178,6 +178,11 @@ function createResponse(req, requestedUrl, response) {
       json = JSON.parse(body);
     } catch (err) {
       if (err.name && err.name.match(/SyntaxError/)) {
+        console.log(options.options);
+        console.log(req.host);
+        console.log(req.url);
+        console.log(response.headers);
+        console.log(body);
         console.error(
           "withScreenshot expects JSON from server but parsing this failed:",
           body && body.toString().slice(0, 140) + "..."
