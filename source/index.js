@@ -746,6 +746,19 @@ Prerender.middleware.screenshot = screenshotAndPdf.bind(
   "screenshot"
 );
 Prerender.middleware.pdf = screenshotAndPdf.bind(undefined, "pdf");
+Prerender.middleware.prerender = function(url, params) {
+  const headers = {};
+
+  const token = options.options.prerenderToken || process.env.PRERENDER_TOKEN;
+
+  if (token) Object.assign(headers, { "X-Prerender-Token": token });
+
+  return got(getRenderUrl(null, url), {
+    encoding: null,
+    headers,
+    retries: options.options.retries
+  }).then(res => res.body);
+}
 
 Prerender.middleware.botsOnlyList = botsOnlyList;
 Prerender.middleware.userAgentIsBot = userAgentIsBot;
