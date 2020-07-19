@@ -166,6 +166,19 @@ prerendercloud
   .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer, { encoding: null }));
 ```
 
+Set Emulated Media (screen, print, braille, embossed, handheld, projection, speech, tty, tv)
+
+(Use this to override the defaults: screen for screenshots, print for PDF)
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud
+  .screenshot("http://example.com", {
+    emulatedMedia: 'print',
+  })
+  .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer, { encoding: null }));
+```
+
 <a name="pdfs"></a>
 <a id="pdfs"></a>
 ## PDFs
@@ -185,6 +198,17 @@ Disable PDF page breaks
 const prerendercloud = require('prerendercloud');
 prerendercloud
   .pdf("http://example.com", { noPageBreaks: true })
+  .then(pdfBuffer => fs.writeFileSync("out.pdf", pdfBuffer, { encoding: null }));
+```
+
+Set Emulated Media (screen, print, braille, embossed, handheld, projection, speech, tty, tv)
+
+(Use this to override the defaults: screen for screenshots, print for PDF)
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud
+  .pdf("http://example.com", { emulatedMedia: "screen" })
   .then(pdfBuffer => fs.writeFileSync("out.pdf", pdfBuffer, { encoding: null }));
 ```
 
