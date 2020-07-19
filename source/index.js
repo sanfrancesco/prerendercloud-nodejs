@@ -734,6 +734,9 @@ const screenshotAndPdf = (action, url, params = {}) => {
   if (params.noPageBreaks)
     Object.assign(headers, { "Prerender-Pdf-No-Page-Breaks": "true" });
 
+  if (params.emulatedMedia)
+    Object.assign(headers, { "Prerender-Emulated-Media": params.emulatedMedia });
+
   return got(getRenderUrl(action, url), {
     encoding: null,
     headers,
