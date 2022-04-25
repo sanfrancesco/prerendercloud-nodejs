@@ -2,6 +2,9 @@
 
 # prerendercloud-nodejs
 
+![Github Actions CI](https://github.com/sanfrancesco/prerendercloud-nodejs/actions/workflows/node.js.yml/badge.svg)
+
+
 [![CircleCI](https://circleci.com/gh/sanfrancesco/prerendercloud-nodejs.svg?style=svg)](https://circleci.com/gh/sanfrancesco/prerendercloud-nodejs)
 
 Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) for **prerendering** (server-side rendering), or taking **screenshots** of webpages or converting webpages to **PDFs**.
