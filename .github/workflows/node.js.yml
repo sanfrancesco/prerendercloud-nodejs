@@ -30,4 +30,5 @@ jobs:
       # - name: Debugging with ssh
       #   uses: lhotari/action-upterm@v1
       - run: npm install
+      - run: make build
       - run: make test
