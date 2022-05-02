@@ -1,5 +1,9 @@
 .PHONY: build publish test
 
+prettier:
+	./node_modules/.bin/prettier --write "source/**/*.js"
+	./node_modules/.bin/prettier --write "spec/**/*.js"
+
 build:
 	npm run build
 	rm -rf publish

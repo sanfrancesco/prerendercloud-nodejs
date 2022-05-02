@@ -15,7 +15,7 @@ class MiddlewareCache {
     let httpPath = `http${startsWith}`;
     let httpsPath = `https${startsWith}`;
 
-    this.lruCache.forEach(function(v, k, cache) {
+    this.lruCache.forEach(function (v, k, cache) {
       if (k.startsWith(httpPath) || k.startsWith(httpsPath)) cache.del(k);
     });
   }
@@ -47,7 +47,7 @@ module.exports = class Options {
 
   recordFail(url) {
     THROTTLED_URLS[url] = new Date();
-    setTimeout(function() {
+    setTimeout(function () {
       THROTTLED_URLS[url] = undefined;
       delete THROTTLED_URLS[url];
     }, 5 * 60 * 1000);
@@ -97,7 +97,7 @@ module.exports = class Options {
       "followRedirects",
       "serverCacheDurationSeconds",
       "deviceWidth",
-      "deviceHeight"
+      "deviceHeight",
     ];
   }
 
@@ -112,11 +112,11 @@ module.exports = class Options {
     } else if (name.match(/middlewareCache/i)) {
       let lruCache = LRU({
         max: this.options.middlewareCacheMaxBytes || 500000000, // 500MB
-        length: function(n, key) {
+        length: function (n, key) {
           return n.length;
         },
-        dispose: function(key, n) {},
-        maxAge: this.options.middlewareCacheMaxAge || 0 // 0 is forever
+        dispose: function (key, n) {},
+        maxAge: this.options.middlewareCacheMaxAge || 0, // 0 is forever
       });
 
       configureMiddlewareCache(this.middlewareCacheSingleton, lruCache);

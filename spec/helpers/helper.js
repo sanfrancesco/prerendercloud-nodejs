@@ -9,23 +9,23 @@ if (!!process.env.CI) {
   prerenderMiddleware = require("../../source/index");
 }
 
-global.withNock = function() {
-  afterEach(function() {
+global.withNock = function () {
+  afterEach(function () {
     nock.cleanAll();
   });
-  beforeEach(function() {
+  beforeEach(function () {
     nock.disableNetConnect();
   });
 };
 
-global.withPrerenderMiddleware = function() {
-  beforeEach(function() {
+global.withPrerenderMiddleware = function () {
+  beforeEach(function () {
     this.prerenderMiddleware = prerenderMiddleware;
     this.prerenderMiddleware.resetOptions();
   });
 };
 
-global.configureUrlForReq = function(req, options) {
+global.configureUrlForReq = function (req, options) {
   if (req._requestedUrl) {
     parsed = stdliburl.parse(req._requestedUrl);
     // connect only has: req.headers.host (which includes port), req.url and req.originalUrl
@@ -35,19 +35,19 @@ global.configureUrlForReq = function(req, options) {
     req.originalUrl = parsed.path;
     req.method = options.method || "GET";
   }
-}
+};
 
-global.withHttpMiddlewareMocks = function() {
+global.withHttpMiddlewareMocks = function () {
   withPrerenderMiddleware();
-  beforeEach(function() {
+  beforeEach(function () {
     this.req = {};
     this.res = {
       writeHead: jasmine.createSpy("writeHead"),
       getHeader: jasmine.createSpy("getHeader"),
-      setHeader: jasmine.createSpy("setHeader")
+      setHeader: jasmine.createSpy("setHeader"),
     };
     this.prerenderMiddleware.cache && this.prerenderMiddleware.cache.reset();
-    this.configurePrerenderMiddleware = function(done, options) {
+    this.configurePrerenderMiddleware = function (done, options) {
       if (!done) done = () => {};
       if (!options) options = {};
       this.prerenderMiddleware.set("waitExtraLong", options.waitExtraLong);
@@ -107,7 +107,10 @@ global.withHttpMiddlewareMocks = function() {
       this.prerenderMiddleware.set("metaOnly", options.metaOnly);
       this.prerenderMiddleware.set("followRedirects", options.followRedirects);
 
-      this.prerenderMiddleware.set("serverCacheDurationSeconds", options.serverCacheDurationSeconds);
+      this.prerenderMiddleware.set(
+        "serverCacheDurationSeconds",
+        options.serverCacheDurationSeconds
+      );
 
       if (options.timeout) {
         this.prerenderMiddleware.set("timeout", options.timeout);
@@ -125,10 +128,9 @@ global.withHttpMiddlewareMocks = function() {
       configureUrlForReq(this.req, options);
     }.bind(this);
 
-    this.callPrerenderMiddleware = function(done, options) {
-      this.configurePrerenderMiddleware(done, options)
+    this.callPrerenderMiddleware = function (done, options) {
+      this.configurePrerenderMiddleware(done, options);
       this.prerenderMiddleware(this.req, this.res, this.next);
     }.bind(this);
-
   });
 };

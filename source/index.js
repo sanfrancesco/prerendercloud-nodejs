@@ -15,7 +15,7 @@ if (nodeVersion < 12.0) {
 
 require("./includes-polyfill");
 if (!Array.isArray) {
-  Array.isArray = function(arg) {
+  Array.isArray = function (arg) {
     return Object.prototype.toString.call(arg) === "[object Array]";
   };
 }
@@ -44,10 +44,10 @@ const headerWhitelist = [
   "x-frame-options",
   "x-xss-protection",
   "x-content-type-options",
-  "location"
+  "location",
 ];
 
-const botUserAgentMapper = ua => ua.toLowerCase();
+const botUserAgentMapper = (ua) => ua.toLowerCase();
 
 const botsOnlyList = [
   "googlebot",
@@ -79,7 +79,7 @@ const botsOnlyList = [
   "XING-contenttabreceiver",
   "Discordbot",
   "TelegramBot",
-  "Google Search Console"
+  "Google Search Console",
 ].map(botUserAgentMapper);
 
 const userAgentIsBot = (headers, requestedPath = "") => {
@@ -90,7 +90,7 @@ const userAgentIsBot = (headers, requestedPath = "") => {
 
   if (requestedPath.match(/[?&]_escaped_fragment_/)) return true;
 
-  return botsOnlyList.some(enabledUserAgent =>
+  return botsOnlyList.some((enabledUserAgent) =>
     reqUserAgent.includes(enabledUserAgent)
   );
 };
@@ -103,23 +103,23 @@ const userAgentIsBotFromList = (botsOnlyList, headers, requestedPath = "") => {
 
   if (requestedPath.match(/[?&]_escaped_fragment_/)) return true;
 
-  return botsOnlyList.some(enabledUserAgent =>
+  return botsOnlyList.some((enabledUserAgent) =>
     reqUserAgent.includes(enabledUserAgent)
   );
 };
 
-const getServiceUrl = hardcoded =>
+const getServiceUrl = (hardcoded) =>
   (hardcoded && hardcoded.replace(/\/+$/, "")) ||
   process.env.PRERENDER_SERVICE_URL ||
   "https://service.prerender.cloud";
 const getRenderUrl = (action, url) =>
-  [getServiceUrl(), action, url].filter(p => p).join("/");
+  [getServiceUrl(), action, url].filter((p) => p).join("/");
 
 // from https://stackoverflow.com/a/41072596
 // if there are multiple values with different case, it just takes the last
 // (which is wrong, it should merge some of them according to the HTTP spec, but it's fine for now)
-const objectKeysToLowerCase = function(origObj) {
-  return Object.keys(origObj).reduce(function(newObj, key) {
+const objectKeysToLowerCase = function (origObj) {
+  return Object.keys(origObj).reduce(function (newObj, key) {
     const val = origObj[key];
     const newVal = typeof val === "object" ? objectKeysToLowerCase(val) : val;
     newObj[key.toLowerCase()] = newVal;
@@ -127,14 +127,14 @@ const objectKeysToLowerCase = function(origObj) {
   }, {});
 };
 
-const is5xxError = statusCode => parseInt(statusCode / 100) === 5;
-const is4xxError = statusCode => {
+const is5xxError = (statusCode) => parseInt(statusCode / 100) === 5;
+const is4xxError = (statusCode) => {
   const n = parseInt(statusCode);
   const i = parseInt(statusCode / 100);
 
   return i === 4 && n !== 429;
 };
-const isGotClientTimeout = err =>
+const isGotClientTimeout = (err) =>
   err.name === "RequestError" && err.code === "ETIMEDOUT";
 
 const zlib = require("zlib");
@@ -175,7 +175,7 @@ function createResponse(req, requestedUrl, response) {
   const lowerCasedHeaders = objectKeysToLowerCase(response.headers);
 
   const headers = {};
-  headerWhitelist.forEach(h => {
+  headerWhitelist.forEach((h) => {
     if (lowerCasedHeaders[h]) headers[h] = lowerCasedHeaders[h];
   });
 
@@ -240,9 +240,9 @@ class Prerender {
     this.botsOnlyList = botsOnlyList;
 
     if (options.options.botsOnly && Array.isArray(options.options.botsOnly)) {
-      options.options.botsOnly.forEach(additionalBotUserAgent => {
+      options.options.botsOnly.forEach((additionalBotUserAgent) => {
         const alreadyExistsInList = this.botsOnlyList.find(
-          b => b === additionalBotUserAgent
+          (b) => b === additionalBotUserAgent
         );
         if (!alreadyExistsInList) {
           this.botsOnlyList.push(botUserAgentMapper(additionalBotUserAgent));
@@ -264,11 +264,11 @@ class Prerender {
     };
 
     return (concurrentRequestCache[this.url.requestedUrl] = promise)
-      .then(res => {
+      .then((res) => {
         deleteCache();
         return res;
       })
-      .catch(err => {
+      .catch((err) => {
         deleteCache();
         return Promise.reject(err);
       });
@@ -290,15 +290,15 @@ class Prerender {
         headers,
         retries: options.options.retries,
         followRedirect: false,
-        timeout: options.options.timeout || 20000
+        timeout: options.options.timeout || 20000,
       });
     }
 
     return requestPromise
-      .then(response => {
+      .then((response) => {
         return createResponse(this.req, this.url.requestedUrl, response);
       })
-      .catch(err => {
+      .catch((err) => {
         const shouldBubble = util.isFunction(options.options.bubbleUp5xxErrors)
           ? options.options.bubbleUp5xxErrors(err, this.req, err.response)
           : options.options.bubbleUp5xxErrors;
@@ -322,19 +322,17 @@ class Prerender {
 
           if (err.message && err.message.match(/throttle/)) {
             return createResponse(this.req, this.url.requestedUrl, {
-              body:
-                "Error: prerender.cloud client throttled this prerender request due to a recent timeout",
+              body: "Error: prerender.cloud client throttled this prerender request due to a recent timeout",
               statusCode: 503,
-              headers: { "content-type": "text/html" }
+              headers: { "content-type": "text/html" },
             });
           }
 
           if (isGotClientTimeout(err))
             return createResponse(this.req, this.url.requestedUrl, {
-              body:
-                "Error: prerender.cloud client timeout (as opposed to prerender.cloud server timeout)",
+              body: "Error: prerender.cloud client timeout (as opposed to prerender.cloud server timeout)",
               statusCode: 500,
-              headers: { "content-type": "text/html" }
+              headers: { "content-type": "text/html" },
             });
 
           return Promise.reject(err);
@@ -378,9 +376,7 @@ class Prerender {
       if (data.statusCode === 400) {
         res.statusCode = 400;
         return res.end(
-          `service.prerender.cloud can't prerender this page due to user error: ${
-            data.body
-          }`
+          `service.prerender.cloud can't prerender this page due to user error: ${data.body}`
         );
       } else if (data.statusCode === 429) {
         return handleSkip("rate limited due to free tier", next);
@@ -403,7 +399,7 @@ class Prerender {
     const prerender = new Prerender(req);
 
     const objForReqRes = {
-      url: { requestedPath: prerender.url.requestedPath }
+      url: { requestedPath: prerender.url.requestedPath },
     };
     // this is for beforeRender(req, done) func so there's visibility into what URL is being used
     req.prerender = objForReqRes;
@@ -437,29 +433,29 @@ class Prerender {
       }
     }
 
-    const remotePrerender = function() {
+    const remotePrerender = function () {
       return prerender
         .get()
-        .then(function(data) {
+        .then(function (data) {
           return prerender.writeHttpResponse(req, res, next, data);
         })
-        .catch(function(error) {
+        .catch(function (error) {
           if (process.env.NODE_ENV !== "test") console.error(error);
           return handleSkip(`server error: ${error && error.message}`, next);
         });
     };
 
     if (options.options.beforeRender) {
-      const donePassedToUserBeforeRender = function(err, stringOrObject) {
+      const donePassedToUserBeforeRender = function (err, stringOrObject) {
         if (!stringOrObject) {
           return remotePrerender();
         } else if (typeof stringOrObject === "string") {
           return prerender.writeHttpResponse(req, res, next, {
             statusCode: 200,
             headers: {
-              "content-type": "text/html; charset=utf-8"
+              "content-type": "text/html; charset=utf-8",
             },
-            body: stringOrObject
+            body: stringOrObject,
           });
         } else if (typeof stringOrObject === "object") {
           return prerender.writeHttpResponse(
@@ -471,16 +467,16 @@ class Prerender {
                 statusCode: stringOrObject.status,
                 headers: Object.assign(
                   {
-                    "content-type": "text/html; charset=utf-8"
+                    "content-type": "text/html; charset=utf-8",
                   },
                   stringOrObject.headers
                 ),
-                body: stringOrObject.body
+                body: stringOrObject.body,
               },
               {
                 screenshot: stringOrObject.screenshot,
                 meta: stringOrObject.meta,
-                links: stringOrObject.links
+                links: stringOrObject.links,
               }
             )
           );
@@ -515,12 +511,12 @@ class Prerender {
   _createHeaders() {
     let h = {
       "User-Agent": "prerender-cloud-nodejs-middleware",
-      "accept-encoding": "gzip"
+      "accept-encoding": "gzip",
     };
 
     if (this.req.headers["user-agent"])
       Object.assign(h, {
-        "X-Original-User-Agent": this.req.headers["user-agent"]
+        "X-Original-User-Agent": this.req.headers["user-agent"],
       });
 
     let token = options.options.prerenderToken || process.env.PRERENDER_TOKEN;
@@ -582,15 +578,14 @@ class Prerender {
       Object.assign(h, { "Prerender-With-Metadata": true });
 
     if (this._hasOriginHeaderWhitelist()) {
-      options.options.originHeaderWhitelist.forEach(_h => {
+      options.options.originHeaderWhitelist.forEach((_h) => {
         if (this.req.headers[_h])
           Object.assign(h, { [_h]: this.req.headers[_h] });
       });
 
       Object.assign(h, {
-        "Origin-Header-Whitelist": options.options.originHeaderWhitelist.join(
-          " "
-        )
+        "Origin-Header-Whitelist":
+          options.options.originHeaderWhitelist.join(" "),
       });
     }
 
@@ -631,7 +626,7 @@ class Prerender {
       const paths = options.options.blacklistPaths(this.req);
 
       if (paths && Array.isArray(paths)) {
-        return paths.some(path => {
+        return paths.some((path) => {
           if (path === this.req.url) return true;
 
           if (path.endsWith("*")) {
@@ -655,7 +650,7 @@ class Prerender {
     if (!reqUserAgent) return false;
 
     if (options.options.whitelistUserAgents)
-      return options.options.whitelistUserAgents.some(enabledUserAgent =>
+      return options.options.whitelistUserAgents.some((enabledUserAgent) =>
         reqUserAgent.includes(enabledUserAgent)
       );
 
@@ -673,9 +668,9 @@ class Prerender {
 Prerender.middleware.set = options.set.bind(options, Prerender.middleware);
 // Prerender.middleware.cache =
 Object.defineProperty(Prerender.middleware, "cache", {
-  get: function() {
+  get: function () {
     return middlewareCacheSingleton.instance;
-  }
+  },
 });
 
 const screenshotAndPdf = (action, url, params = {}) => {
@@ -687,13 +682,13 @@ const screenshotAndPdf = (action, url, params = {}) => {
 
   if (params.viewportQuerySelector) {
     Object.assign(headers, {
-      "Prerender-Viewport-Query-Selector": params.viewportQuerySelector
+      "Prerender-Viewport-Query-Selector": params.viewportQuerySelector,
     });
 
     if (params.viewportQuerySelectorPadding) {
       Object.assign(headers, {
         "Prerender-Viewport-Query-Selector-Padding":
-          params.viewportQuerySelectorPadding
+          params.viewportQuerySelectorPadding,
       });
     }
   }
@@ -706,12 +701,12 @@ const screenshotAndPdf = (action, url, params = {}) => {
 
   if (params.viewportWidth)
     Object.assign(headers, {
-      "Prerender-Viewport-Width": params.viewportWidth
+      "Prerender-Viewport-Width": params.viewportWidth,
     });
 
   if (params.viewportHeight)
     Object.assign(headers, {
-      "Prerender-Viewport-Height": params.viewportHeight
+      "Prerender-Viewport-Height": params.viewportHeight,
     });
 
   if (params.viewportX)
@@ -735,13 +730,15 @@ const screenshotAndPdf = (action, url, params = {}) => {
     Object.assign(headers, { "Prerender-Pdf-No-Page-Breaks": "true" });
 
   if (params.emulatedMedia)
-    Object.assign(headers, { "Prerender-Emulated-Media": params.emulatedMedia });
+    Object.assign(headers, {
+      "Prerender-Emulated-Media": params.emulatedMedia,
+    });
 
   return got(getRenderUrl(action, url), {
     encoding: null,
     headers,
-    retries: options.options.retries
-  }).then(res => res.body);
+    retries: options.options.retries,
+  }).then((res) => res.body);
 };
 
 Prerender.middleware.screenshot = screenshotAndPdf.bind(
@@ -749,7 +746,7 @@ Prerender.middleware.screenshot = screenshotAndPdf.bind(
   "screenshot"
 );
 Prerender.middleware.pdf = screenshotAndPdf.bind(undefined, "pdf");
-Prerender.middleware.prerender = function(url, params) {
+Prerender.middleware.prerender = function (url, params) {
   const headers = {};
 
   const token = options.options.prerenderToken || process.env.PRERENDER_TOKEN;
@@ -759,9 +756,9 @@ Prerender.middleware.prerender = function(url, params) {
   return got(getRenderUrl(null, url), {
     encoding: null,
     headers,
-    retries: options.options.retries
-  }).then(res => res.body);
-}
+    retries: options.options.retries,
+  }).then((res) => res.body);
+};
 
 Prerender.middleware.botsOnlyList = botsOnlyList;
 Prerender.middleware.userAgentIsBot = userAgentIsBot;

@@ -15,7 +15,7 @@ class Url {
       basename: obj.basename(),
       hasHtmlPath: obj.hasHtmlPath(),
       requestedPath: obj.requestedPath(),
-      requestedUrl: obj.requestedUrl()
+      requestedUrl: obj.requestedUrl(),
     };
   }
 
@@ -96,7 +96,7 @@ class Url {
       if (whitelistedQueryParams != null) {
         const queryParams = Object.assign({}, this.query());
 
-        Object.keys(queryParams).forEach(key => {
+        Object.keys(queryParams).forEach((key) => {
           if (!whitelistedQueryParams.includes(key)) {
             delete queryParams[key];
           }
