@@ -74,6 +74,10 @@ global.withHttpMiddlewareMocks = function () {
         !!options.disableServerCache
       );
       this.prerenderMiddleware.set(
+        "disableHeadDedupe",
+        !!options.disableHeadDedupe
+      );
+      this.prerenderMiddleware.set(
         "enableMiddlewareCache",
         !!options.enableMiddlewareCache
       );

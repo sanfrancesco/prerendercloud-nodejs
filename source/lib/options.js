@@ -76,6 +76,7 @@ module.exports = class Options {
       "disableServerCache",
       "disableAjaxBypass",
       "disableAjaxPreload",
+      "disableHeadDedupe",
       "bubbleUp5xxErrors",
       "enableMiddlewareCache",
       "middlewareCacheMaxBytes",
