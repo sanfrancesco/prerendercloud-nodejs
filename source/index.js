@@ -25,7 +25,7 @@ const debug = require("debug")("prerendercloud");
 const util = require("./lib/util");
 const Url = require("./lib/our-url");
 const middlewareCacheSingleton = {};
-const Options = require("./lib/Options");
+const Options = require("./lib/options");
 const options = new Options(middlewareCacheSingleton);
 
 const got = require("got-lite");
