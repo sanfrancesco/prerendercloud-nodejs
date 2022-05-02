@@ -1,8 +1,5 @@
 function urlPathIsHtml(urlPath) {
-  const basename = urlPath
-    .split("/")
-    .pop()
-    .replace(/\?.*/, ""); // remove query params
+  const basename = urlPath.split("/").pop().replace(/\?.*/, ""); // remove query params
 
   return basenameIsHtml(basename);
 }

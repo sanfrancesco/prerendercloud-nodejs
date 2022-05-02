@@ -1,4 +1,4 @@
-const LRU = require("lru-cache");
+const LRUCache = require("lru-cache");
 const util = require("./util");
 
 class MiddlewareCache {
@@ -6,7 +6,7 @@ class MiddlewareCache {
     this.lruCache = lruCache;
   }
   reset() {
-    this.lruCache.reset();
+    this.lruCache.clear();
   }
   clear(startsWith) {
     if (!startsWith) throw new Error("must pass what cache key startsWith");
@@ -15,8 +15,8 @@ class MiddlewareCache {
     let httpPath = `http${startsWith}`;
     let httpsPath = `https${startsWith}`;
 
-    this.lruCache.forEach(function(v, k, cache) {
-      if (k.startsWith(httpPath) || k.startsWith(httpsPath)) cache.del(k);
+    this.lruCache.forEach(function (v, k, cache) {
+      if (k.startsWith(httpPath) || k.startsWith(httpsPath)) cache.delete(k);
     });
   }
   set(url, res) {
@@ -47,7 +47,7 @@ module.exports = class Options {
 
   recordFail(url) {
     THROTTLED_URLS[url] = new Date();
-    setTimeout(function() {
+    setTimeout(function () {
       THROTTLED_URLS[url] = undefined;
       delete THROTTLED_URLS[url];
     }, 5 * 60 * 1000);
@@ -97,7 +97,7 @@ module.exports = class Options {
       "followRedirects",
       "serverCacheDurationSeconds",
       "deviceWidth",
-      "deviceHeight"
+      "deviceHeight",
     ];
   }
 
@@ -110,13 +110,19 @@ module.exports = class Options {
     if (name === "enableMiddlewareCache" && val === false) {
       this.middlewareCacheSingleton.instance = undefined;
     } else if (name.match(/middlewareCache/i)) {
-      let lruCache = LRU({
-        max: this.options.middlewareCacheMaxBytes || 500000000, // 500MB
-        length: function(n, key) {
-          return n.length;
+      const lruCache = new LRUCache({
+        maxSize: this.options.middlewareCacheMaxBytes || 500000000, // 500MB
+        sizeCalculation: function (n, key) {
+          if (n && n.body) {
+            return n.body.length;
+          } else if (n.length) {
+            return n.length;
+          }
+
+          return 1;
         },
-        dispose: function(key, n) {},
-        maxAge: this.options.middlewareCacheMaxAge || 0 // 0 is forever
+        dispose: function (key, n) {},
+        ttl: this.options.middlewareCacheMaxAge || 0, // 0 is forever
       });
 
       configureMiddlewareCache(this.middlewareCacheSingleton, lruCache);

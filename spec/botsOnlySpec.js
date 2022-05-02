@@ -1,24 +1,24 @@
-describe("userAgentIsBot", function() {
+describe("userAgentIsBot", function () {
   withPrerenderMiddleware();
-  it("detects bot", function() {
+  it("detects bot", function () {
     expect(
       this.prerenderMiddleware.userAgentIsBot({ "user-agent": "googlebot" })
     ).toBe(true);
   });
-  it("detects bot with strange case", function() {
+  it("detects bot with strange case", function () {
     expect(
       this.prerenderMiddleware.userAgentIsBot({ "user-agent": "goOglebot" })
     ).toBe(true);
   });
-  it("detects non-bot", function() {
+  it("detects non-bot", function () {
     expect(
       this.prerenderMiddleware.userAgentIsBot({ "user-agent": "chrome" })
     ).toBe(false);
   });
-  it("detects non-bot for empty user-agent", function() {
+  it("detects non-bot for empty user-agent", function () {
     expect(this.prerenderMiddleware.userAgentIsBot({})).toBe(false);
   });
-  it("detects escaped fragment", function() {
+  it("detects escaped fragment", function () {
     expect(
       this.prerenderMiddleware.userAgentIsBot(
         { "user-agent": "chrome" },
@@ -27,7 +27,7 @@ describe("userAgentIsBot", function() {
     ).toBe(true);
   });
 
-  it("detects x-bufferbot", function() {
+  it("detects x-bufferbot", function () {
     expect(
       this.prerenderMiddleware.userAgentIsBot(
         { "user-agent": "whatever", "x-bufferbot": "true" },
@@ -36,11 +36,11 @@ describe("userAgentIsBot", function() {
     ).toBe(true);
   });
 
-  describe("botsOnlyList", function() {
-    it("exports list", function() {
+  describe("botsOnlyList", function () {
+    it("exports list", function () {
       expect(this.prerenderMiddleware.botsOnlyList.length > 0).toBe(true);
     });
-    it("includes googlebot", function() {
+    it("includes googlebot", function () {
       expect(this.prerenderMiddleware.botsOnlyList.includes("googlebot")).toBe(
         true
       );

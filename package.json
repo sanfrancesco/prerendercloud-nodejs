@@ -1,11 +1,10 @@
 {
   "name": "prerendercloud",
-  "version": "1.45.1",
+  "version": "1.45.2",
   "description": "Express middleware for prerendering javascript-rendered pages with https://www.prerender.cloud/ for SEO and open graph tags",
   "main": "./distribution/index.js",
   "scripts": {
-    "clean": "rm -rf distribution",
-    "build": "npm run clean && ./node_modules/.bin/babel source --out-dir distribution",
+    "build": "rm -rf distribution && mkdir distribution && cp -r source/* distribution/",
     "test": "jasmine"
   },
   "author": "Jonathan Otto <support@prerender.cloud> (https://www.prerender.cloud/)",
@@ -13,16 +12,14 @@
   "dependencies": {
     "debug": "^2.2.0",
     "got-lite": "^8.0.1",
-    "lru-cache": "^4.0.2",
+    "lru-cache": "^7.9.0",
     "vary": "^1.1.1"
   },
   "devDependencies": {
-    "babel-cli": "^6.23.0",
-    "babel-preset-env": "^1.2.1",
-    "connect": "^3.5.0",
-    "express": "^4.14.0",
-    "jasmine": "^2.9.0",
-    "nock": "^9.0.14",
-    "url": "^0.11.0"
+    "connect": "^3.7.0",
+    "express": "^4.18.1",
+    "jasmine": "^4.1.0",
+    "nock": "^13.2.4",
+    "prettier": "^2.6.2"
   }
 }
