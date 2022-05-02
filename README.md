@@ -1,16 +1,15 @@
-![image](https://cloud.githubusercontent.com/assets/22159102/21554484/9d542f5a-cdc4-11e6-8c4c-7730a9e9e2d1.png)
-
 # prerendercloud-nodejs
+
+<img align="right" src="https://cloud.githubusercontent.com/assets/22159102/21554484/9d542f5a-cdc4-11e6-8c4c-7730a9e9e2d1.png">
 
 ![Github Actions CI](https://github.com/sanfrancesco/prerendercloud-nodejs/actions/workflows/node.js.yml/badge.svg)
 
 
-Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) for **prerendering** (server-side rendering), or taking **screenshots** of webpages or converting webpages to **PDFs**.
+Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) for **pre-rendering** (server-side rendering), or taking **screenshots** of webpages or converting webpages to **PDFs**.
 
 The pre-render/server-side rendering functionality of this library (as opposed to mere screenshots/pdfs) is meant to be included in an existing web server where 404s are rendered as index.html
 
 * For an all-in-one single-page app web server plus server-side rendering see: https://github.com/sanfrancesco/prerendercloud-server
-* For a hosted all-in-one solution see: https://www.roast.io/
 
 ----
 
@@ -18,7 +17,6 @@ The pre-render/server-side rendering functionality of this library (as opposed t
 
 - [Install](#install)
   - [npm](#npm)
-  - [yarn](#yarn)
   - [Auth \(API Token\)](#auth-api-token)
     - [Environment variable \(best practice\)](#environment-variable-best-practice)
     - [Hard coded](#hard-coded)
@@ -78,14 +76,6 @@ The pre-render/server-side rendering functionality of this library (as opposed t
 
 ```bash
 npm install prerendercloud --save
-```
-
-<a name="yarn"></a>
-<a id="yarn"></a>
-### yarn
-
-```bash
-yarn add prerendercloud
 ```
 
 <a name="auth-api-token"></a>
