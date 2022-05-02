@@ -13,13 +13,6 @@ if (nodeVersion < 12.0) {
   process.exit(1);
 }
 
-require("./includes-polyfill");
-if (!Array.isArray) {
-  Array.isArray = function (arg) {
-    return Object.prototype.toString.call(arg) === "[object Array]";
-  };
-}
-
 const debug = require("debug")("prerendercloud");
 
 const util = require("./lib/util");
