@@ -29,7 +29,7 @@ describe("whitelist query params", function() {
     beforeEach(function(done) {
       if (!clientOptions) clientOptions = {};
 
-      this.callPrerenderMiddleware(done, Object.assign({}, clientOptions));
+      this.callPrerenderMiddleware(() => done(), Object.assign({}, clientOptions));
     });
   }
 

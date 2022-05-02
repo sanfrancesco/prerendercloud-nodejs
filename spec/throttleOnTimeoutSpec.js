@@ -56,7 +56,7 @@ describe("timeout causes throttling", function() {
         _requestedUrl: "http://example.org/files.m4v.storage/lol-valid"
       };
 
-      this.callPrerenderMiddleware(done, Object.assign({}, clientOptions));
+      this.callPrerenderMiddleware(() => done(), Object.assign({}, clientOptions));
     });
   }
   function itCalledNext() {

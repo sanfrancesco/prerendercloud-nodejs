@@ -42,7 +42,7 @@ describe("prerender middleware", function() {
       describe("with empty parameters", function() {
         beforeEach(function(done) {
           this.req = {};
-          this.callPrerenderMiddleware(done);
+          this.callPrerenderMiddleware(() => done());
         });
 
         itCalledNext();
@@ -50,7 +50,7 @@ describe("prerender middleware", function() {
       describe("with empty headers", function() {
         beforeEach(function(done) {
           this.req = { headers: {} };
-          this.callPrerenderMiddleware(done);
+          this.callPrerenderMiddleware(() => done());
         });
 
         itCalledNext();
@@ -58,7 +58,7 @@ describe("prerender middleware", function() {
       describe("with invalid user-agent", function() {
         beforeEach(function(done) {
           this.req = { headers: { "user-agent": "prerendercloud" } };
-          this.callPrerenderMiddleware(done);
+          this.callPrerenderMiddleware(() => done());
         });
 
         itCalledNext();
@@ -66,7 +66,7 @@ describe("prerender middleware", function() {
       describe("with empty user-agent", function() {
         beforeEach(function(done) {
           this.req = { headers: { "user-agent": "" } };
-          this.callPrerenderMiddleware(done);
+          this.callPrerenderMiddleware(() => done());
         });
 
         itCalledNext();
@@ -77,7 +77,7 @@ describe("prerender middleware", function() {
             headers: { "user-agent": "twitterbot" },
             _requestedUrl: "http://example.org/file.m4v"
           };
-          this.callPrerenderMiddleware(done);
+          this.callPrerenderMiddleware(() => done());
         });
 
         itCalledNext();
@@ -88,7 +88,7 @@ describe("prerender middleware", function() {
             headers: { "user-agent": "twitterbot", "x-prerendered": "true" },
             _requestedUrl: "http://example.org/file"
           };
-          this.callPrerenderMiddleware(done);
+          this.callPrerenderMiddleware(() => done());
         });
 
         itCalledNext();
@@ -100,7 +100,7 @@ describe("prerender middleware", function() {
             headers: { "user-agent": "twitterbot" },
             _requestedUrl: "http://example.org/file"
           };
-          this.callPrerenderMiddleware(done, { method: "POST" });
+          this.callPrerenderMiddleware(() => done(), { method: "POST" });
         });
 
         itCalledNext();
@@ -121,7 +121,7 @@ describe("prerender middleware", function() {
             .get(/.*/)
             .times(2)
             .replyWithError("server error");
-          this.callPrerenderMiddleware(done);
+          this.callPrerenderMiddleware(() => done());
         });
 
         itCalledNext();
@@ -138,7 +138,7 @@ describe("prerender middleware", function() {
               self.attempts += 1;
               return [500, "errmsg"];
             });
-          this.callPrerenderMiddleware(done);
+          this.callPrerenderMiddleware(() => done());
         });
 
         it("retries 500", function() {
@@ -158,7 +158,7 @@ describe("prerender middleware", function() {
               self.attempts += 1;
               return [502, "errmsg"];
             });
-          this.callPrerenderMiddleware(done);
+          this.callPrerenderMiddleware(() => done());
         });
 
         it("does not retry 502", function() {
@@ -173,7 +173,7 @@ describe("prerender middleware", function() {
           this.prerenderServer = nock("https://service.prerender.cloud")
             .get(/.*/)
             .reply(() => [429, "errmsg"]);
-          this.callPrerenderMiddleware(done);
+          this.callPrerenderMiddleware(() => done());
         });
 
         itCalledNext();
@@ -184,7 +184,7 @@ describe("prerender middleware", function() {
           this.prerenderServer = nock("https://service.prerender.cloud")
             .get(/.*/)
             .reply(() => [400, "errmsg"]);
-          this.callPrerenderMiddleware(done);
+          this.callPrerenderMiddleware(() => done());
         });
 
         it("returns pre-rendered body", function() {
@@ -211,7 +211,7 @@ describe("prerender middleware", function() {
               .get(/.*/)
               .reply(() => [404, "notfound"]);
             this.callPrerenderMiddleware(
-              done,
+              () => done(),
               Object.assign({ bubbleUp5xxErrors: true })
             );
           });
@@ -222,7 +222,7 @@ describe("prerender middleware", function() {
             this.prerenderServer = nock("https://service.prerender.cloud")
               .get(/.*/)
               .reply(() => [404, "notfound"]);
-            this.callPrerenderMiddleware(done);
+            this.callPrerenderMiddleware(() => done());
           });
           itWorks();
         });
@@ -243,7 +243,7 @@ describe("prerender middleware", function() {
               ];
             });
 
-          this.callPrerenderMiddleware(done);
+          this.callPrerenderMiddleware(() => done());
         });
 
         it("preserves 301 status-code and location header", function() {
@@ -275,7 +275,7 @@ describe("prerender middleware", function() {
         describe("req.connection.encrypted", function() {
           beforeEach(function(done) {
             this.req.connection = { encrypted: true };
-            this.callPrerenderMiddleware(done);
+            this.callPrerenderMiddleware(() => done());
           });
 
           it("uses https", function() {
@@ -286,7 +286,7 @@ describe("prerender middleware", function() {
         describe("cf-visitor", function() {
           beforeEach(function(done) {
             this.req.headers["cf-visitor"] = '{"scheme":"https"}';
-            this.callPrerenderMiddleware(done);
+            this.callPrerenderMiddleware(() => done());
           });
 
           it("uses https", function() {
@@ -297,7 +297,7 @@ describe("prerender middleware", function() {
         describe("x-forwarded-proto", function() {
           beforeEach(function(done) {
             this.req.headers["x-forwarded-proto"] = "https,http";
-            this.callPrerenderMiddleware(done);
+            this.callPrerenderMiddleware(() => done());
           });
 
           it("uses https", function() {
@@ -318,7 +318,7 @@ describe("prerender middleware", function() {
         });
         describe("disabled", function() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, {});
+            this.callPrerenderMiddleware(() => done(), {});
           });
 
           it("uses default protocol", function() {
@@ -329,7 +329,7 @@ describe("prerender middleware", function() {
         });
         describe("enabled", function() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, { protocol: "https" });
+            this.callPrerenderMiddleware(() => done(), { protocol: "https" });
           });
 
           it("it uses the protocol we specified", function() {
@@ -352,7 +352,7 @@ describe("prerender middleware", function() {
         });
         describe("disabled", function() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, {});
+            this.callPrerenderMiddleware(() => done(), {});
           });
 
           it("infers host", function() {
@@ -363,7 +363,7 @@ describe("prerender middleware", function() {
         });
         describe("enabled", function() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, { host: "example.com" });
+            this.callPrerenderMiddleware(() => done(), { host: "example.com" });
           });
 
           it("it uses the hostl we specified", function() {
@@ -386,7 +386,7 @@ describe("prerender middleware", function() {
         });
         describe("disabled", function() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, { waitExtraLong: false });
+            this.callPrerenderMiddleware(() => done(), { waitExtraLong: false });
           });
 
           it("does not send header to prerendercloud", function() {
@@ -397,7 +397,7 @@ describe("prerender middleware", function() {
         });
         describe("enabled", function() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, { waitExtraLong: true });
+            this.callPrerenderMiddleware(() => done(), { waitExtraLong: true });
           });
 
           it("it sends header to prerendercloud", function() {
@@ -433,7 +433,7 @@ describe("prerender middleware", function() {
         });
         describe("disabled", function() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, {
+            this.callPrerenderMiddleware(() => done(), {
               withMetadata: req => {
                 this.reqDataPassedToWithMetadata = req;
                 return false;
@@ -461,7 +461,7 @@ describe("prerender middleware", function() {
         });
         describe("enabled", function() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, { withMetadata: () => true });
+            this.callPrerenderMiddleware(() => done(), { withMetadata: () => true });
           });
 
           it("returns pre-rendered body", function() {
@@ -498,7 +498,7 @@ describe("prerender middleware", function() {
         });
         describe("disabled", function() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, {
+            this.callPrerenderMiddleware(() => done(), {
               withScreenshot: req => {
                 this.reqDataPassedToWithScreenshot = req;
                 return false;
@@ -526,7 +526,7 @@ describe("prerender middleware", function() {
         });
         describe("enabled", function() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, { withScreenshot: () => true });
+            this.callPrerenderMiddleware(() => done(), { withScreenshot: () => true });
           });
 
           it("returns pre-rendered body", function() {
@@ -555,7 +555,7 @@ describe("prerender middleware", function() {
         });
         describe("disabled", function() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, { removeTrailingSlash: false });
+            this.callPrerenderMiddleware(() => done(), { removeTrailingSlash: false });
           });
 
           it("does not send header to prerendercloud", function() {
@@ -568,7 +568,7 @@ describe("prerender middleware", function() {
         });
         describe("enabled", function() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, { removeTrailingSlash: true });
+            this.callPrerenderMiddleware(() => done(), { removeTrailingSlash: true });
           });
 
           it("it sends header to prerendercloud", function() {
@@ -593,7 +593,7 @@ describe("prerender middleware", function() {
         });
         describe("disabled", function() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, { removeScriptTags: false });
+            this.callPrerenderMiddleware(() => done(), { removeScriptTags: false });
           });
 
           it("does not send header to prerendercloud", function() {
@@ -604,7 +604,7 @@ describe("prerender middleware", function() {
         });
         describe("enabled", function() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, { removeScriptTags: true });
+            this.callPrerenderMiddleware(() => done(), { removeScriptTags: true });
           });
 
           it("it sends header to prerendercloud", function() {
@@ -628,7 +628,7 @@ describe("prerender middleware", function() {
         describe("disabled", function() {
           beforeEach(function(done) {
             const that = this;
-            this.callPrerenderMiddleware(done, {
+            this.callPrerenderMiddleware(() => done(), {
               metaOnly: req => {
                 that.reqObj = req;
                 return false;
@@ -657,7 +657,7 @@ describe("prerender middleware", function() {
         });
         describe("enabled", function() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, { followRedirects: () => true });
+            this.callPrerenderMiddleware(() => done(), { followRedirects: () => true });
           });
 
           it("it sends header to prerendercloud", function() {
@@ -685,7 +685,7 @@ describe("prerender middleware", function() {
         describe("disabled", function() {
           beforeEach(function(done) {
             const that = this;
-            this.callPrerenderMiddleware(done, {
+            this.callPrerenderMiddleware(() => done(), {
               metaOnly: req => {
                 that.reqObj = req;
                 return false;
@@ -714,7 +714,7 @@ describe("prerender middleware", function() {
         });
         describe("enabled", function() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, {
+            this.callPrerenderMiddleware(() => done(), {
               serverCacheDurationSeconds: () => "1234"
             });
           });
@@ -740,7 +740,7 @@ describe("prerender middleware", function() {
         describe("disabled", function() {
           beforeEach(function(done) {
             const that = this;
-            this.callPrerenderMiddleware(done, {
+            this.callPrerenderMiddleware(() => done(), {
               metaOnly: req => {
                 that.reqObj = req;
                 return false;
@@ -769,7 +769,7 @@ describe("prerender middleware", function() {
         });
         describe("enabled", function() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, { metaOnly: () => true });
+            this.callPrerenderMiddleware(() => done(), { metaOnly: () => true });
           });
 
           it("it sends header to prerendercloud", function() {
@@ -791,7 +791,7 @@ describe("prerender middleware", function() {
               self.headersSentToServer = this.req.headers;
               return [200, "body"];
             });
-          this.callPrerenderMiddleware(done, {
+          this.callPrerenderMiddleware(() => done(), {
             disableAjaxBypass: true,
             disableAjaxPreload: true,
             disableServerCache: true
@@ -836,7 +836,7 @@ describe("prerender middleware", function() {
                   }
                 ];
               });
-            this.callPrerenderMiddleware(done);
+            this.callPrerenderMiddleware(() => done());
           });
 
           it("requests correct path", function() {
@@ -872,7 +872,7 @@ describe("prerender middleware", function() {
                 }
               ];
             });
-          this.callPrerenderMiddleware(done);
+          this.callPrerenderMiddleware(() => done());
         });
 
         it("returns includes content-encoding in header", function() {
@@ -961,11 +961,11 @@ describe("prerender middleware", function() {
               this.requestCount += 1;
               return [200, "body2", { "content-type": "text/html" }];
             });
-          this.callPrerenderMiddleware(done, { enableMiddlewareCache: true });
+          this.callPrerenderMiddleware(() => done(), { enableMiddlewareCache: true });
         });
 
         beforeEach(function(done) {
-          this.callPrerenderMiddleware(done, { enableMiddlewareCache: true });
+          this.callPrerenderMiddleware(() => done(), { enableMiddlewareCache: true });
         });
 
         it("only makes 1 request", function() {
@@ -986,7 +986,7 @@ describe("prerender middleware", function() {
         describe("after clearing", function() {
           beforeEach(function(done) {
             this.prerenderMiddleware.cache.clear("http://example.org");
-            this.callPrerenderMiddleware(done, { enableMiddlewareCache: true });
+            this.callPrerenderMiddleware(() => done(), { enableMiddlewareCache: true });
           });
 
           it("makes another request", function() {
@@ -1032,7 +1032,7 @@ describe("prerender middleware", function() {
       describe("when path is not in blacklist", function() {
         beforeEach(function(done) {
           this.req._requestedUrl = "https://example.org/should-prerender";
-          this.callPrerenderMiddleware(done, {
+          this.callPrerenderMiddleware(() => done(), {
             blacklistPaths: req => ["/dont-prerender"]
           });
         });
@@ -1045,7 +1045,7 @@ describe("prerender middleware", function() {
       describe("when path is not array", function() {
         beforeEach(function(done) {
           this.req._requestedUrl = "https://example.org/dont-prerender";
-          this.callPrerenderMiddleware(done, {
+          this.callPrerenderMiddleware(() => done(), {
             blacklistPaths: req => "/dont-prerender"
           });
         });
@@ -1059,7 +1059,7 @@ describe("prerender middleware", function() {
         beforeEach(function(done) {
           this.req._requestedUrl = "https://example.org/dont-prerender";
           this.reqObj = undefined;
-          this.callPrerenderMiddleware(done, {
+          this.callPrerenderMiddleware(() => done(), {
             blacklistPaths: req => {
               this.reqObj = req;
               return ["/dont-prerender"];
@@ -1089,7 +1089,7 @@ describe("prerender middleware", function() {
 
         function callPrerender() {
           beforeEach(function(done) {
-            this.callPrerenderMiddleware(done, {
+            this.callPrerenderMiddleware(() => done(), {
               blacklistPaths: req => {
                 this.reqObj = req;
                 return ["/signup/*", "/dont*"];
@@ -1151,7 +1151,7 @@ describe("prerender middleware", function() {
 
       describe("when false", function() {
         beforeEach(function(done) {
-          this.callPrerenderMiddleware(done, {
+          this.callPrerenderMiddleware(() => done(), {
             shouldPrerender: req => false
           });
         });
@@ -1162,7 +1162,7 @@ describe("prerender middleware", function() {
       });
       describe("when true", function() {
         beforeEach(function(done) {
-          this.callPrerenderMiddleware(done, {
+          this.callPrerenderMiddleware(() => done(), {
             shouldPrerender: req => true
           });
         });
@@ -1182,7 +1182,7 @@ describe("prerender middleware", function() {
       describe("when true with empty user-agent", function() {
         beforeEach(function(done) {
           this.req.headers["user-agent"] = "";
-          this.callPrerenderMiddleware(done, {
+          this.callPrerenderMiddleware(() => done(), {
             shouldPrerender: req => true
           });
         });
@@ -1226,7 +1226,7 @@ describe("prerender middleware", function() {
 
       describe("with string", function() {
         beforeEach(function(done) {
-          this.callPrerenderMiddleware(done, {
+          this.callPrerenderMiddleware(() => done(), {
             beforeRender: (req, beforeRenderDone) => {
               this.uriCapturedInBeforeRender = req.url;
               beforeRenderDone(null, "body-from-before-render");
@@ -1250,7 +1250,7 @@ describe("prerender middleware", function() {
 
       describe("with object", function() {
         beforeEach(function(done) {
-          this.callPrerenderMiddleware(done, {
+          this.callPrerenderMiddleware(() => done(), {
             afterRender: (err, req, res) => {
               this.afterRenderResObj = res;
             },
@@ -1296,7 +1296,7 @@ describe("prerender middleware", function() {
 
       describe("with object that has screenshot and meta", function() {
         beforeEach(function(done) {
-          this.callPrerenderMiddleware(done, {
+          this.callPrerenderMiddleware(() => done(), {
             afterRender: (err, req, res) => {
               this.afterRenderResObj = res;
             },
@@ -1332,7 +1332,7 @@ describe("prerender middleware", function() {
 
       describe("with null", function() {
         beforeEach(function(done) {
-          this.callPrerenderMiddleware(done, {
+          this.callPrerenderMiddleware(() => done(), {
             beforeRender: (req, beforeRenderDone) => {
               beforeRenderDone(null, null);
             }
@@ -1499,7 +1499,7 @@ describe("prerender middleware", function() {
 
       describe("with userAgent NOT from the whitelist", function() {
         beforeEach(function(done) {
-          this.callPrerenderMiddleware(done, {
+          this.callPrerenderMiddleware(() => done(), {
             whitelistUserAgents: ["my-custom-user-agent"]
           });
         });
@@ -1513,7 +1513,7 @@ describe("prerender middleware", function() {
       describe("with userAgent from the whitelist", function() {
         beforeEach(function(done) {
           this.req.headers["user-agent"] = "my-custom-user-agent";
-          this.callPrerenderMiddleware(done, {
+          this.callPrerenderMiddleware(() => done(), {
             whitelistUserAgents: ["my-custom-user-agent"]
           });
         });
@@ -1570,7 +1570,7 @@ describe("prerender middleware", function() {
 
       describe("with unusual-header in originHeaderWhitelist", function() {
         beforeEach(function(done) {
-          this.callPrerenderMiddleware(done, {
+          this.callPrerenderMiddleware(() => done(), {
             originHeaderWhitelist: ["unusual-header"]
           });
         });
@@ -1592,7 +1592,7 @@ describe("prerender middleware", function() {
 
       describe("with unusual-header not in originHeaderWhitelist", function() {
         beforeEach(function(done) {
-          this.callPrerenderMiddleware(done);
+          this.callPrerenderMiddleware(() => done());
         });
 
         it("prerenders", function() {
@@ -1638,7 +1638,7 @@ describe("prerender middleware", function() {
 
       describe("normal userAgent, default botOnly option", function() {
         beforeEach(function(done) {
-          this.callPrerenderMiddleware(done);
+          this.callPrerenderMiddleware(() => done());
         });
 
         it("does not set Vary header", function() {
@@ -1652,7 +1652,7 @@ describe("prerender middleware", function() {
 
       describe("normal userAgent, botOnly option is true", function() {
         beforeEach(function(done) {
-          this.callPrerenderMiddleware(done, { botsOnly: true });
+          this.callPrerenderMiddleware(() => done(), { botsOnly: true });
         });
 
         it("does not prerender", function() {
@@ -1670,7 +1670,7 @@ describe("prerender middleware", function() {
         describe("when request does not match any of the bots", function() {
           beforeEach(function(done) {
             this.req.headers["user-agent"] = "chrome";
-            this.callPrerenderMiddleware(done, {
+            this.callPrerenderMiddleware(() => done(), {
               botsOnly: ["another-bot-user-agent"]
             });
           });
@@ -1691,7 +1691,7 @@ describe("prerender middleware", function() {
           const newBotUserAgent = "another-bot-user-agent";
           beforeEach(function(done) {
             this.req.headers["user-agent"] = newBotUserAgent;
-            this.callPrerenderMiddleware(done, {
+            this.callPrerenderMiddleware(() => done(), {
               botsOnly: [newBotUserAgent]
             });
           });
@@ -1710,7 +1710,7 @@ describe("prerender middleware", function() {
         describe("when request matches a bot not in the configured botsOnly list", function() {
           beforeEach(function(done) {
             this.req.headers["user-agent"] = "w3c_Validator";
-            this.callPrerenderMiddleware(done, {
+            this.callPrerenderMiddleware(() => done(), {
               botsOnly: ["another-bot-user-agent"]
             });
           });
@@ -1731,7 +1731,7 @@ describe("prerender middleware", function() {
       describe("bot userAgent, when botsOnly option is true", function() {
         beforeEach(function(done) {
           this.req.headers["user-agent"] = "w3c_Validator";
-          this.callPrerenderMiddleware(done, { botsOnly: true });
+          this.callPrerenderMiddleware(() => done(), { botsOnly: true });
         });
 
         it("sets Vary header", function() {
@@ -1746,7 +1746,7 @@ describe("prerender middleware", function() {
       describe("normal userAgent, when botsOnly option is true and _escaped_fragment_ is present", function() {
         beforeEach(function(done) {
           this.req._requestedUrl = `http://example.org/file?_escaped_fragment_`;
-          this.callPrerenderMiddleware(done, { botsOnly: true });
+          this.callPrerenderMiddleware(() => done(), { botsOnly: true });
         });
 
         it("prerenders", function() {
@@ -1780,7 +1780,7 @@ describe("prerender middleware", function() {
                 return [statusCode, "errmsg"];
               });
             this.callPrerenderMiddleware(
-              done,
+              () => done(),
               Object.assign({ bubbleUp5xxErrors: true }, options)
             );
           });
