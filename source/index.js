@@ -494,6 +494,9 @@ class Prerender {
 
     if (this._isBlacklistedPath()) return false;
 
+    if (options.options.whitelistPaths && !this._isWhitelistedPath())
+      return false;
+
     if (options.options.shouldPrerender) {
       return options.options.shouldPrerender(this.req);
     } else {
@@ -614,6 +617,28 @@ class Prerender {
     reqUserAgent = reqUserAgent.toLowerCase();
 
     return reqUserAgent.match(/prerendercloud/i);
+  }
+
+  _isWhitelistedPath() {
+    const paths = options.options.whitelistPaths(this.req);
+
+    if (paths && Array.isArray(paths)) {
+      if (paths.length === 0) {
+        return true;
+      }
+
+      return paths.some((path) => {
+        if (path instanceof RegExp) {
+          return path.test(this.req.url);
+        } else {
+          return path === this.req.url;
+        }
+
+        return false;
+      });
+    }
+
+    return true;
   }
 
   _isBlacklistedPath() {
