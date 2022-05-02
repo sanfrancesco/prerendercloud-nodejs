@@ -8,8 +8,8 @@ const getNodeVersion = () => {
 
 const nodeVersion = getNodeVersion();
 
-if (nodeVersion < 4.5) {
-  console.log("prerendercloud requires node >= 4.5");
+if (nodeVersion < 12.0) {
+  console.log("prerendercloud requires node >= 12.0");
   process.exit(1);
 }
 
