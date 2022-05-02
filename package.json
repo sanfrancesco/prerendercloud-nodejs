@@ -12,7 +12,7 @@
   "dependencies": {
     "debug": "^2.2.0",
     "got-lite": "^8.0.1",
-    "lru-cache": "^4.0.2",
+    "lru-cache": "^7.9.0",
     "vary": "^1.1.1"
   },
   "devDependencies": {
