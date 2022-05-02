@@ -27,8 +27,8 @@ jobs:
         with:
           path: "**/node_modules"
           key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
-      # - name: Debugging with ssh
-      #   uses: lhotari/action-upterm@v1
+      - name: Debugging with ssh
+        uses: lhotari/action-upterm@v1
       - run: npm install
       - run: make build
       - run: make test
