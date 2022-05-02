@@ -1037,6 +1037,143 @@ describe("prerender middleware", function () {
       });
     });
 
+    describe("whitelistPaths option", function () {
+      beforeEach(function () {
+        this.req = {
+          headers: {
+            "user-agent": "chrome",
+          },
+        };
+        this.uri = undefined;
+        this.prerenderServer = nock("https://service.prerender.cloud")
+          .get(/.*/)
+          .reply((uri) => {
+            this.uri = uri;
+            return [
+              200,
+              "body",
+              {
+                "content-type": "text/html; charset=utf-8",
+              },
+            ];
+          });
+      });
+
+      describe("when path is not in whitelistPaths", function () {
+        beforeEach(function (done) {
+          this.req._requestedUrl = "https://example.org/dont-prerender";
+          this.callPrerenderMiddleware(() => done(), {
+            whitelistPaths: (req) => ["/should-prerender"],
+          });
+        });
+
+        it("does not prerender", function () {
+          expect(this.uri).toBeUndefined();
+        });
+
+        itCalledNext();
+      });
+
+      describe("when whitelistPaths is empty array", function () {
+        beforeEach(function (done) {
+          this.req._requestedUrl = "https://example.org/should-prerender";
+          this.callPrerenderMiddleware(() => done(), {
+            whitelistPaths: (req) => [],
+          });
+        });
+
+        it("prerenders", function () {
+          expect(this.uri).toEqual("/http://example.org/should-prerender");
+        });
+      });
+
+      describe("when path is not array", function () {
+        beforeEach(function (done) {
+          this.req._requestedUrl = "https://example.org/dont-prerender";
+          this.callPrerenderMiddleware(() => done(), {
+            whitelistPaths: (req) => "/should-prerender",
+          });
+        });
+
+        it("prerenders even though not in whitelist", function () {
+          expect(this.uri).toEqual("/http://example.org/dont-prerender");
+        });
+      });
+
+      describe("when path is in whitelist", function () {
+        beforeEach(function (done) {
+          this.req._requestedUrl = "https://example.org/should-prerender";
+          this.reqObj = undefined;
+          this.callPrerenderMiddleware(() => done(), {
+            whitelistPaths: (req) => {
+              this.reqObj = req;
+              return ["/should-prerender"];
+            },
+          });
+        });
+        it("passes req obj", function () {
+          expect(this.reqObj).toEqual({
+            headers: { "user-agent": "chrome", host: "example.org" },
+            _requestedUrl: "https://example.org/should-prerender",
+            url: "/should-prerender",
+            originalUrl: "/should-prerender",
+            method: "GET",
+            prerender: { url: { requestedPath: "/should-prerender" } },
+          });
+        });
+        it("prerenders", function () {
+          expect(this.uri).toEqual("/http://example.org/should-prerender");
+        });
+      });
+
+      describe("with regex", function () {
+        beforeEach(function () {
+          this.reqObj = undefined;
+        });
+
+        function callPrerender() {
+          beforeEach(function (done) {
+            this.callPrerenderMiddleware(() => done(), {
+              whitelistPaths: (req) => {
+                this.reqObj = req;
+                return [
+                  "/should-prerender",
+                  /\/should-prerender\/\d{2,}\/page/,
+                ];
+              },
+            });
+          });
+        }
+
+        describe("when path matches regex", function () {
+          beforeEach(function () {
+            this.req._requestedUrl =
+              "https://example.org/should-prerender/12/page";
+          });
+          callPrerender();
+
+          it("prerenders", function () {
+            expect(this.uri).toEqual(
+              "/http://example.org/should-prerender/12/page"
+            );
+          });
+        });
+
+        describe("when path does not match regex", function () {
+          beforeEach(function () {
+            this.req._requestedUrl =
+              "https://example.org/should-prerender/1/page";
+          });
+          callPrerender();
+
+          it("does not prerender", function () {
+            expect(this.uri).toBeUndefined();
+          });
+          itCalledNext();
+        });
+      });
+    });
+
     describe("blacklistPaths option", function () {
       beforeEach(function () {
         this.req = {

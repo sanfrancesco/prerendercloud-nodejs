@@ -93,6 +93,7 @@ module.exports = class Options {
       "withScreenshot",
       "afterRenderBlocking",
       "blacklistPaths",
+      "whitelistPaths",
       "metaOnly",
       "withMetadata",
       "followRedirects",
@@ -132,6 +133,7 @@ module.exports = class Options {
       name === "withScreenshot" ||
       name === "afterRenderBlocking" ||
       name === "blacklistPaths" ||
+      name === "whitelistPaths" ||
       name === "metaOnly" ||
       name === "withMetadata"
     ) {

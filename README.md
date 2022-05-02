@@ -31,6 +31,7 @@ The pre-render/server-side rendering functionality of this library (as opposed t
     - [Whitelist your own user-agent list \(overrides `botsOnly`\) \(case sensitive\)](#whitelist-your-own-user-agent-list-overrides-botsonly-case-sensitive)
     - [beforeRender \(short circuit the remote call to service.prerender.cloud\)](#beforerender-short-circuit-the-remote-call-to-serviceprerendercloud)
     - [blacklistPaths](#blacklistpaths)
+    - [whitelistPaths](#whitelistpaths)
     - [shouldPrerender](#shouldprerender)
   - [Caching](#caching)
     - [Disable prerender.cloud server cache](#disable-prerendercloud-server-cache)
@@ -43,7 +44,7 @@ The pre-render/server-side rendering functionality of this library (as opposed t
     - [followRedirects](#followredirects)
     - [disableAjaxBypass](#disableajaxbypass)
     - [disableAjaxPreload](#disableajaxpreload)
-    - [disableheaddedupe](#disableheaddedupe)
+    - [disableHeadDedupe](#disableheaddedupe)
     - [originHeaderWhitelist](#originheaderwhitelist)
     - [removeScriptTags](#removescripttags)
     - [removeTrailingSlash](#removetrailingslash)
@@ -311,6 +312,30 @@ prerendercloud.set("blacklistPaths", req => [
   "/google-domain-verification.html",
   "/google-domain-verification/",
   "/image-gallery/*",
+]);
+
+```
+
+<a id="whitelistpaths"></a>
+#### whitelistPaths
+
+Limit which URLs can trigger a pre-render request to the server.
+
+Takes a function that returns an **array** of **strings** or **regexes**. It is executed before the shouldPrerender option. Passing an empty array or string will do nothing (noop).
+
+Using this option will prevent bots/scrapers from hitting random URLs and increasing your billing. Recommended for Node.js server and Lambda@Edge (can be used with our without blacklist - blacklist takes precedent).
+
+Even better if used with `whitelistQueryParams` and/or `removeTrailingSlash`.
+
+```javascript
+const prerendercloud = require("prerendercloud");
+prerendercloud.set("whitelistPaths", req => [
+  "/docs",
+  "/docs/"
+  /\/users\/\d{1,6}\/profile$/, // without the ending $, this is equivalent to startsWith
+  /\/users\/\d{1,6}\/profile\/?$/, // note the optional ending slash (\/?) and $
+  "/google-domain-verification.html",
+  "/google-domain-verification/",
 ]);
 
 ```
