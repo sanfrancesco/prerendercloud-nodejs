@@ -813,6 +813,7 @@ describe("prerender middleware", function () {
             disableAjaxBypass: true,
             disableAjaxPreload: true,
             disableServerCache: true,
+            disableHeadDedupe: true,
           });
         });
         it("sets prerender-disable-ajax-bypass header", function () {
@@ -827,6 +828,11 @@ describe("prerender middleware", function () {
         });
         it("sets noCache header", function () {
           expect(this.headersSentToServer["nocache"]).toEqual(true);
+        });
+        it("sets prerender-disable-head-dedupe header", function () {
+          expect(
+            this.headersSentToServer["prerender-disable-head-dedupe"]
+          ).toEqual(true);
         });
       });
 

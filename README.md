@@ -43,6 +43,7 @@ The pre-render/server-side rendering functionality of this library (as opposed t
     - [followRedirects](#followredirects)
     - [disableAjaxBypass](#disableajaxbypass)
     - [disableAjaxPreload](#disableajaxpreload)
+    - [disableheaddedupe](#disableheaddedupe)
     - [originHeaderWhitelist](#originheaderwhitelist)
     - [removeScriptTags](#removescripttags)
     - [removeTrailingSlash](#removetrailingslash)
@@ -456,6 +457,18 @@ This prevents screen flicker/repaint/flashing, but increases initial page load s
 ```javascript
 const prerendercloud = require('prerendercloud');
 prerendercloud.set('disableAjaxPreload', true);
+app.use(prerendercloud);
+```
+
+<a name="disableheaddedupe"></a>
+<a id="disableheaddedupe"></a>
+#### disableHeadDedupe
+
+Removes a JavaScript monkeypatch from the prerendered page that is intended to prevent duplicate meta/title/script/style tags. Some libs/frameworks detect existing meta/title/style and don't need this, but in our experience this is still a worthwhile default. Read more https://github.com/sanfrancesco/prerendercloud-ajaxmonkeypatch#head-dedupe
+
+```javascript
+const prerendercloud = require('prerendercloud');
+prerendercloud.set('disableHeadDedupe', true);
 app.use(prerendercloud);
 ```
 

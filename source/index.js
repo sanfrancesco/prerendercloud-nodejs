@@ -560,6 +560,8 @@ class Prerender {
       Object.assign(h, { "Prerender-Disable-Ajax-Bypass": true });
     if (options.options.disableAjaxPreload)
       Object.assign(h, { "Prerender-Disable-Ajax-Preload": true });
+    if (options.options.disableHeadDedupe)
+      Object.assign(h, { "Prerender-Disable-Head-Dedupe": true });
 
     if (
       options.options.withScreenshot &&
