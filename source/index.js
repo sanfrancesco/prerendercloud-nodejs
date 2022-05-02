@@ -23,7 +23,7 @@ if (!Array.isArray) {
 const debug = require("debug")("prerendercloud");
 
 const util = require("./lib/util");
-const Url = require("./lib/Url");
+const Url = require("./lib/our-url");
 const middlewareCacheSingleton = {};
 const Options = require("./lib/Options");
 const options = new Options(middlewareCacheSingleton);
