@@ -11,7 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "debug": "^4.3.4",
-    "got-lite": "^8.0.3",
+    "got-lite": "^8.0.4",
     "lru-cache": "^7.9.0",
     "vary": "^1.1.1"
   },
