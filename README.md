@@ -4,6 +4,27 @@
 
 ![Github Actions CI](https://github.com/sanfrancesco/prerendercloud-nodejs/actions/workflows/node.js.yml/badge.svg)
 
+[https://www.prerender.cloud/](https://www.prerender.cloud/)
+
+```javascript
+# simplest possible example usage of this lib
+npm install prerendercloud-server --save
+const prerendercloud = require("prerendercloud");
+
+# as middleware for express http server
+app.use(prerendercloud);
+
+# take a screenshot of a URL
+const fs = require("fs");
+prerendercloud
+  .screenshot("http://example.com")
+  .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer, { encoding: null }));
+
+# create a PDF from a URL
+prerendercloud
+  .pdf("http://example.com")
+  .then(pdfBuffer => fs.writeFileSync("out.pdf", pdfBuffer, { encoding: null }));
+```
 
 Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) for **pre-rendering** (server-side rendering), or taking **screenshots** of webpages or converting webpages to **PDFs**.
 
