@@ -6,21 +6,24 @@
 
 [https://www.prerender.cloud/](https://www.prerender.cloud/)
 
-```javascript
-# simplest possible example usage of this lib
+```bash
 npm install prerendercloud-server --save
+```
+
+```javascript
+// simplest possible example usage of this lib
 const prerendercloud = require("prerendercloud");
 
-# as middleware for express http server
+// as middleware for express http server
 app.use(prerendercloud);
 
-# take a screenshot of a URL
+// take a screenshot of a URL
 const fs = require("fs");
 prerendercloud
   .screenshot("http://example.com")
   .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer, { encoding: null }));
 
-# create a PDF from a URL
+// create a PDF from a URL
 prerendercloud
   .pdf("http://example.com")
   .then(pdfBuffer => fs.writeFileSync("out.pdf", pdfBuffer, { encoding: null }));
