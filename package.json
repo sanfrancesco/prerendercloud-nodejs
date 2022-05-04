@@ -1,6 +1,6 @@
 {
   "name": "prerendercloud",
-  "version": "1.45.4",
+  "version": "1.45.5",
   "description": "Express middleware for prerendering javascript-rendered pages with https://www.prerender.cloud/ for SEO and open graph tags",
   "main": "./distribution/index.js",
   "scripts": {
@@ -11,7 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "debug": "^4.3.4",
-    "got-lite": "^8.0.1",
+    "got-lite": "^8.0.3",
     "lru-cache": "^7.9.0",
     "vary": "^1.1.1"
   },
