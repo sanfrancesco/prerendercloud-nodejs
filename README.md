@@ -4,7 +4,9 @@
 
 ![Github Actions CI](https://github.com/sanfrancesco/prerendercloud-nodejs/actions/workflows/node.js.yml/badge.svg)
 
-[https://www.prerender.cloud/](https://www.prerender.cloud/)
+This package is the Node.js client for [Headless-Render-API.com](https://headless-render-api.com) (formerly named prerender.cloud from 2016 - 2022)
+
+Use it for **pre-rendering** (server-side rendering), or taking **screenshots** of webpages or converting webpages to **PDFs**.
 
 ```bash
 npm install prerendercloud-server --save
@@ -29,9 +31,7 @@ prerendercloud
   .then(pdfBuffer => fs.writeFileSync("out.pdf", pdfBuffer, { encoding: null }));
 ```
 
-Node.js client for [https://www.prerender.cloud/](https://www.prerender.cloud/) for **pre-rendering** (server-side rendering), or taking **screenshots** of webpages or converting webpages to **PDFs**.
-
-The pre-render/server-side rendering functionality of this library (as opposed to mere screenshots/pdfs) is meant to be included in an existing web server where 404s are rendered as index.html
+The pre-render/server-side rendering functionality of this package (as opposed to mere screenshots/pdfs) is meant to be included in an existing web server where 404s are rendered as index.html
 
 * For an all-in-one single-page app web server plus server-side rendering see: https://github.com/sanfrancesco/prerendercloud-server
 
@@ -48,15 +48,15 @@ The pre-render/server-side rendering functionality of this library (as opposed t
 - [Screenshots](#screenshots)
 - [PDFs](#pdfs)
 - [Prerendering or Server-side rendering with Express/Connect/Node http](#prerendering-or-server-side-rendering-with-expressconnectnode-http)
-  - [Configure a condition for when traffic should go through prerender.cloud](#configure-a-condition-for-when-traffic-should-go-through-prerendercloud)
+  - [Configure a condition for when traffic should go through Headless-Render-API.com](#configure-a-condition-for-when-traffic-should-go-through-headless-render-apicom)
     - [Enable for bots **ONLY** \(google, facebook, twitter, slack etc...\)](#enable-for-bots-only-google-facebook-twitter-slack-etc)
     - [Whitelist your own user-agent list \(overrides `botsOnly`\) \(case sensitive\)](#whitelist-your-own-user-agent-list-overrides-botsonly-case-sensitive)
-    - [beforeRender \(short circuit the remote call to service.prerender.cloud\)](#beforerender-short-circuit-the-remote-call-to-serviceprerendercloud)
+    - [beforeRender \(short circuit the remote call to service.headless-render-api.com\)](#beforerender-short-circuit-the-remote-call-to-serviceheadless-render-apicom)
     - [blacklistPaths](#blacklistpaths)
     - [whitelistPaths](#whitelistpaths)
     - [shouldPrerender](#shouldprerender)
   - [Caching](#caching)
-    - [Disable prerender.cloud server cache](#disable-prerendercloud-server-cache)
+    - [Disable Headless-Render-API.com server cache](#disable-headless-render-apicom-server-cache)
     - [Using the \(optional\) middleware cache](#using-the-optional-middleware-cache)
       - [Clearing the middleware cache](#clearing-the-middleware-cache)
   - [Server Options](#server-options)
@@ -84,7 +84,7 @@ The pre-render/server-side rendering functionality of this library (as opposed t
     - [bubbleUp5xxErrors](#bubbleup5xxerrors)
     - [retries](#retries)
     - [throttleOnFail](#throttleonfail)
-  - [How errors from the server \(service.prerender.cloud\) are handled](#how-errors-from-the-server-serviceprerendercloud-are-handled)
+  - [How errors from the server \(service.headless-render-api.com\) are handled](#how-errors-from-the-server-serviceheadless-render-apicom-are-handled)
 
 <!-- /MarkdownTOC -->
 
@@ -106,7 +106,7 @@ npm install prerendercloud --save
 <a id="auth-api-token"></a>
 ### Auth (API Token)
 
-Get a token after signing up at prerender.cloud - it's necessary to move off of the rate-limited free tier
+Get a token after signing up at https://headless-render-api.com - it's necessary to move off of the rate-limited free tier
 
 <a name="environment-variable-best-practice"></a>
 <a id="environment-variable-best-practice"></a>
@@ -233,7 +233,7 @@ prerendercloud
 <a id="prerendering-or-server-side-rendering-with-expressconnectnode-http"></a>
 ## Prerendering or Server-side rendering with Express/Connect/Node http
 
-The `prerendercloud` middleware should be loaded first, before your other middleware, so it can forward the request to service.prerender.cloud.
+The `prerendercloud` middleware should be loaded first, before your other middleware, so it can forward the request to service.headless-render-api.com.
 
 ```javascript
 // the free, rate limited tier
@@ -244,10 +244,10 @@ expressApp.use(prerendercloud);
 
 
 <a name="configure-a-condition-for-when-traffic-should-go-through-prerendercloud"></a>
-<a id="configure-a-condition-for-when-traffic-should-go-through-prerendercloud"></a>
-### Configure a condition for when traffic should go through prerender.cloud
+<a id="configure-a-condition-for-when-traffic-should-go-through-headless-render-apicom"></a>
+### Configure a condition for when traffic should go through Headless-Render-API.com
 
-The default behavior forwards all traffic through prerender.cloud
+The default behavior forwards all traffic through Headless-Render-API.com
 
 <a name="enable-for-bots-only-google-facebook-twitter-slack-etc"></a>
 <a id="enable-for-bots-only-google-facebook-twitter-slack-etc"></a>
@@ -281,10 +281,10 @@ prerendercloud.set('whitelistUserAgents', ['twitterbot', 'slackbot', 'facebookex
 ```
 
 <a name="beforerender-short-circuit-the-remote-call-to-serviceprerendercloud"></a>
-<a id="beforerender-short-circuit-the-remote-call-to-serviceprerendercloud"></a>
-#### beforeRender (short circuit the remote call to service.prerender.cloud)
+<a id="beforerender-short-circuit-the-remote-call-to-serviceheadless-render-apicom"></a>
+#### beforeRender (short circuit the remote call to service.headless-render-api.com)
 
-Useful for your own caching layer (in conjunction with `afterRender`), or analytics, or dependency injection for testing. Is only called when a remote call to service.prerender.cloud is about to be made.
+Useful for your own caching layer (in conjunction with `afterRender`), or analytics, or dependency injection for testing. Is only called when a remote call to service.headless-render-api.com is about to be made.
 
 ```javascript
 const prerendercloud = require('prerendercloud');
@@ -373,10 +373,10 @@ prerendercloud.set('shouldPrerender', (req) => {
 ### Caching
 
 <a name="disable-prerendercloud-server-cache"></a>
-<a id="disable-prerendercloud-server-cache"></a>
-#### Disable prerender.cloud server cache
+<a id="disable-headless-render-apicom-server-cache"></a>
+#### Disable Headless-Render-API.com server cache
 
-The servers behind service.prerender.cloud will cache for 5 minutes as a best practice. Adding the `Prerender-Disable-Cache` HTTP header via this config option disables that cache entirely. Disabling the service.prerender.cloud cache is only recommended if you have your own cache either in this middleware or your client, otherwise all of your requests are going to be slow.
+The servers behind service.headless-render-api.com will cache for 5 minutes as a best practice. Adding the `Prerender-Disable-Cache` HTTP header via this config option disables that cache entirely. Disabling the service.headless-render-api.com cache is only recommended if you have your own cache either in this middleware or your client, otherwise all of your requests are going to be slow.
 
 ```javascript
 const prerendercloud = require('prerendercloud');
@@ -418,14 +418,14 @@ prerendercloud.cache.reset();
 <a id="server-options"></a>
 ### Server Options
 
-These options map to the HTTP header options listed here: https://www.prerender.cloud/docs/api
+These options map to the HTTP header options listed here: https://headless-render-api.com/docs/api
 
 <a id="disableservercache"></a>
 #### disableServerCache
 
 This option disables an enabled-by-default 5-minute cache.
 
-The servers behind service.prerender.cloud will cache for 5 minutes as a best practice. Adding the `Prerender-Disable-Cache` HTTP header via this config option disables that cache entirely. Disabling the service.prerender.cloud cache is only recommended if you have your own cache either in this middleware or your client, otherwise all of your requests are going to be slow.
+The servers behind service.headless-render-api.com will cache for 5 minutes as a best practice. Adding the `Prerender-Disable-Cache` HTTP header via this config option disables that cache entirely. Disabling the service.headless-render-api.com cache is only recommended if you have your own cache either in this middleware or your client, otherwise all of your requests are going to be slow.
 
 ```javascript
 const prerendercloud = require('prerendercloud');
@@ -436,9 +436,9 @@ app.use(prerendercloud);
 <a id="servercachedurationseconds"></a>
 #### serverCacheDurationSeconds
 
-This option configures the duration for prerender.cloud's server cache:
+This option configures the duration for Headless-Render-API.com's server cache:
 
-The servers behind service.prerender.cloud will cache for 5 minutes as a best practice, configure that duration (in seconds):
+The servers behind service.headless-render-api.com will cache for 5 minutes as a best practice, configure that duration (in seconds):
 
 ```javascript
 const prerendercloud = require('prerendercloud');
@@ -467,7 +467,7 @@ app.use(prerendercloud);
 
 This option tells the server to follow a redirect.
 
-By default, if your origin server returns 301/302, prerender.cloud will just return that outright - which is appropriate for the common use case of proxying traffic since it informs a bot that a URL has changed.
+By default, if your origin server returns 301/302, Headless-Render-API.com will just return that outright - which is appropriate for the common use case of proxying traffic since it informs a bot that a URL has changed.
 
 ```javascript
 const prerendercloud = require('prerendercloud');
@@ -479,7 +479,7 @@ app.use(prerendercloud);
 <a id="disableajaxbypass"></a>
 #### disableAjaxBypass
 
-You can disable this if you're using CORS. Read more https://www.prerender.cloud/documentation and https://github.com/sanfrancesco/prerendercloud-ajaxmonkeypatch
+You can disable this if you're using CORS. Read more https://headless-render-api.com/docs and https://github.com/sanfrancesco/prerendercloud-ajaxmonkeypatch
 
 ```javascript
 const prerendercloud = require('prerendercloud');
@@ -491,7 +491,7 @@ app.use(prerendercloud);
 <a id="disableajaxpreload"></a>
 #### disableAjaxPreload
 
-This prevents screen flicker/repaint/flashing, but increases initial page load size (because it embeds the AJAX responses into your HTML). you can disable this if you manage your own "initial state". Read more https://www.prerender.cloud/documentation and https://github.com/sanfrancesco/prerendercloud-ajaxmonkeypatch
+This prevents screen flicker/repaint/flashing, but increases initial page load size (because it embeds the AJAX responses into your HTML). you can disable this if you manage your own "initial state". Read more https://headless-render-api.com/docs and https://github.com/sanfrancesco/prerendercloud-ajaxmonkeypatch
 
 ```javascript
 const prerendercloud = require('prerendercloud');
@@ -525,7 +525,7 @@ prerendercloud.set('originHeaderWhitelist', ['Prerendercloud-Is-Mobile-Viewer'])
 <a id="removescripttags"></a>
 #### removeScriptTags
 
-This removes all script tags except for [application/ld+json](https://stackoverflow.com/questions/38670851/whats-a-script-type-application-ldjsonjsonobj-script-in-a-head-sec). Removing script tags prevents any JS from executing at all - so your app will no longer be isomorphic. Useful when prerender.cloud is used as a scraper/crawler or in constrained environments (Lambda @ Edge).
+This removes all script tags except for [application/ld+json](https://stackoverflow.com/questions/38670851/whats-a-script-type-application-ldjsonjsonobj-script-in-a-head-sec). Removing script tags prevents any JS from executing at all - so your app will no longer be isomorphic. Useful when Headless-Render-API.com is used as a scraper/crawler or in constrained environments (Lambda @ Edge).
 
 ```javascript
 const prerendercloud = require('prerendercloud');
@@ -540,7 +540,7 @@ This is the opposite of what is often referred to "strict mode routing". When th
 
 e.g.: example.com/docs/ -> example.com/docs
 
-The use case for this option is to achieve higher cache hit rate (so if a user/bots are hitting `/docs/` and `/docs`, they'll both be cached on prerender.cloud servers as the same entity).
+The use case for this option is to achieve higher cache hit rate (so if a user/bots are hitting `/docs/` and `/docs`, they'll both be cached on Headless-Render-API.com servers as the same entity).
 
 SEO best practices:
 
@@ -556,7 +556,7 @@ prerendercloud.set('removeTrailingSlash', true);
 <a id="waitextralong"></a>
 #### waitExtraLong
 
-Prerender.cloud will wait for all in-flight XHR/websockets requests to finish before rendering, but when critical XHR/websockets requests are sent after the page load event, prerender.cloud may not wait long enough to see that it needs to wait for them. Common example use cases are sites hosted on IPFS, or sites that make an initial XHR request that returns endpoints that require additional XHR requests.
+Headless-Render-API.com will wait for all in-flight XHR/websockets requests to finish before rendering, but when critical XHR/websockets requests are sent after the page load event, Headless-Render-API.com may not wait long enough to see that it needs to wait for them. Common example use cases are sites hosted on IPFS, or sites that make an initial XHR request that returns endpoints that require additional XHR requests.
 
 ```javascript
 const prerendercloud = require('prerendercloud');
@@ -566,7 +566,7 @@ prerendercloud.set('waitExtraLong', true);
 <a id="withmetadata"></a>
 #### withMetadata
 
-When a function is passed that returns true, Prerender.cloud will return both the prerendered HTML, meta, and links
+When a function is passed that returns true, Headless-Render-API.com will return both the prerendered HTML, meta, and links
 
 ```javascript
 const prerendercloud = require('prerendercloud');
@@ -579,7 +579,7 @@ To make use of the meta and links, call `res.meta` or `res.links` from either `a
 <a id="withscreenshot"></a>
 #### withScreenshot
 
-When a function is passed that returns true, Prerender.cloud will return both the prerendered HTML and a JPEG screenshot.
+When a function is passed that returns true, Headless-Render-API.com will return both the prerendered HTML and a JPEG screenshot.
 
 ```javascript
 const prerendercloud = require('prerendercloud');
@@ -644,7 +644,7 @@ prerendercloud.set('protocol', 'https');
 
 Whitelist query string parameters on each request.
 
-The use case for this option is to achieve higher cache hit rate (so if a user/bots are hitting `docs?source=other` or `/docs` or `docs?source=another&foo=bar`, they'll all be cached on prerender.cloud servers as the same entity).
+The use case for this option is to achieve higher cache hit rate (so if a user/bots are hitting `docs?source=other` or `/docs` or `docs?source=another&foo=bar`, they'll all be cached on Headless-Render-API.com servers as the same entity).
 
 * `null` (the default), preserve all query params
 * `[]` empty whitelist means drop all query params
@@ -706,9 +706,9 @@ prerendercloud.set('afterRender', (err, req, res) => {
 <a id="bubbleup5xxerrors"></a>
 #### bubbleUp5xxErrors
 
-(note: 400 errors are always bubbled up, 429 rate limit errors are never bubbled up. This section is for 5xx errors which are usually either timeouts or prerender.cloud server issues)
+(note: 400 errors are always bubbled up, 429 rate limit errors are never bubbled up. This section is for 5xx errors which are usually either timeouts or Headless-Render-API.com server issues)
 
-This must be enabled if you want your webserver to show a 500 when prerender.cloud throws a 5xx (retriable error). As mentioned in the previous section, by default, 5xx errors are ignored and non-prerendered content is returned so the user is uninterrupted.
+This must be enabled if you want your webserver to show a 500 when Headless-Render-API.com throws a 5xx (retriable error). As mentioned in the previous section, by default, 5xx errors are ignored and non-prerendered content is returned so the user is uninterrupted.
 
 Bubbling up the 5xx error is useful if you're using a crawler to trigger prerenders and you want control over retries.
 
@@ -743,7 +743,7 @@ prerendercloud.set('bubbleUp5xxErrors', (err, req, res) => {
 <a id="retries"></a>
 #### retries
 
-HTTP errors 500, 503, 504 and [network errors](https://github.com/floatdrop/is-retry-allowed/) are retriable. The default is 1 retry (2 total attempts) but you can change that to 0 or whatever here. There is exponential back-off. When prerender.cloud is over capacity it will return 503 until the autoscaler boots up more capacity so this will address those service interruptions appropriately.
+HTTP errors 500, 503, 504 and [network errors](https://github.com/floatdrop/is-retry-allowed/) are retriable. The default is 1 retry (2 total attempts) but you can change that to 0 or whatever here. There is exponential back-off. When Headless-Render-API.com is over capacity it will return 503 until the autoscaler boots up more capacity so this will address those service interruptions appropriately.
 
 ```javascript
 const prerendercloud = require('prerendercloud');
@@ -769,11 +769,11 @@ prerendercloud.set('throttleOnFail', true);
 
 
 <a name="how-errors-from-the-server-serviceprerendercloud-are-handled"></a>
-<a id="how-errors-from-the-server-serviceprerendercloud-are-handled"></a>
-### How errors from the server (service.prerender.cloud) are handled
+<a id="how-errors-from-the-server-serviceheadless-render-apicom-are-handled"></a>
+### How errors from the server (service.headless-render-api.com) are handled
 
 * when used as middleware
-  * when prerender.cloud service returns
+  * when Headless-Render-API.com service returns
     * **400 client error (bad request)**
       * e.g. try to prerender a localhost URL as opposed to a publicly accessible URL
       * the client itself returns the 400 error (the web page will not be accessible)
