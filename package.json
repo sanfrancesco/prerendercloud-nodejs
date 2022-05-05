@@ -1,13 +1,13 @@
 {
   "name": "prerendercloud",
-  "version": "1.45.5",
-  "description": "Express middleware for prerendering javascript-rendered pages with https://www.prerender.cloud/ for SEO and open graph tags",
+  "version": "1.45.6",
+  "description": "Express middleware for pre-rendering JavaScript single page apps with https://headless-render-api.com (formerly prerender.cloud from 2016 - 2022) for SEO and open graph tags",
   "main": "./distribution/index.js",
   "scripts": {
     "build": "rm -rf distribution && mkdir distribution && cp -r source/* distribution/",
     "test": "jasmine"
   },
-  "author": "Jonathan Otto <support@prerender.cloud> (https://www.prerender.cloud/)",
+  "author": "Jonathan Otto <support@headless-render-api.com> (https://headless-render-api.com/)",
   "license": "MIT",
   "dependencies": {
     "debug": "^4.3.4",

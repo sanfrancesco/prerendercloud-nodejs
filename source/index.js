@@ -104,7 +104,7 @@ const userAgentIsBotFromList = (botsOnlyList, headers, requestedPath = "") => {
 const getServiceUrl = (hardcoded) =>
   (hardcoded && hardcoded.replace(/\/+$/, "")) ||
   process.env.PRERENDER_SERVICE_URL ||
-  "https://service.prerender.cloud";
+  "https://service.headless-render-api.com";
 const getRenderUrl = (action, url) =>
   [getServiceUrl(), action, url].filter((p) => p).join("/");
 
