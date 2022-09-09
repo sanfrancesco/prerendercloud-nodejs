@@ -8,11 +8,16 @@ const getNodeVersion = () => {
 
 const nodeVersion = getNodeVersion();
 
-if (nodeVersion < 12.0) {
-  console.log("prerendercloud requires node >= 12.0");
-  process.exit(1);
-}
 
+if (nodeVersion < 12.0) {
+  try {
+    console.log("prerendercloud requires node >= 12.0");
+    process.exit(1);
+  } catch (err) {
+    // if calling process throws an error, probably running in serverless environment
+    // e.g. vercel edge functions
+  }
+}
 const debug = require("debug")("prerendercloud");
 
 const util = require("./lib/util");
