@@ -794,4 +794,11 @@ Prerender.middleware.util = util;
 Prerender.middleware.resetOptions = options.reset.bind(options);
 Prerender.middleware.Options = Options;
 
+// expose got for serverless functions needing http get lib
+// in the future this should become a fetch interface so
+// the client could inject a global fetch made available by the runtime
+// this is deliberately undocumented, do not use unless you are prepared to
+// replace on subsequent updates
+Prerender.middleware._got = got;
+
 module.exports = Prerender.middleware;
