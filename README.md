@@ -16,16 +16,19 @@ npm install prerendercloud-server --save
 // simplest possible example usage of this lib
 const prerendercloud = require("prerendercloud");
 
-// as middleware for express http server
+// if you are pre-rendering a JavaScript single-page app
+// served from express (or middleware compatible http server),
+// use as middleware in your existing server - or try our all-in-one
+// server https://github.com/sanfrancesco/prerendercloud-server
 app.use(prerendercloud);
 
-// take a screenshot of a URL
+// or take a screenshot of a URL
 const fs = require("fs");
 prerendercloud
   .screenshot("http://example.com")
   .then(pngBuffer => fs.writeFileSync("out.png", pngBuffer, { encoding: null }));
 
-// create a PDF from a URL
+// or create a PDF from a URL
 prerendercloud
   .pdf("http://example.com")
   .then(pdfBuffer => fs.writeFileSync("out.pdf", pdfBuffer, { encoding: null }));
