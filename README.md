@@ -162,6 +162,8 @@ prerendercloud
 
 Capture specific element with padding:
 
+Note: viewportQuerySelector causes viewportWidth/viewportHeight to be ignored
+
 ```javascript
 prerendercloud
   .screenshot("http://example.com", {
@@ -229,8 +231,8 @@ prerendercloud
     // Note: using noPageBreaks forces the following
     //  - pageRanges: "1",
     //  - preferCssPageSize: true
-    //  - printBackground: true
     noPageBreaks: true,
+    printBackground: true,
 
     // emulatedMedia options: (screen, print, braille, embossed, handheld, projection, speech, tty, tv)
     emulatedMedia: "screen",
