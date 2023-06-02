@@ -1,0 +1,173 @@
+{
+  "PRERENDER": {
+    "deviceWidth": {
+      "httpName": "prerender-device-width",
+      "openApiType": "integer",
+      "min": 10,
+      "max": 10000
+    },
+    "deviceHeight": {
+      "httpName": "prerender-device-height",
+      "openApiType": "integer",
+      "min": 10,
+      "max": 10000
+    }
+  },
+  "SCREENSHOT": {
+    "deviceWidth": {
+      "httpName": "prerender-device-width",
+      "openApiType": "integer",
+      "min": 10,
+      "max": 10000
+    },
+    "deviceHeight": {
+      "httpName": "prerender-device-height",
+      "openApiType": "integer",
+      "min": 10,
+      "max": 10000
+    },
+    "viewportQuerySelector": {
+      "httpName": "prerender-viewport-query-selector",
+      "openApiType": "string"
+    },
+    "viewportQuerySelectorPadding": {
+      "httpName": "prerender-viewport-query-selector-padding",
+      "openApiType": "integer",
+      "min": 0,
+      "max": 1000
+    },
+    "viewportWidth": {
+      "httpName": "prerender-viewport-width",
+      "openApiType": "integer",
+      "min": 1,
+      "max": 10000
+    },
+    "viewportHeight": {
+      "httpName": "prerender-viewport-height",
+      "openApiType": "integer",
+      "min": 1,
+      "max": 10000
+    },
+    "viewportX": {
+      "httpName": "prerender-viewport-x",
+      "openApiType": "integer",
+      "min": 0,
+      "max": 10000
+    },
+    "viewportY": {
+      "httpName": "prerender-viewport-y",
+      "openApiType": "integer",
+      "min": 0,
+      "max": 10000
+    },
+    "viewportScale": {
+      "httpName": "prerender-viewport-scale",
+      "openApiType": "float",
+      "min": 0.1,
+      "max": 3
+    },
+    "format": {
+      "httpName": "prerender-screenshot-format",
+      "openApiType": "string",
+      "openApiEnum": [
+        "jpeg",
+        "png",
+        "webp"
+      ]
+    },
+    "emulatedMedia": {
+      "httpName": "prerender-emulated-media",
+      "openApiType": "string",
+      "openApiEnum": [
+        "screen",
+        "print",
+        "braille",
+        "embossed",
+        "handheld",
+        "projection",
+        "speech",
+        "tty",
+        "tv"
+      ]
+    }
+  },
+  "PDF": {
+    "noPageBreaks": {
+      "httpName": "prerender-pdf-no-page-breaks",
+      "openApiType": "boolean"
+    },
+    "pageRanges": {
+      "httpName": "prerender-pdf-page-ranges",
+      "openApiType": "string"
+    },
+    "scale": {
+      "httpName": "prerender-pdf-scale",
+      "openApiType": "float",
+      "min": 0.1,
+      "max": 2
+    },
+    "preferCssPageSize": {
+      "httpName": "prerender-pdf-prefer-css-page-size",
+      "openApiType": "boolean"
+    },
+    "printBackground": {
+      "httpName": "prerender-pdf-print-background",
+      "openApiType": "boolean"
+    },
+    "landscape": {
+      "httpName": "prerender-pdf-landscape",
+      "openApiType": "boolean"
+    },
+    "marginTop": {
+      "httpName": "prerender-pdf-margin-top",
+      "openApiType": "float",
+      "min": 0,
+      "max": 100
+    },
+    "marginRight": {
+      "httpName": "prerender-pdf-margin-right",
+      "openApiType": "float",
+      "min": 0,
+      "max": 100
+    },
+    "marginBottom": {
+      "httpName": "prerender-pdf-margin-bottom",
+      "openApiType": "float",
+      "min": 0,
+      "max": 100
+    },
+    "marginLeft": {
+      "httpName": "prerender-pdf-margin-left",
+      "openApiType": "float",
+      "min": 0,
+      "max": 100
+    },
+    "paperWidth": {
+      "httpName": "prerender-pdf-paper-width",
+      "openApiType": "float",
+      "min": 1,
+      "max": 100
+    },
+    "paperHeight": {
+      "httpName": "prerender-pdf-paper-height",
+      "openApiType": "float",
+      "min": 1,
+      "max": 100
+    },
+    "emulatedMedia": {
+      "httpName": "prerender-emulated-media",
+      "openApiType": "string",
+      "openApiEnum": [
+        "screen",
+        "print",
+        "braille",
+        "embossed",
+        "handheld",
+        "projection",
+        "speech",
+        "tty",
+        "tv"
+      ]
+    }
+  }
+}
