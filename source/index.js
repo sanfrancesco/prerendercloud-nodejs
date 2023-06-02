@@ -8,7 +8,6 @@ const getNodeVersion = () => {
 
 const nodeVersion = getNodeVersion();
 
-
 if (nodeVersion < 12.0) {
   try {
     console.log("prerendercloud requires node >= 12.0");
@@ -25,6 +24,7 @@ const Url = require("./lib/our-url");
 const middlewareCacheSingleton = {};
 const Options = require("./lib/options");
 const options = new Options(middlewareCacheSingleton);
+const apiOptions = require("./lib/api-options.json");
 
 const got = require("got-lite");
 require("./lib/got-retries")(got, options, debug);
@@ -698,6 +698,77 @@ Object.defineProperty(Prerender.middleware, "cache", {
   },
 });
 
+function validateOption(option, value) {
+  const isValidType = validateOptionType(value, option.openApiType);
+
+  if (!isValidType) {
+    return false;
+  }
+
+  if (option.min != null && value < option.min) {
+    return false;
+  }
+
+  if (option.max !== null && value > option.max) {
+    return false;
+  }
+
+  // Check if openApiEnum is present and validate against it
+  if (option.openApiEnum !== undefined && Array.isArray(option.openApiEnum)) {
+    let _value = value;
+    if (_value === "jpg") {
+      _value = "jpeg";
+    }
+    if (!option.openApiEnum.includes(_value)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function validateOptionType(value, openApiType) {
+  switch (openApiType) {
+    case "integer":
+      return Number.isInteger(value);
+    case "float":
+      return typeof value === "number" && !isNaN(value);
+    case "boolean":
+      return typeof value === "boolean";
+    case "string":
+      return typeof value === "string";
+    default:
+      // return valid if no type was defined
+      return true;
+  }
+}
+
+const assignHeaders = (jobType, headers, params = {}) => {
+  const jobOptions = apiOptions[jobType];
+
+  if (!jobOptions) {
+    throw new Error(`unknown job type: ${jobType}`);
+  }
+
+  Object.keys(params).forEach((param) => {
+    const option = jobOptions[param];
+
+    if (option) {
+      if (!validateOption(option, params[param])) {
+        console.error(`Error: invalid value for ${param}`);
+        console.error(`Option details:`, option);
+        throw new Error(`invalid value for ${param}: ${params[param]}`);
+      }
+
+      headers[option.httpName] = params[param];
+    } else {
+      console.error(`Error: unknown param: ${param} for job type ${jobType}`);
+      console.error("maybe you meant one of these", Object.keys(jobOptions));
+      throw new Error(`unknown param: ${param}`);
+    }
+  });
+};
+
 const screenshotAndPdf = (action, url, params = {}) => {
   const headers = {};
 
@@ -705,59 +776,9 @@ const screenshotAndPdf = (action, url, params = {}) => {
 
   if (token) Object.assign(headers, { "X-Prerender-Token": token });
 
-  if (params.viewportQuerySelector) {
-    Object.assign(headers, {
-      "Prerender-Viewport-Query-Selector": params.viewportQuerySelector,
-    });
+  assignHeaders(action.toUpperCase(), headers, params);
 
-    if (params.viewportQuerySelectorPadding) {
-      Object.assign(headers, {
-        "Prerender-Viewport-Query-Selector-Padding":
-          params.viewportQuerySelectorPadding,
-      });
-    }
-  }
-
-  if (params.deviceWidth)
-    Object.assign(headers, { "Prerender-Device-Width": params.deviceWidth });
-
-  if (params.deviceHeight)
-    Object.assign(headers, { "Prerender-Device-Height": params.deviceHeight });
-
-  if (params.viewportWidth)
-    Object.assign(headers, {
-      "Prerender-Viewport-Width": params.viewportWidth,
-    });
-
-  if (params.viewportHeight)
-    Object.assign(headers, {
-      "Prerender-Viewport-Height": params.viewportHeight,
-    });
-
-  if (params.viewportX)
-    Object.assign(headers, { "Prerender-Viewport-X": params.viewportX });
-
-  if (params.viewportY)
-    Object.assign(headers, { "Prerender-Viewport-Y": params.viewportY });
-
-  if (
-    (params.viewportX || params.viewportY) &&
-    !(params.viewportWidth && params.viewportHeight)
-  ) {
-    return Promise.reject(
-      new Error(
-        "can't set viewportX or viewportY without viewportWidth and viewportHeight"
-      )
-    );
-  }
-
-  if (params.noPageBreaks)
-    Object.assign(headers, { "Prerender-Pdf-No-Page-Breaks": "true" });
-
-  if (params.emulatedMedia)
-    Object.assign(headers, {
-      "Prerender-Emulated-Media": params.emulatedMedia,
-    });
+  // console.log({ url: getRenderUrl(action, url), headers });
 
   return got(getRenderUrl(action, url), {
     encoding: null,
