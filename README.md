@@ -149,7 +149,7 @@ DEBUG=prerendercloud node index.js
 
 ## Screenshots
 
-Promise API
+Capture a screenshot:
 
 ```javascript
 const prerendercloud = require("prerendercloud");
@@ -160,37 +160,7 @@ prerendercloud
   );
 ```
 
-Optionally specify deviceWidth/deviceHeight/viewportWidth/viewportHeight, but can't set a width without setting a height.
-
-```javascript
-prerendercloud
-  .screenshot("http://example.com", {
-    deviceWidth: 800,
-    deviceHeight: 600,
-    viewportWidth: 640,
-    viewportHeight: 480,
-  })
-  .then((pngBuffer) =>
-    fs.writeFileSync("out.png", pngBuffer, { encoding: null })
-  );
-```
-
-Set viewportX and viewportY is possible if viewportWidth and viewportHeight is set:
-
-```javascript
-prerendercloud
-  .screenshot("http://example.com", {
-    viewportWidth: 640,
-    viewportHeight: 480,
-    viewportX: 10,
-    viewportY: 10,
-  })
-  .then((pngBuffer) =>
-    fs.writeFileSync("out.png", pngBuffer, { encoding: null })
-  );
-```
-
-Alternatively set `viewportQuerySelector` and optionally `viewportQuerySelectorPadding` to specify a DOM element on the page to take a screenshot of. If both `viewportQuerySelector` and viewportWidth/viewportHeight are set, the querySelector will be attempted first and if not found, fallback to viewportWidth/viewportHeight (and if that's not set, default width/height will be used).
+Capture specific element with padding:
 
 ```javascript
 prerendercloud
@@ -203,15 +173,32 @@ prerendercloud
   );
 ```
 
-Set Emulated Media (screen, print, braille, embossed, handheld, projection, speech, tty, tv)
-
-(Use this to override the defaults: screen for screenshots, print for PDF)
+Customize dimensions and format:
 
 ```javascript
-const prerendercloud = require("prerendercloud");
 prerendercloud
   .screenshot("http://example.com", {
+    deviceWidth: 800,
+    deviceHeight: 600,
+    viewportWidth: 640,
+    viewportHeight: 480,
+    viewportX: 0,
+    viewportY: 0,
+    format: "jpeg", // png, webp, jpeg
+  })
+  .then((jpgBuffer) =>
+    fs.writeFileSync("out.jpg", jpgBuffer, { encoding: null })
+  );
+```
+
+Set emulated media and viewport scale:
+
+```javascript
+prerendercloud
+  .screenshot("http://example.com", {
+    // (screen, print, braille, embossed, handheld, projection, speech, tty, tv)
     emulatedMedia: "print",
+    viewportScale: 2,
   })
   .then((pngBuffer) =>
     fs.writeFileSync("out.png", pngBuffer, { encoding: null })
@@ -223,7 +210,7 @@ prerendercloud
 
 ## PDFs
 
-Promise API
+Generate a PDF:
 
 ```javascript
 const prerendercloud = require("prerendercloud");
@@ -234,25 +221,43 @@ prerendercloud
   );
 ```
 
-Disable PDF page breaks
+Disable page breaks and set emulated media:
 
 ```javascript
-const prerendercloud = require("prerendercloud");
 prerendercloud
-  .pdf("http://example.com", { noPageBreaks: true })
+  .pdf("http://example.com", {
+    // Note: using noPageBreaks forces the following
+    //  - pageRanges: "1",
+    //  - preferCssPageSize: true
+    //  - printBackground: true
+    noPageBreaks: true,
+
+    // emulatedMedia options: (screen, print, braille, embossed, handheld, projection, speech, tty, tv)
+    emulatedMedia: "screen",
+  })
   .then((pdfBuffer) =>
     fs.writeFileSync("out.pdf", pdfBuffer, { encoding: null })
   );
 ```
 
-Set Emulated Media (screen, print, braille, embossed, handheld, projection, speech, tty, tv)
-
-(Use this to override the defaults: screen for screenshots, print for PDF)
+Configure PDF options:
 
 ```javascript
 const prerendercloud = require("prerendercloud");
 prerendercloud
-  .pdf("http://example.com", { emulatedMedia: "screen" })
+  .pdf("http://example.com", {
+    pageRanges: "1-3",
+    scale: 1.5,
+    preferCssPageSize: true,
+    printBackground: true,
+    landscape: true,
+    marginTop: 1.75,
+    marginRight: 0.5,
+    marginBottom: 1.75,
+    marginLeft: 0.5,
+    paperWidth: 8.5,
+    paperHeight: 11,
+  })
   .then((pdfBuffer) =>
     fs.writeFileSync("out.pdf", pdfBuffer, { encoding: null })
   );
