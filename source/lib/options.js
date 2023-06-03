@@ -83,6 +83,7 @@ module.exports = class Options {
       "middlewareCacheMaxAge",
       "whitelistQueryParams",
       "shouldPrerender",
+      "shouldPrerenderAdditionalCheck",
       "removeScriptTags",
       "removeTrailingSlash",
       "protocol",

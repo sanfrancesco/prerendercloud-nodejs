@@ -511,6 +511,11 @@ class Prerender {
 
     if (options.options.shouldPrerender) {
       return options.options.shouldPrerender(this.req);
+    } else if (options.options.shouldPrerenderAdditionalCheck) {
+      return (
+        options.options.shouldPrerenderAdditionalCheck(this.req) &&
+        this._prerenderableUserAgent()
+      );
     } else {
       return this._prerenderableUserAgent();
     }
