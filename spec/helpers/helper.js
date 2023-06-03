@@ -129,6 +129,7 @@ global.withHttpMiddlewareMocks = function () {
 
       this.next = jasmine.createSpy("nextMiddleware").and.callFake(done);
       this.res.end = jasmine.createSpy("end").and.callFake(done);
+      this.res.send = jasmine.createSpy("send").and.callFake(done);
 
       configureUrlForReq(this.req, options);
     }.bind(this);

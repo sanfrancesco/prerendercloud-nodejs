@@ -62,6 +62,7 @@ The pre-render/server-side rendering functionality of this package (as opposed t
     - [blacklistPaths](#blacklistpaths)
     - [whitelistPaths](#whitelistpaths)
     - [shouldPrerender](#shouldprerender)
+    - [shouldPrerenderAdditionalCheck](#shouldPrerenderAdditionalCheck)
   - [Caching](#caching)
     - [Disable Headless-Render-API.com server cache](#disable-headless-render-apicom-server-cache)
     - [Using the \(optional\) middleware cache](#using-the-optional-middleware-cache)
@@ -411,6 +412,27 @@ const prerendercloud = require("prerendercloud");
 prerendercloud.set("shouldPrerender", (req) => {
   return req.headers["user-agent"] === "googlebot" && someStateOnMyServer();
   // return bool
+});
+```
+
+<a name="shouldprerenderadditionalcheck"></a>
+<a id="shouldprerenderadditionalcheck"></a>
+
+#### shouldPrerenderAdditionalCheck
+
+Runs **in addition** to the default user-agent check. Useful if you have your own conditions.
+
+```javascript
+// time delay
+const waitUntil = new Date() + 10000;
+prerendercloud.set("shouldPrerenderAdditionalCheck", (req) => {
+  return new Date() > waitUntil;
+});
+
+// enable flag
+let isEnabled = false;
+prerendercloud.set("shouldPrerenderAdditionalCheck", (req) => {
+  return isEnabled;
 });
 ```
 
