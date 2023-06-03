@@ -31,7 +31,7 @@ require("./lib/got-retries")(got, options, debug);
 
 const vary = require("vary");
 
-// preserve (and send to client) these headers from service.prerender.cloud which originally came from the origin server
+// preserve (and send to client) these headers from service.headless-render-api.com which originally came from the origin server
 const headerWhitelist = [
   "vary",
   "content-type",
@@ -272,8 +272,8 @@ class Prerender {
       });
   }
 
-  // fulfills promise when service.prerender.cloud response is: 2xx, 4xx
-  // rejects promise when request lib errors or service.prerender.cloud response is: 5xx
+  // fulfills promise when service.headless-render-api.com response is: 2xx, 4xx
+  // rejects promise when request lib errors or service.headless-render-api.com response is: 5xx
   _get() {
     const apiRequestUrl = this._createApiRequestUrl();
     const headers = this._createHeaders();
@@ -327,7 +327,7 @@ class Prerender {
 
           if (err.message && err.message.match(/throttle/)) {
             return createResponse(this.req, this.url.requestedUrl, {
-              body: "Error: prerender.cloud client throttled this prerender request due to a recent timeout",
+              body: "Error: headless-render-api.com client throttled this prerender request due to a recent timeout",
               statusCode: 503,
               headers: { "content-type": "text/html" },
             });
@@ -335,7 +335,7 @@ class Prerender {
 
           if (isGotClientTimeout(err))
             return createResponse(this.req, this.url.requestedUrl, {
-              body: "Error: prerender.cloud client timeout (as opposed to prerender.cloud server timeout)",
+              body: "Error: headless-render-api.com client timeout (as opposed to headless-render-api.com server timeout)",
               statusCode: 500,
               headers: { "content-type": "text/html" },
             });
@@ -354,7 +354,7 @@ class Prerender {
       this._writeHttpResponse(req, res, next, data);
 
     if (options.options.afterRenderBlocking) {
-      // preserve original body from origin prerender.cloud so mutations
+      // preserve original body from origin headless-render-api.com so mutations
       // from afterRenderBlocking don't affect concurrentRequestCache
       if (!data.origBodyBeforeAfterRenderBlocking) {
         data.origBodyBeforeAfterRenderBlocking = data.body;
