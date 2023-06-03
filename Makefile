@@ -9,7 +9,7 @@ build:
 	rm -rf publish
 	mkdir publish
 	cp -r distribution publish/
-	cp README.md package.json publish/
+	cp README.md package.json package-lock.json publish/
 
 # following https://booker.codes/how-to-build-and-publish-es6-npm-modules-today-with-babel/ for transpiled npm packages
 publish: build
