@@ -318,6 +318,13 @@ class Prerender {
               err.response
             );
 
+          if (err.response && is4xxError(err.response.statusCode))
+            return createResponse(
+              this.req,
+              this.url.requestedUrl,
+              err.response
+            );
+
           if (err.message && err.message.match(/throttle/)) {
             return createResponse(this.req, this.url.requestedUrl, {
               body: "Error: prerender.cloud client throttled this prerender request due to a recent timeout",
