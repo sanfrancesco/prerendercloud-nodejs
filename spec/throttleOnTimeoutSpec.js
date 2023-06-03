@@ -97,7 +97,7 @@ describe("timeout causes throttling", function () {
       });
       itBubblesUp(
         503,
-        "Error: prerender.cloud client throttled this prerender request due to a recent timeout"
+        "Error: headless-render-api.com client throttled this prerender request due to a recent timeout"
       );
     });
     describe("with throttling enabled", function () {

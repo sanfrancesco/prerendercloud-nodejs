@@ -382,7 +382,8 @@ class Prerender {
         debug(
           "service.headless-render-api.com returned status 400 request invalid:"
         );
-        res.status(400).send(data.body);
+        res.statusCode = 400;
+        res.send(data.body);
       } else if (data.statusCode === 429) {
         return handleSkip("rate limited due to free tier", next);
       } else {

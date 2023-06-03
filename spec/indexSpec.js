@@ -183,12 +183,14 @@ describe("prerender middleware", function () {
         beforeEach(function (done) {
           this.prerenderServer = nock("https://service.prerender.cloud")
             .get(/.*/)
-            .reply(() => [400, "errmsg"]);
+            .reply(() => [400, "user error"]);
           this.callPrerenderMiddleware(() => done());
         });
 
         it("returns pre-rendered body", function () {
-          expect(this.res.end.calls.mostRecent().args[0]).toMatch(/user error/);
+          expect(this.res.send.calls.mostRecent().args[0]).toMatch(
+            /user error/
+          );
         });
       });
 
@@ -2022,7 +2024,7 @@ describe("prerender middleware", function () {
                 {}
               );
               expect(this.res.end.calls.mostRecent().args[0]).toEqual(
-                "Error: prerender.cloud client timeout (as opposed to prerender.cloud server timeout)"
+                "Error: headless-render-api.com client timeout (as opposed to headless-render-api.com server timeout)"
               );
             });
             itRetries();
