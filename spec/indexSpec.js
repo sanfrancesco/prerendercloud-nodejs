@@ -188,9 +188,7 @@ describe("prerender middleware", function () {
         });
 
         it("returns pre-rendered body", function () {
-          expect(this.res.send.calls.mostRecent().args[0]).toMatch(
-            /user error/
-          );
+          expect(this.res.end.calls.mostRecent().args[0]).toMatch(/user error/);
         });
       });
 
