@@ -3,53 +3,28 @@ const path = require("path");
 const prerendercloud = require("../source/index");
 
 (async () => {
-  const outDir = path.join(__dirname, "out");
+  const outDir = path.join(__dirname, "out/screenshot");
+  fs.mkdirSync(outDir, { recursive: true });
 
-  if (!fs.existsSync(outDir)) {
-    fs.mkdirSync(outDir);
-  }
+  // test1
+  const screenshot1 = await prerendercloud.screenshot("http://example.com");
+  fs.writeFileSync(path.join(outDir, "test1.png"), screenshot1);
 
-  await prerendercloud
-    .screenshot("http://example.com", {
-      format: "webp",
-      viewportScale: 3,
-      viewportX: 300,
-      viewportY: 50,
-      viewportWidth: 765,
-      viewportHeight: 330,
-    })
-    .then((jpgBuffer) =>
-      fs.writeFileSync(path.join(outDir, "example.webp"), jpgBuffer)
-    );
+  // test 2
+  const screenshot2 = await prerendercloud.screenshot("http://example.com", {
+    format: "webp",
+    viewportScale: 3,
+    viewportX: 300,
+    viewportY: 50,
+    viewportWidth: 765,
+    viewportHeight: 330,
+  });
+  fs.writeFileSync(path.join(outDir, "test2.webp"), screenshot2);
 
-  await prerendercloud
-    .screenshot("http://example.com", {
-      format: "jpg",
-      viewportScale: 1.5,
-    })
-    .then((jpgBuffer) =>
-      fs.writeFileSync(path.join(outDir, "example.jpg"), jpgBuffer)
-    );
-
-  await prerendercloud
-    .pdf("http://example.com", {
-      noPageBreaks: true,
-      scale: 2,
-    })
-    .then((pdf) => fs.writeFileSync(path.join(outDir, "example.pdf"), pdf));
-
-  await prerendercloud
-    .pdf("http://example.com", {
-      marginTop: 0.1,
-      marginRight: 0.1,
-      marginBottom: 0.1,
-      marginLeft: 0.1,
-      paperWidth: 5,
-      paperHeight: 3,
-      pageRanges: "1",
-      emulatedMedia: "screen",
-    })
-    .then((pdf) =>
-      fs.writeFileSync(path.join(outDir, "notecard-width-example.pdf"), pdf)
-    );
+  // test 3
+  const screenshot3 = await prerendercloud.screenshot("http://example.com", {
+    format: "jpeg",
+    viewportScale: 1.5,
+  });
+  fs.writeFileSync(path.join(outDir, "test3.jpeg"), screenshot3);
 })();
