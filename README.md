@@ -287,7 +287,15 @@ Or scrape HTML and take a screenshot, and parse important meta tags (title, h1, 
 ```javascript
 const {
   body,
-  meta: { title, h1 },
+  meta: {
+    title,
+    h1,
+    description,
+    ogImage,
+    ogTitle,
+    ogDescription,
+    twitterCard,
+  },
   links,
   screenshot,
 } = await prerendercloud.scrape("https://example.com", {
@@ -297,7 +305,15 @@ const {
 
 console.log(body.toString());
 console.log({
-  meta,
+  meta: {
+    title,
+    h1,
+    description,
+    ogImage,
+    ogTitle,
+    ogDescription,
+    twitterCard,
+  },
   links,
 });
 fs.writeFileSync("body.html", body);
