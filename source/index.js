@@ -797,7 +797,30 @@ const screenshotAndPdf = (action, url, params = {}) => {
     encoding: null,
     headers,
     retries: options.options.retries,
-  }).then((res) => res.body);
+  }).then((res) => {
+    if (action === "pdf" || action === "screenshot") {
+      return res.body;
+    }
+
+    // scrape always returns an object as opposed to buffer
+    // and if the response was not json, then it didn't have
+    // options like withScreenshot or withMetadata
+    const contentType = res.headers["content-type"];
+    const isJson = contentType && contentType.match(/json/);
+    if (!isJson) {
+      return { body: res.body };
+    }
+
+    const parsed = JSON.parse(res.body);
+    Object.keys(parsed).forEach((key) => {
+      parsed[key] = Buffer.from(parsed[key], "base64");
+      if (key === "meta" || key === "links") {
+        parsed[key] = JSON.parse(parsed[key].toString());
+      }
+    });
+
+    return parsed;
+  });
 };
 
 Prerender.middleware.screenshot = screenshotAndPdf.bind(
@@ -805,6 +828,8 @@ Prerender.middleware.screenshot = screenshotAndPdf.bind(
   "screenshot"
 );
 Prerender.middleware.pdf = screenshotAndPdf.bind(undefined, "pdf");
+Prerender.middleware.scrape = screenshotAndPdf.bind(undefined, "scrape");
+
 Prerender.middleware.prerender = function (url, params) {
   const headers = {};
 

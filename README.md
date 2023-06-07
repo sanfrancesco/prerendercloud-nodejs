@@ -54,6 +54,7 @@ The pre-render/server-side rendering functionality of this package (as opposed t
   - [Debugging](#debugging)
 - [Screenshots](#screenshots)
 - [PDFs](#pdfs)
+- [Scrape](#scrape)
 - [Prerendering or Server-side rendering with Express/Connect/Node http](#prerendering-or-server-side-rendering-with-expressconnectnode-http)
   - [Configure a condition for when traffic should go through Headless-Render-API.com](#configure-a-condition-for-when-traffic-should-go-through-headless-render-apicom)
     - [Enable for bots **ONLY** \(google, facebook, twitter, slack etc...\)](#enable-for-bots-only-google-facebook-twitter-slack-etc)
@@ -264,6 +265,64 @@ prerendercloud
   .then((pdfBuffer) =>
     fs.writeFileSync("out.pdf", pdfBuffer, { encoding: null })
   );
+```
+
+<a name="scrape"></a>
+<a id="scrape"></a>
+
+## Scrape
+
+Scrape a webpage/URL. Optimized for scraping, this endpoint is based off our pre-rendering engine so it can correctly handle JavaScript apps.
+
+Scrape just the HTML:
+
+```javascript
+const { body } = await prerendercloud.scrape("https://example.com");
+console.log(body);
+fs.writeFileSync("body.html", body);
+```
+
+Or scrape HTML and take a screenshot, and parse important meta tags (title, h1, open graph, etc.):
+
+```javascript
+const {
+  body,
+  meta: {
+    title,
+    h1,
+    description,
+    ogImage,
+    ogTitle,
+    ogDescription,
+    twitterCard,
+  },
+  links,
+  screenshot,
+} = await prerendercloud.scrape("https://example.com", {
+  withMetadata: true,
+  withScreenshot: true,
+});
+
+console.log(body.toString());
+console.log({
+  meta: {
+    title,
+    h1,
+    description,
+    ogImage,
+    ogTitle,
+    ogDescription,
+    twitterCard,
+  },
+  links,
+});
+fs.writeFileSync("body.html", body);
+fs.writeFileSync("screenshot.png", screenshot);
+
+// links is an array of all the links on the page
+// meta is an object that looks like: { title, h1, description, ogImage, ogTitle, ogDescription, twitterCard }
+// screenshot and body are Buffers (so they can be saved to file)
+// call body.toString() for stringified HTML
 ```
 
 <a name="prerendering-or-server-side-rendering-with-expressconnectnode-http"></a>

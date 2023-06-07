@@ -1,3 +1,5 @@
 node_modules
 distribution
+publish
+test/out
 .DS_Store

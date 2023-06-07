@@ -1,5 +1,63 @@
 {
   "PRERENDER": {
+    "disableCache": {
+      "httpName": "prerender-disable-cache",
+      "openApiType": "boolean"
+    },
+    "cacheDuration": {
+      "httpName": "prerender-cache-duration",
+      "openApiType": "integer",
+      "min": 10,
+      "max": 2592000
+    },
+    "recache": {
+      "httpName": "prerender-recache",
+      "openApiType": "boolean"
+    },
+    "disableAjaxPreload": {
+      "httpName": "prerender-disable-ajax-preload",
+      "openApiType": "boolean"
+    },
+    "disableAjaxBypass": {
+      "httpName": "prerender-disable-ajax-bypass",
+      "openApiType": "boolean"
+    },
+    "disableHeadDeDupe": {
+      "httpName": "prerender-disable-head-dedupe",
+      "openApiType": "boolean"
+    },
+    "waitExtraLong": {
+      "httpName": "prerender-wait-extra-long",
+      "openApiType": "boolean"
+    },
+    "dontWaitForWebSockets": {
+      "httpName": "prerender-dont-wait-for-web-sockets",
+      "openApiType": "boolean"
+    },
+    "blockCookies": {
+      "httpName": "prerender-block-cookies",
+      "openApiType": "boolean"
+    },
+    "originHeaderWhitelist": {
+      "httpName": "origin-header-whitelist",
+      "openApiType": "string"
+    },
+    "metaOnly": {
+      "httpName": "prerender-meta-only",
+      "openApiType": "boolean"
+    },
+    "removeScriptTags": {
+      "httpName": "prerender-remove-script-tags",
+      "openApiType": "boolean"
+    },
+    "removeTrailingSlash": {
+      "httpName": "prerender-remove-trailing-slash",
+      "openApiType": "boolean"
+    },
+    "followRedirects": {
+      "httpName": "prerender-follow-redirects",
+      "openApiType": "boolean"
+    },
     "deviceWidth": {
       "httpName": "prerender-device-width",
       "openApiType": "integer",
@@ -11,6 +69,18 @@
       "openApiType": "integer",
       "min": 10,
       "max": 10000
+    },
+    "deviceIsMobile": {
+      "httpName": "prerender-device-is-mobile",
+      "openApiType": "boolean"
+    },
+    "withScreenshot": {
+      "httpName": "prerender-with-screenshot",
+      "openApiType": "boolean"
+    },
+    "withMetadata": {
+      "httpName": "prerender-with-metadata",
+      "openApiType": "boolean"
     }
   },
   "SCREENSHOT": {
@@ -25,6 +95,10 @@
       "openApiType": "integer",
       "min": 10,
       "max": 10000
+    },
+    "deviceIsMobile": {
+      "httpName": "prerender-device-is-mobile",
+      "openApiType": "boolean"
     },
     "viewportQuerySelector": {
       "httpName": "prerender-viewport-query-selector",
@@ -89,6 +163,22 @@
         "tty",
         "tv"
       ]
+    },
+    "waitExtraLong": {
+      "httpName": "prerender-wait-extra-long",
+      "openApiType": "boolean"
+    },
+    "dontWaitForWebSockets": {
+      "httpName": "prerender-dont-wait-for-web-sockets",
+      "openApiType": "boolean"
+    },
+    "blockCookies": {
+      "httpName": "prerender-block-cookies",
+      "openApiType": "boolean"
+    },
+    "originHeaderWhitelist": {
+      "httpName": "origin-header-whitelist",
+      "openApiType": "string"
     }
   },
   "PDF": {
@@ -168,6 +258,79 @@
         "tty",
         "tv"
       ]
+    },
+    "waitExtraLong": {
+      "httpName": "prerender-wait-extra-long",
+      "openApiType": "boolean"
+    },
+    "dontWaitForWebSockets": {
+      "httpName": "prerender-dont-wait-for-web-sockets",
+      "openApiType": "boolean"
+    },
+    "blockCookies": {
+      "httpName": "prerender-block-cookies",
+      "openApiType": "boolean"
+    },
+    "originHeaderWhitelist": {
+      "httpName": "origin-header-whitelist",
+      "openApiType": "string"
+    }
+  },
+  "SCRAPE": {
+    "waitExtraLong": {
+      "httpName": "prerender-wait-extra-long",
+      "openApiType": "boolean"
+    },
+    "dontWaitForWebSockets": {
+      "httpName": "prerender-dont-wait-for-web-sockets",
+      "openApiType": "boolean"
+    },
+    "blockCookies": {
+      "httpName": "prerender-block-cookies",
+      "openApiType": "boolean"
+    },
+    "followRedirects": {
+      "httpName": "prerender-follow-redirects",
+      "openApiType": "boolean"
+    },
+    "deviceWidth": {
+      "httpName": "prerender-device-width",
+      "openApiType": "integer",
+      "min": 10,
+      "max": 10000
+    },
+    "deviceHeight": {
+      "httpName": "prerender-device-height",
+      "openApiType": "integer",
+      "min": 10,
+      "max": 10000
+    },
+    "deviceIsMobile": {
+      "httpName": "prerender-device-is-mobile",
+      "openApiType": "boolean"
+    },
+    "emulatedMedia": {
+      "httpName": "prerender-emulated-media",
+      "openApiType": "string",
+      "openApiEnum": [
+        "screen",
+        "print",
+        "braille",
+        "embossed",
+        "handheld",
+        "projection",
+        "speech",
+        "tty",
+        "tv"
+      ]
+    },
+    "withScreenshot": {
+      "httpName": "prerender-with-screenshot",
+      "openApiType": "boolean"
+    },
+    "withMetadata": {
+      "httpName": "prerender-with-metadata",
+      "openApiType": "boolean"
     }
   }
 }

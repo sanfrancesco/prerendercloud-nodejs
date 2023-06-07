@@ -19,3 +19,8 @@ test:
 	NODE_ENV=test \
 	PRERENDER_SERVICE_URL="https://service.prerender.cloud" \
 	./node_modules/jasmine/bin/jasmine.js
+
+devtest:
+	@for script in screenshot pdf scrape; do \
+		NODE_ENV=test PRERENDER_SERVICE_URL=http://localhost:3001 node ./test/$$script.js; \
+	done
