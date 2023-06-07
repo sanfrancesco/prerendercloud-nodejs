@@ -805,7 +805,9 @@ const screenshotAndPdf = (action, url, params = {}) => {
     // scrape always returns an object as opposed to buffer
     // and if the response was not json, then it didn't have
     // options like withScreenshot or withMetadata
-    if (!res.headers["content-type"]?.match(/json/)) {
+    const contentType = res.headers["content-type"];
+    const isJson = contentType && contentType.match(/json/);
+    if (!isJson) {
       return { body: res.body };
     }
 
