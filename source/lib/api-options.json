@@ -175,10 +175,6 @@
     "blockCookies": {
       "httpName": "prerender-block-cookies",
       "openApiType": "boolean"
-    },
-    "originHeaderWhitelist": {
-      "httpName": "origin-header-whitelist",
-      "openApiType": "string"
     }
   },
   "PDF": {
@@ -270,10 +266,6 @@
     "blockCookies": {
       "httpName": "prerender-block-cookies",
       "openApiType": "boolean"
-    },
-    "originHeaderWhitelist": {
-      "httpName": "origin-header-whitelist",
-      "openApiType": "string"
     }
   },
   "SCRAPE": {
