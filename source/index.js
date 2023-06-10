@@ -828,7 +828,20 @@ const screenshotAndPdf = (action, url, params = {}) => {
     }
 
     const parsed = JSON.parse(res.body);
+
     Object.keys(parsed).forEach((key) => {
+      if (!parsed[key]) {
+        return;
+      }
+      if (key === "statusCode" && parsed[key]) {
+        parsed[key] = parseInt(parsed[key]);
+        return;
+      }
+      if (key === "headers" && parsed[key]) {
+        parsed[key] = parsed[key];
+        return;
+      }
+
       parsed[key] = Buffer.from(parsed[key], "base64");
       if (key === "meta" || key === "links") {
         parsed[key] = JSON.parse(parsed[key].toString());
