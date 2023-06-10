@@ -803,6 +803,21 @@ const screenshotAndPdf = (action, url, params = {}) => {
       return res.body;
     }
 
+    let shouldReturnRedirect = false;
+    if (
+      !options.options.followRedirect &&
+      (res.statusCode === 302 || res.statusCode === 301)
+    ) {
+      shouldReturnRedirect = true;
+    }
+
+    if (shouldReturnRedirect) {
+      return {
+        statusCode: res.statusCode,
+        headers: res.headers,
+      };
+    }
+
     // scrape always returns an object as opposed to buffer
     // and if the response was not json, then it didn't have
     // options like withScreenshot or withMetadata
