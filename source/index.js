@@ -797,6 +797,7 @@ const screenshotAndPdf = (action, url, params = {}) => {
     encoding: null,
     headers,
     retries: options.options.retries,
+    followRedirect: options.options.followRedirect || false,
   }).then((res) => {
     if (action === "pdf" || action === "screenshot") {
       return res.body;
@@ -841,6 +842,7 @@ Prerender.middleware.prerender = function (url, params) {
     encoding: null,
     headers,
     retries: options.options.retries,
+    followRedirect: options.options.followRedirect || false,
   }).then((res) => res.body);
 };
 
