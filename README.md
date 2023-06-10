@@ -286,43 +286,52 @@ Or scrape HTML and take a screenshot, and parse important meta tags (title, h1, 
 
 ```javascript
 const {
-  body,
+  body, // Buffer
   meta: {
     title,
     h1,
     description,
     ogImage,
     ogTitle,
+    ogType,
     ogDescription,
     twitterCard,
   },
-  links,
-  screenshot,
+  links, // Array
+  screenshot, // Buffer
+  statusCode, // number
+  headers, // object of headers
 } = await prerendercloud.scrape("https://example.com", {
   withMetadata: true,
   withScreenshot: true,
+  followRedirects: false,
 });
 
-console.log(body.toString());
-console.log({
-  meta: {
-    title,
-    h1,
-    description,
-    ogImage,
-    ogTitle,
-    ogDescription,
-    twitterCard,
-  },
-  links,
-});
-fs.writeFileSync("body.html", body);
-fs.writeFileSync("screenshot.png", screenshot);
+if (statusCode === 301 || statusCode === 302) {
+  // get the redirect location from headers.location
+  // if instead you'd rather follow redirects, set followRedirects: true
+} else {
+  console.log(body.toString());
+  console.log({
+    meta: {
+      title,
+      h1,
+      description,
+      ogImage,
+      ogTitle,
+      ogDescription,
+      twitterCard,
+    },
+    links,
+  });
+  fs.writeFileSync("body.html", body);
+  fs.writeFileSync("screenshot.png", screenshot);
 
-// links is an array of all the links on the page
-// meta is an object that looks like: { title, h1, description, ogImage, ogTitle, ogDescription, twitterCard }
-// screenshot and body are Buffers (so they can be saved to file)
-// call body.toString() for stringified HTML
+  // links is an array of all the links on the page
+  // meta is an object that looks like: { title, h1, description, ogImage, ogTitle, ogType, ogDescription, twitterCard }
+  // screenshot and body are Buffers (so they can be saved to file)
+  // call body.toString() for stringified HTML
+}
 ```
 
 <a name="prerendering-or-server-side-rendering-with-expressconnectnode-http"></a>

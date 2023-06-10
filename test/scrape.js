@@ -26,10 +26,23 @@ const prerendercloud = require("../source/index");
     screenshot: screenshot3,
     meta: meta3,
     links: link3,
+    headers: headers3,
+    statusCode: statusCode3,
   } = await prerendercloud.scrape("http://example.com", {
     withScreenshot: true,
     withMetadata: true,
   });
+  if (statusCode3 !== 200) {
+    throw new Error(`Expected statusCode to be 200, but got ${statusCode3}`);
+  } else {
+    console.log("test3 withMetadata statusCode passed");
+  }
+  if (Object.keys(headers3).length === 0) {
+    throw new Error(`Expected headers to be non-empty, but got ${headers3}`);
+  } else {
+    console.log("test3 withMetadata headers passed");
+  }
+
   const expectedLinks = ["https://www.iana.org/domains/example"];
   const expectedMeta = {
     title: "Example Domain",
@@ -38,6 +51,7 @@ const prerendercloud = require("../source/index");
     ogImage: null,
     ogTitle: null,
     ogDescription: null,
+    ogType: null,
     twitterCard: null,
   };
   if (JSON.stringify(link3) !== JSON.stringify(expectedLinks)) {

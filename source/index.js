@@ -797,9 +797,25 @@ const screenshotAndPdf = (action, url, params = {}) => {
     encoding: null,
     headers,
     retries: options.options.retries,
+    followRedirect: options.options.followRedirect || false,
   }).then((res) => {
     if (action === "pdf" || action === "screenshot") {
       return res.body;
+    }
+
+    let shouldReturnRedirect = false;
+    if (
+      !options.options.followRedirect &&
+      (res.statusCode === 302 || res.statusCode === 301)
+    ) {
+      shouldReturnRedirect = true;
+    }
+
+    if (shouldReturnRedirect) {
+      return {
+        statusCode: res.statusCode,
+        headers: res.headers,
+      };
     }
 
     // scrape always returns an object as opposed to buffer
@@ -812,7 +828,20 @@ const screenshotAndPdf = (action, url, params = {}) => {
     }
 
     const parsed = JSON.parse(res.body);
+
     Object.keys(parsed).forEach((key) => {
+      if (!parsed[key]) {
+        return;
+      }
+      if (key === "statusCode" && parsed[key]) {
+        parsed[key] = parseInt(parsed[key]);
+        return;
+      }
+      if (key === "headers" && parsed[key]) {
+        parsed[key] = parsed[key];
+        return;
+      }
+
       parsed[key] = Buffer.from(parsed[key], "base64");
       if (key === "meta" || key === "links") {
         parsed[key] = JSON.parse(parsed[key].toString());
@@ -841,6 +870,7 @@ Prerender.middleware.prerender = function (url, params) {
     encoding: null,
     headers,
     retries: options.options.retries,
+    followRedirect: options.options.followRedirect || false,
   }).then((res) => res.body);
 };
 
